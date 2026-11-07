@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.1.1 · 2026-11-07
+
+form.ext reads and submits to form.ext-registry (`nodemode-dev/form.ext-registry`), the single source of official Form extensions.
+
+- **Library:** the Examples shelf is now the Registry shelf. It downloads the registry's signed index (`registry.url`, `FORMEXT_REGISTRY_URL` overrides), checks `extensions.json.sig` with the registry keys compiled into the engine (`backend/app/registry_keys.txt`, comment lines only until the owners add theirs) and `FORMEXT_REGISTRY_PUBKEY`, and shows each extension with the Verified mark, its app, version, permissions and source link. Inspect and Import download the package and check its SHA-256 and publisher signature before the usual import. It says plainly when no key is trusted yet, when the registry is private or not published, unreachable, or the signature does not match. The local examples folders are gone.
+- **Publish:** Submit to Registry writes the project in the registry's layout (`extensions/<id>/` with `package/`, the source, README, LICENSE, CHANGELOG and the `docs/screenshot.png` slot), runs the registry's own `tools/check.py` from a local checkout (`registry.checkout`), or form.ext's Check without one, and shows the `git` and `gh` commands that fork the registry and open the pull request.
+- **Agents:** `submit` on the command line and as the 27th MCP tool; the harness skill teaches it.
+- **Demo:** the page's Library shows the bundled registry packages as the registry's verified entries, and Submit to Registry runs in the page.
+- **Contract:** `extensions.schema.json` takes the registry's `verified`, `registry_commit` and `source` entry fields.
+
 ## v0.1.0 · 2026-11-07
 
 The first release of form.ext, the Form family's extension studio: make, preview, check, package, sign and publish extensions for every Form app, against the Form Extension Contract, API 1.

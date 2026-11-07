@@ -2,8 +2,8 @@
 
 Living log of the Library module: `frontend/src/panes/library/`, `backend/app/services/library.py`, `backend/app/services/registry.py`, `backend/app/registry_keys.txt`, `backend/app/routers/library.py`. Source files stay comment-free; what they would have said lives here.
 
-Current build version: v0.1.0
-Last updated: 2026-11-07 · v0.1.0 library
+Current build version: v0.1.1
+Last updated: 2026-11-07 · v0.1.1 the registry shelf
 
 ---
 

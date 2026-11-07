@@ -76,7 +76,7 @@ function decodeFiles(rawFiles: Json): Record<string, Uint8Array> {
   return out;
 }
 
-on('GET', '/api/health', () => ({ ok: true, app: 'formext', version: '0.1.0 in this page', api: '1', pid: 0, python: null, frozen: false, home: DATA, contract: 'bundled', uptime: Math.round(performance.now() / 100) / 10, live_clients: 0, routers: ['health', 'settings', 'projects', 'live', 'library', 'package', 'preview', 'publish', 'runapp', 'templates', 'validate'], router_errors: {}, frontend: 'demo', demo: true }));
+on('GET', '/api/health', () => ({ ok: true, app: 'formext', version: '0.1.1 in this page', api: '1', pid: 0, python: null, frozen: false, home: DATA, contract: 'bundled', uptime: Math.round(performance.now() / 100) / 10, live_clients: 0, routers: ['health', 'settings', 'projects', 'live', 'library', 'package', 'preview', 'publish', 'runapp', 'templates', 'validate'], router_errors: {}, frontend: 'demo', demo: true }));
 on('GET', '/api/settings', () => ({ ...settings.get(), home: DATA }));
 on('PUT', '/api/settings', (_m, r) => {
   const patch = { ...json(r) };
