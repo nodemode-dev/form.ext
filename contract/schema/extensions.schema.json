@@ -169,6 +169,17 @@
         },
         "api": {
           "const": "1"
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "registry_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "source": {
+          "type": "string",
+          "pattern": "^https://"
         }
       },
       "if": {
