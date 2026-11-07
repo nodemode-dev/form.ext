@@ -1,0 +1,23 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formtray-group-maker",
+  "name": "Group Maker",
+  "product": "formtray",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Makes a group tile on the Widgets board from the apps you tick, or from every app running now in one command.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Group Maker", "location": "dock" }],
+    "commands": [
+      { "id": "open-groups", "title": "Group Maker", "panel": "main" },
+      { "id": "group-running", "title": "Group the Running Apps" }
+    ]
+  }
+}

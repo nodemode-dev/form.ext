@@ -1,0 +1,6 @@
+{
+  "title": "Command",
+  "name": "Agenda Notes",
+  "summary": "A headless command that reads the deck and writes the list of slide titles into the current slide's speaker notes, as one undo step.",
+  "uses": ["document.read deck", "document.apply apply-ops", "ext.activate", "ext.done"]
+}

@@ -1,0 +1,6 @@
+{
+  "title": "Panel",
+  "name": "Agent Switchboard",
+  "summary": "A dock panel that reads formMCP's apps and agents, switches the window's agent and filter, and offers or withdraws an app per agent with set_for.",
+  "uses": ["document.read all", "app.run select_agent select_filter", "document.apply set_for", "ext.event document.changed", "ext.event selection.changed"]
+}

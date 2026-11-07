@@ -1,0 +1,6 @@
+{
+  "title": "Command",
+  "name": "Fade In Out",
+  "summary": "A headless command that keys the opacity of every selected layer to fade in and out, all in one History step.",
+  "uses": ["document.read summary", "document.apply prop.addKey", "ext.activate", "ext.done"]
+}

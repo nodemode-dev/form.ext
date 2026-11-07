@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formmd-dated-entry",
+  "name": "Dated Entry",
+  "product": "formmd",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Adds a dated heading and an empty to-do at the end of the page, for logs, journals and meeting notes.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "commands": [{ "id": "dated-entry", "title": "Add a Dated Entry" }]
+  }
+}

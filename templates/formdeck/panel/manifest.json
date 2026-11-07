@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formdeck-notes-desk",
+  "name": "Notes Desk",
+  "product": "formdeck",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Every slide's speaker notes in one place: pick a slide, read and rewrite its notes, and see which slides still have none.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Notes Desk", "location": "dock" }]
+  }
+}

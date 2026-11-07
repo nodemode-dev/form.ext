@@ -1,0 +1,23 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formencoder-preset-switch",
+  "name": "Preset Switch",
+  "product": "formencoder",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Search FormEncoder's presets and put one on every selected output at once; a command applies your last choice again.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Preset Switch", "location": "dock" }],
+    "commands": [
+      { "id": "open-presets", "title": "Preset Switch", "panel": "main" },
+      { "id": "apply-last", "title": "Apply the Last Preset to the Selection" }
+    ]
+  }
+}

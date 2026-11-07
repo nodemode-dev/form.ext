@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formmcp-lean-start",
+  "name": "Lean Start",
+  "product": "formmcp",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Sets every app's server to start on demand instead of with the session or always, in one step you can undo, to keep the computer light.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "commands": [{ "id": "lean-start", "title": "Start Every App on Demand" }]
+  }
+}

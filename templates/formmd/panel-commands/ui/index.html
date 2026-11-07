@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <title>Reading Time</title>
+    <link rel="stylesheet" href="base.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Reading Time</h1>
+        <div class="sub" id="sub">&nbsp;</div>
+      </header>
+      <ul class="list" id="stats">
+        <li><span class="name">Words</span><span class="meta" id="words">-</span></li>
+        <li><span class="name">Sentences</span><span class="meta" id="sentences">-</span></li>
+        <li><span class="name">Reading time</span><span class="meta" id="minutes">-</span></li>
+        <li><span class="name">Selection</span><span class="meta" id="selection">-</span></li>
+      </ul>
+      <div class="row">
+        <label class="grow">Words a minute <input id="wpm" type="number" min="80" max="600" value="230" /></label>
+        <button class="primary" id="insert" type="button">Insert under Title</button>
+      </div>
+      <div id="status">&nbsp;</div>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

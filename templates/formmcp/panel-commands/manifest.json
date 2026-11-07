@@ -1,0 +1,23 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formmcp-profile-snapshots",
+  "name": "Profile Snapshots",
+  "product": "formmcp",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Save an agent's app and tool settings as a dated profile, switch an agent between profiles, and snapshot the current agent in one command.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Profile Snapshots", "location": "dock" }],
+    "commands": [
+      { "id": "open-profiles", "title": "Profile Snapshots", "panel": "main" },
+      { "id": "snapshot", "title": "Snapshot the Current Agent" }
+    ]
+  }
+}

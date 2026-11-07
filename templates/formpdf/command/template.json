@@ -1,0 +1,6 @@
+{
+  "title": "Command",
+  "name": "Number Pages",
+  "summary": "A headless command that runs formpdf's page_numbers change on every page after the cover, as one undoable change.",
+  "uses": ["document.read summary", "document.apply page_numbers", "ext.activate", "ext.done"]
+}

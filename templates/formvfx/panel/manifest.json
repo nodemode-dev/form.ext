@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formvfx-layer-strip",
+  "name": "Layer Strip",
+  "product": "formvfx",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "The active composition's layers with their in and out points, effects and masks: click to select, and drop a marker at the current time.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Layer Strip", "location": "dock" }]
+  }
+}

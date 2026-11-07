@@ -1,0 +1,23 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formlit-keyword-stamp",
+  "name": "Keyword Stamp",
+  "product": "formlit",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Keeps a short list of your favourite keywords and stamps any of them onto the selected photos, or takes one off, in one click.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Keyword Stamp", "location": "dock" }],
+    "commands": [
+      { "id": "open-stamp", "title": "Keyword Stamp", "panel": "main" },
+      { "id": "stamp-last", "title": "Stamp the Last Keyword" }
+    ]
+  }
+}

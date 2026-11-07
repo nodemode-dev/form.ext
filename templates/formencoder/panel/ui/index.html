@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <title>Queue Board</title>
+    <link rel="stylesheet" href="base.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Queue Board</h1>
+        <div class="sub" id="sub">&nbsp;</div>
+      </header>
+      <div class="row">
+        <button class="primary" data-run="queue.start" type="button">Start</button>
+        <button data-run="queue.pause" type="button">Pause</button>
+        <button data-run="queue.stop" type="button">Stop</button>
+      </div>
+      <ul class="list" id="outputs"><li class="empty">Reading the queue</li></ul>
+      <div id="status">&nbsp;</div>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

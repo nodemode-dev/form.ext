@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formpdf-page-words",
+  "name": "Page Words",
+  "product": "formpdf",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Words per page for the open PDF, with each page's first line: click a page to go there and spot the empty or scanned ones.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Page Words", "location": "dock" }]
+  }
+}

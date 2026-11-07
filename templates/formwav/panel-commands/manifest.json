@@ -1,0 +1,23 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formwav-region-loops",
+  "name": "Region Loops",
+  "product": "formwav",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Practise or mix one part at a time: list the session's regions, loop any of them in one click, and turn the selected range into a new region.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Region Loops", "location": "dock" }],
+    "commands": [
+      { "id": "open-regions", "title": "Region Loops", "panel": "main" },
+      { "id": "region-from-selection", "title": "Make a Region from the Selection" }
+    ]
+  }
+}

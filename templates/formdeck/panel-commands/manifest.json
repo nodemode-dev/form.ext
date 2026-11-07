@@ -1,0 +1,23 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formdeck-deck-outline",
+  "name": "Deck Outline",
+  "product": "formdeck",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document", "files-write"],
+  "api": "1",
+  "description": "The deck as an outline, titles with their text and speaker notes, shown in a panel and saved as a Markdown file you can share or rehearse from.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Deck Outline", "location": "dock" }],
+    "commands": [
+      { "id": "show-outline", "title": "Deck Outline", "panel": "main" },
+      { "id": "export-outline", "title": "Save the Outline as Markdown" }
+    ]
+  }
+}

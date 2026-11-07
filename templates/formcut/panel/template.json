@@ -1,0 +1,6 @@
+{
+  "title": "Panel",
+  "name": "Marker List",
+  "summary": "A dock panel listing the timeline's markers with timecodes: click to seek, rename, remove, or add one at the playhead.",
+  "uses": ["document.read project", "document.apply marker.add marker.update marker.remove", "app.run transport.seek", "ext.event document.changed", "ext.event transport.changed"]
+}

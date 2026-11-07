@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formvfx-fade-in-out",
+  "name": "Fade In Out",
+  "product": "formvfx",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Gives every selected layer a half-second opacity fade in at its in point and out at its out point, in one History step.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "commands": [{ "id": "fade-in-out", "title": "Fade Selected Layers In and Out" }]
+  }
+}

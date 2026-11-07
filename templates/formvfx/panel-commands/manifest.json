@@ -1,0 +1,23 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formvfx-lower-third",
+  "name": "Lower Third",
+  "product": "formvfx",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Builds a name and role lower third in the active composition: a bar and two text layers parented to it, sized to the frame, in one History step.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Lower Third", "location": "dock" }],
+    "commands": [
+      { "id": "open-lower-third", "title": "Lower Third", "panel": "main" },
+      { "id": "quick-lower-third", "title": "Add the Last Lower Third Again" }
+    ]
+  }
+}

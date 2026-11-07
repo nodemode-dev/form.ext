@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formskills-format-check",
+  "name": "Format Check",
+  "product": "formskills",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Checks the skill open in the reader against the skill format and says how many errors and warnings it has, with the first finding.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "commands": [{ "id": "check-open-skill", "title": "Check the Open Skill" }]
+  }
+}

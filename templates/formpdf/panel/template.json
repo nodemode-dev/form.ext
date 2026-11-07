@@ -1,0 +1,6 @@
+{
+  "title": "Panel",
+  "name": "Page Words",
+  "summary": "A dock panel that reads the PDF's text, counts the words on every page and goes to a page when clicked.",
+  "uses": ["document.read summary", "document.read text", "app.run pdf-go-page", "ext.event document.changed", "ext.event selection.changed"]
+}

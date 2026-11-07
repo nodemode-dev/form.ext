@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formencoder-retry-failed",
+  "name": "Retry Failed",
+  "product": "formencoder",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Puts every failed or stopped output back to ready in one History step, so the next Start encodes them again.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "commands": [{ "id": "retry-failed", "title": "Retry Failed Outputs" }]
+  }
+}

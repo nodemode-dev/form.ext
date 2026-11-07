@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formdeck-agenda-notes",
+  "name": "Agenda Notes",
+  "product": "formdeck",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Writes the deck's agenda, every visible slide title in order, into the current slide's speaker notes.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "commands": [{ "id": "agenda-notes", "title": "Put the Agenda in the Notes" }]
+  }
+}

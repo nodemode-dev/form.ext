@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formcut-marker-list",
+  "name": "Marker List",
+  "product": "formcut",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Every marker of the active timeline in one list: jump to a marker, rename it, remove it, or add one at the playhead.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Marker List", "location": "dock" }]
+  }
+}

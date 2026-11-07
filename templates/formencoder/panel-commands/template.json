@@ -1,0 +1,6 @@
+{
+  "title": "Panel with commands",
+  "name": "Preset Switch",
+  "summary": "A panel that searches the preset list and puts a preset on the selected outputs with queue.setPreset, a command that opens it, and a headless command that applies the last preset again.",
+  "uses": ["document.read presets", "document.read selection", "document.apply queue.setPreset", "storage.get", "storage.set", "ext.activate", "ext.done"]
+}

@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formencoder-queue-board",
+  "name": "Queue Board",
+  "product": "formencoder",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "The encode queue at a glance: every output with its preset, status and progress, the totals, and Start, Pause and Stop.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Queue Board", "location": "dock" }]
+  }
+}

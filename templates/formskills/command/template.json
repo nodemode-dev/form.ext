@@ -1,0 +1,6 @@
+{
+  "title": "Command",
+  "name": "Format Check",
+  "summary": "A headless command that reads which skill is open and runs formskills' check on it, then reports the errors and warnings.",
+  "uses": ["document.read selection", "app.run check", "ext.activate", "ext.done"]
+}

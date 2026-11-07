@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <title>Board Tidy</title>
+    <link rel="stylesheet" href="base.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Board Tidy</h1>
+        <div class="sub" id="sub">&nbsp;</div>
+      </header>
+      <ul class="list" id="tiles"><li class="empty">Reading the board</li></ul>
+      <div class="row">
+        <select class="grow" id="app"><option value="">Apps not on the board</option></select>
+        <button class="primary" id="add" type="button">Add Tile</button>
+      </div>
+      <div id="status">&nbsp;</div>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

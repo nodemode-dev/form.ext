@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formcut-split-here",
+  "name": "Split Here",
+  "product": "formcut",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Splits every selected clip at the playhead and drops a marker there, in one undo step.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "commands": [{ "id": "split-here", "title": "Split Selected Clips at Playhead" }]
+  }
+}

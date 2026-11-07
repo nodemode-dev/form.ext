@@ -1,0 +1,6 @@
+{
+  "title": "Panel",
+  "name": "Board Tidy",
+  "summary": "A tile on the Widgets board that lists the board's tiles and resizes, moves, removes and adds them with formtray's board commands.",
+  "uses": ["document.read all", "document.apply board.resize board.move board.remove board.add", "ext.event document.changed", "ext.event apps.changed"]
+}

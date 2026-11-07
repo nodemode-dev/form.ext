@@ -1,0 +1,6 @@
+{
+  "title": "Command",
+  "name": "Split Here",
+  "summary": "A headless command that splits the selected clips at the playhead and marks the cut, as one undo step.",
+  "uses": ["document.read project", "document.apply clips.split marker.add", "ext.activate", "ext.done"]
+}

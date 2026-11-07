@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formlit-rating-desk",
+  "name": "Rating Desk",
+  "product": "formlit",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "The selected photos with their camera, exposure, stars and flag, and one row of buttons to rate, pick or reject them all at once.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Rating Desk", "location": "dock" }]
+  }
+}

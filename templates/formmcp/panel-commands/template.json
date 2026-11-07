@@ -1,0 +1,6 @@
+{
+  "title": "Panel with commands",
+  "name": "Profile Snapshots",
+  "summary": "A panel that saves, uses and deletes formMCP profiles for the chosen agent, a command that opens it, and a headless command that saves a dated snapshot.",
+  "uses": ["document.read all", "document.read selection", "document.apply profile_save profile_use profile_delete", "ext.activate", "ext.done"]
+}

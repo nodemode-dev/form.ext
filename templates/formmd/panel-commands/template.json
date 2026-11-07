@@ -1,0 +1,6 @@
+{
+  "title": "Panel with commands",
+  "name": "Reading Time",
+  "summary": "A panel that measures the page and the selection from document.read, a command that opens it, and a headless command that writes or updates the reading time under the title.",
+  "uses": ["document.read all", "document.apply doc.insertMarkdown doc.replaceBlock", "storage.get", "storage.set", "ext.event selection.changed", "ext.activate", "ext.done"]
+}

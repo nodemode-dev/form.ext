@@ -1,0 +1,6 @@
+{
+  "title": "Panel",
+  "name": "Marker List",
+  "summary": "A dock panel listing the session's markers with times: add one at the playhead (in samples), rename or remove it.",
+  "uses": ["document.read session", "document.read markers", "document.apply add-marker set-marker remove-marker", "ext.event document.changed", "ext.event transport.changed"]
+}

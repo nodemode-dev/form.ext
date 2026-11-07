@@ -1,0 +1,23 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formskills-skill-finder",
+  "name": "Skill Finder",
+  "product": "formskills",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Searches every skill's text with the matching lines, opens a hit at its file, and downloads the open skill as a zip in one command.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Skill Finder", "location": "dock" }],
+    "commands": [
+      { "id": "open-finder", "title": "Skill Finder", "panel": "main" },
+      { "id": "download-open", "title": "Download the Open Skill" }
+    ]
+  }
+}

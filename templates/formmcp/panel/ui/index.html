@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <title>Agent Switchboard</title>
+    <link rel="stylesheet" href="base.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Agent Switchboard</h1>
+        <div class="sub" id="sub">&nbsp;</div>
+      </header>
+      <div class="row">
+        <label class="grow">Agent <select id="agent"><option value="">Reading the agents</option></select></label>
+        <label class="inline"><input id="mcp" type="checkbox" /> Apps with MCP only</label>
+      </div>
+      <ul class="list" id="apps"><li class="empty">Reading formMCP</li></ul>
+      <div id="status">&nbsp;</div>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

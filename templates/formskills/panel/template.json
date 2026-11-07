@@ -1,0 +1,6 @@
+{
+  "title": "Panel",
+  "name": "Skill Shelf",
+  "summary": "A dock panel that reads the skill library with each skill's format check, and opens a skill in the reader with open-skill.",
+  "uses": ["document.read library", "document.read selection", "app.run open-skill", "ext.event document.changed", "ext.event selection.changed"]
+}

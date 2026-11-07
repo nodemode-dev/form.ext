@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formmcp-agent-switchboard",
+  "name": "Agent Switchboard",
+  "product": "formmcp",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Which Form apps each agent gets, in one compact list: pick an agent and switch apps on or off for it.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Agent Switchboard", "location": "dock" }]
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "title": "Panel",
+  "name": "Rating Desk",
+  "summary": "A dock panel showing the selected photos with camera and exposure, and buttons that rate or flag the whole selection in one undo step.",
+  "uses": ["document.read selection", "document.apply photo.rate photo.flag", "ext.event document.changed", "ext.event selection.changed"]
+}

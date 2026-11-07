@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formtray-pin-running",
+  "name": "Pin Running",
+  "product": "formtray",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Pins every Form app that is running now to the Stack and the tray menu, in one change.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "commands": [{ "id": "pin-running", "title": "Pin the Running Apps" }]
+  }
+}

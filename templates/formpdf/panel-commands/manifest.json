@@ -1,0 +1,23 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formpdf-watermark",
+  "name": "Watermark",
+  "product": "formpdf",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Puts a text watermark across the pages of the open PDF: set the words, colour, angle and opacity in the panel, or stamp DRAFT in one command.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Watermark", "location": "dock" }],
+    "commands": [
+      { "id": "watermark-settings", "title": "Watermark Settings", "panel": "main" },
+      { "id": "mark-draft", "title": "Mark as Draft" }
+    ]
+  }
+}

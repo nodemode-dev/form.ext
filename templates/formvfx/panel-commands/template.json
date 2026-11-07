@@ -1,0 +1,6 @@
+{
+  "title": "Panel with commands",
+  "name": "Lower Third",
+  "summary": "A panel that builds a shape bar and two text layers parented to it (using $N.layer results between ops), a command that opens it, and a headless command that adds the last one again.",
+  "uses": ["document.read summary", "document.apply layer.newShape layer.newText layer.setParent", "storage.get", "storage.set", "ext.activate", "ext.done"]
+}

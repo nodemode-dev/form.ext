@@ -1,0 +1,6 @@
+{
+  "title": "Panel",
+  "name": "Heading Map",
+  "summary": "A dock panel that reads the page's blocks, maps its headings with the words under each, and moves the cursor to one with doc.select.",
+  "uses": ["document.read blocks", "document.apply doc.select", "ext.event document.changed"]
+}

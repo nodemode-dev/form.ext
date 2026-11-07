@@ -1,0 +1,6 @@
+{
+  "title": "Command",
+  "name": "Lean Start",
+  "summary": "A headless command that reads the apps and sets each server's start policy to demand with set_start, as one step formMCP can undo.",
+  "uses": ["document.read apps", "document.apply set_start", "ext.activate", "ext.done"]
+}

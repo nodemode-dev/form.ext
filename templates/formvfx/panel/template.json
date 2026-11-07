@@ -1,0 +1,6 @@
+{
+  "title": "Panel",
+  "name": "Layer Strip",
+  "summary": "A dock panel listing the composition's layers with timing, effects and masks: click to select, and add layer markers at the current time.",
+  "uses": ["document.read summary", "app.run layer.select", "document.apply layer.addMarker", "ext.event document.changed", "ext.event selection.changed", "ext.event time.changed"]
+}

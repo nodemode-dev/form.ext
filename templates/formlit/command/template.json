@@ -1,0 +1,6 @@
+{
+  "title": "Command",
+  "name": "Keeper",
+  "summary": "A headless command that picks, rates and labels the selected photos with three engine commands in one undo step.",
+  "uses": ["document.read summary", "document.apply photo.flag photo.rate photo.label", "ext.activate", "ext.done"]
+}

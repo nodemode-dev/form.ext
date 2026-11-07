@@ -1,0 +1,6 @@
+{
+  "title": "Panel with commands",
+  "name": "Frame Maker",
+  "summary": "A panel to choose a frame's colour and width, a command that opens it, and a headless command that adds the last frame as shape layers in one undo step.",
+  "uses": ["document.read", "document.apply tool:draw_shape", "storage.get", "storage.set", "ext.activate", "ext.done"]
+}

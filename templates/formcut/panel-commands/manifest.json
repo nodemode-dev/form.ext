@@ -1,0 +1,23 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formcut-beat-markers",
+  "name": "Beat Markers",
+  "product": "formcut",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Finds the beats in a music clip with formcut's own beat analysis and drops a marker on every beat or every bar.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Beat Markers", "location": "dock" }],
+    "commands": [
+      { "id": "open-beats", "title": "Beat Markers", "panel": "main" },
+      { "id": "mark-beats", "title": "Mark Beats in Selected Clip" }
+    ]
+  }
+}

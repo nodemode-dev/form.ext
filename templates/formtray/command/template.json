@@ -1,0 +1,6 @@
+{
+  "title": "Command",
+  "name": "Pin Running",
+  "summary": "A headless command that reads formtray's apps and pins every running one to the Stack with stack.pin, as one change.",
+  "uses": ["document.read apps", "document.apply stack.pin", "ext.activate", "ext.done"]
+}

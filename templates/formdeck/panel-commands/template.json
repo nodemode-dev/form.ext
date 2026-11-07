@@ -1,0 +1,6 @@
+{
+  "title": "Panel with commands",
+  "name": "Deck Outline",
+  "summary": "A panel that builds a Markdown outline from every slide's text and notes, a command that opens it, and a headless command that saves the outline through the save dialog.",
+  "uses": ["document.read deck", "document.read slide:<id>", "files.save", "ext.event document.changed", "ext.activate", "ext.done"]
+}

@@ -1,0 +1,6 @@
+{
+  "title": "Panel with commands",
+  "name": "Group Maker",
+  "summary": "A panel that makes a group tile from the ticked apps with group.create, a command that opens it, and a headless command that groups the running apps.",
+  "uses": ["document.read apps", "document.apply group.create", "ext.event apps.changed", "ext.activate", "ext.done"]
+}

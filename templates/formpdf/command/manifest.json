@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formpdf-number-pages",
+  "name": "Number Pages",
+  "product": "formpdf",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Adds Page n of total at the bottom centre of every page, skipping the cover, as one undoable change.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "commands": [{ "id": "number-pages", "title": "Number the Pages" }]
+  }
+}

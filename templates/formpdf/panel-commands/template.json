@@ -1,0 +1,6 @@
+{
+  "title": "Panel with commands",
+  "name": "Watermark",
+  "summary": "A panel for formpdf's watermark change with words, colour, angle, opacity and pages, a command that opens it, and a headless Mark as Draft.",
+  "uses": ["document.read summary", "document.apply watermark", "storage.get", "storage.set", "ext.activate", "ext.done"]
+}

@@ -1,0 +1,6 @@
+{
+  "title": "Panel with commands",
+  "name": "Region Loops",
+  "summary": "A panel listing the session's regions that loops one in a click, a command that opens it, and a headless command that turns the selected range into a region.",
+  "uses": ["document.read session", "document.read selection", "app.run session.set-loop", "document.apply add-region", "ext.activate", "ext.done"]
+}

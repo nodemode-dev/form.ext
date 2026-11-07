@@ -1,0 +1,6 @@
+{
+  "title": "Panel",
+  "name": "Notes Desk",
+  "summary": "A dock panel listing every slide with its notes: go to a slide, rewrite its speaker notes with a raw deck op, one undo step each.",
+  "uses": ["document.read deck", "app.run go-to-slide", "document.apply apply-ops", "ext.event document.changed", "ext.event deck.opened"]
+}

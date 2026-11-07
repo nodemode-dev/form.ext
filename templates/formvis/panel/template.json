@@ -1,0 +1,6 @@
+{
+  "title": "Panel",
+  "name": "Layer List",
+  "summary": "A dock panel that lists the layers of the open picture, shows or hides each one and makes it active.",
+  "uses": ["document.read layers", "document.apply tool:set_layer", "app.run tool:set_layer", "ext.event document.changed", "ext.event layer.activated"]
+}

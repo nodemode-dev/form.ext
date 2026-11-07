@@ -1,0 +1,6 @@
+{
+  "title": "Command",
+  "name": "Dated Entry",
+  "summary": "A headless command that inserts a dated heading and a to-do at the end of the page with doc.insertMarkdown and moves the cursor into it.",
+  "uses": ["document.read page", "document.apply doc.insertMarkdown doc.select", "ext.activate", "ext.done"]
+}

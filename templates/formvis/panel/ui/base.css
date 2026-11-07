@@ -1,0 +1,176 @@
+:root {
+  --bg: #111111;
+  --panel: #17151b;
+  --text: #f2f2f2;
+  --muted: #a4a4a4;
+  --accent: #3a7bff;
+  --border: #2a2a2f;
+  --radius: 6px;
+  --danger: #ff5a5a;
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  background: var(--panel);
+  color: var(--text);
+  font: 13px/1.45 var(--font-ui, system-ui, -apple-system, "Segoe UI", sans-serif);
+}
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+h1 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.sub {
+  color: var(--muted);
+  font-size: 12px;
+  min-height: 1.45em;
+}
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.grow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+button {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+button:hover {
+  border-color: var(--accent);
+}
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text, #ffffff);
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+button.small {
+  height: 22px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+input,
+select,
+textarea {
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  min-width: 0;
+}
+textarea {
+  height: auto;
+  min-height: 64px;
+  padding: 6px 8px;
+  resize: vertical;
+}
+input[type="checkbox"] {
+  height: auto;
+}
+input[type="color"] {
+  width: 36px;
+  padding: 2px;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+label.inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: 120px;
+  max-height: 360px;
+  overflow: auto;
+}
+.list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.list li:last-child {
+  border-bottom: 0;
+}
+.list li.pick {
+  cursor: pointer;
+}
+.list li.pick:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.list li.empty {
+  justify-content: center;
+  color: var(--muted);
+  border: 0;
+  min-height: 110px;
+}
+.name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.meta {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.off {
+  opacity: 0.5;
+}
+#status {
+  min-height: 1.45em;
+  color: var(--muted);
+  font-size: 12px;
+}
+#status[data-level="error"] {
+  color: var(--danger);
+}
+#status[data-level="success"] {
+  color: var(--accent);
+}

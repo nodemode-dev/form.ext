@@ -1,0 +1,6 @@
+{
+  "title": "Command",
+  "name": "Retry Failed",
+  "summary": "A headless command that finds failed and stopped outputs in the queue and resets them with queue.resetStatus, as one History step.",
+  "uses": ["document.read queue", "document.apply queue.resetStatus", "ext.activate", "ext.done"]
+}

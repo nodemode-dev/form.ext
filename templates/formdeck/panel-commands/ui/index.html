@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <title>Deck Outline</title>
+    <link rel="stylesheet" href="base.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Deck Outline</h1>
+        <div class="sub" id="sub">&nbsp;</div>
+      </header>
+      <label class="inline"><input id="notes" type="checkbox" checked /> Include speaker notes</label>
+      <textarea id="outline" rows="14" readonly></textarea>
+      <div class="row">
+        <button class="primary" id="save" type="button">Save as Markdown</button>
+      </div>
+      <div id="status">&nbsp;</div>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formvis-frame-maker",
+  "name": "Frame Maker",
+  "product": "formvis",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Puts a solid frame around the picture as shape layers: pick the colour and width in the panel, or add your last frame in one command.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Frame Maker", "location": "dock" }],
+    "commands": [
+      { "id": "frame-settings", "title": "Frame Settings", "panel": "main" },
+      { "id": "add-frame", "title": "Add Frame" }
+    ]
+  }
+}

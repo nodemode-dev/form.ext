@@ -1,0 +1,6 @@
+{
+  "title": "Panel with commands",
+  "name": "Keyword Stamp",
+  "summary": "A panel of favourite keywords that adds or removes them on the selected photos, a command that opens it, and a headless command that stamps the last keyword used.",
+  "uses": ["document.read selection", "document.apply photo.addKeywords photo.removeKeywords", "storage.get", "storage.set", "ext.activate", "ext.done"]
+}

@@ -1,0 +1,23 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formmd-reading-time",
+  "name": "Reading Time",
+  "product": "formmd",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Words, sentences and reading time for the page and the selection, with a command that writes the reading time under the page title.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Reading Time", "location": "dock" }],
+    "commands": [
+      { "id": "show-stats", "title": "Reading Time", "panel": "main" },
+      { "id": "insert-reading-time", "title": "Insert the Reading Time" }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "title": "Command",
+  "name": "Name Stamp",
+  "summary": "A headless command that reads the document and adds a text layer with its name and size, as one undo step.",
+  "uses": ["document.read", "document.apply tool:add_text", "ext.activate", "ext.done"]
+}

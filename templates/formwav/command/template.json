@@ -1,0 +1,6 @@
+{
+  "title": "Command",
+  "name": "Loop Selection",
+  "summary": "A headless command that reads the selection and sets the loop to the selected range or clips, as one undo step.",
+  "uses": ["document.read session", "document.read selection", "document.apply set-loop", "ext.activate", "ext.done"]
+}

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <title>Group Maker</title>
+    <link rel="stylesheet" href="base.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Group Maker</h1>
+        <div class="sub" id="sub">&nbsp;</div>
+      </header>
+      <div class="row">
+        <input class="grow" id="name" placeholder="Group name" value="Studio" />
+        <select id="size">
+          <option value="s">Small</option>
+          <option value="m" selected>Medium</option>
+          <option value="l">Large</option>
+        </select>
+        <button class="primary" id="make" type="button">Make Group</button>
+      </div>
+      <ul class="list" id="apps"><li class="empty">Reading the apps</li></ul>
+      <div id="status">&nbsp;</div>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

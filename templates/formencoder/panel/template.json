@@ -1,0 +1,6 @@
+{
+  "title": "Panel",
+  "name": "Queue Board",
+  "summary": "A dock panel showing every output of the queue with its preset and status, the totals, queue Start, Pause and Stop, and an estimate for the output you click.",
+  "uses": ["document.read queue", "app.run queue.start queue.pause queue.stop queue.select encode.estimate", "ext.event document.changed", "ext.event encode.finished"]
+}

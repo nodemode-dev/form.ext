@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formvis-name-stamp",
+  "name": "Name Stamp",
+  "product": "formvis",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Stamps the document's name and size as a text layer in the bottom left corner, in one undo step.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "commands": [{ "id": "stamp-name", "title": "Stamp Document Name" }]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formtray-board-tidy",
+  "name": "Board Tidy",
+  "product": "formtray",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "The Widgets board as a list: resize any tile, move it up or down, take it off the board, and put installed apps on it.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Board Tidy", "location": "dock" }]
+  }
+}

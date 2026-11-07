@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formskills-skill-shelf",
+  "name": "Skill Shelf",
+  "product": "formskills",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Every app's skills on one shelf with their format check and file counts: click one to open it in the reader.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "panels": [{ "id": "main", "title": "Skill Shelf", "location": "dock" }]
+  }
+}

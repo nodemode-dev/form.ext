@@ -1,0 +1,19 @@
+{
+  "format": "formai-package",
+  "format_version": 1,
+  "id": "formwav-loop-selection",
+  "name": "Loop Selection",
+  "product": "formwav",
+  "kind": "script-plugin",
+  "version": "0.1.0",
+  "author": "me",
+  "licence": "Apache-2.0",
+  "native": false,
+  "permissions": ["document"],
+  "api": "1",
+  "description": "Turns the time range you selected into the loop, or the selected clip's span when no range is selected.",
+  "entry": { "ui": "ui/index.html" },
+  "contributes": {
+    "commands": [{ "id": "loop-selection", "title": "Loop the Selection" }]
+  }
+}

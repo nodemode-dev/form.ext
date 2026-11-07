@@ -1,0 +1,6 @@
+{
+  "title": "Panel with commands",
+  "name": "Beat Markers",
+  "summary": "A panel that runs formcut's beat analysis on a chosen clip and marks every beat or bar, a command that opens it, and a headless command for the selected clip.",
+  "uses": ["document.read project", "app.run media.beats", "document.apply marker.add", "ext.event selection.changed", "ext.activate", "ext.done"]
+}

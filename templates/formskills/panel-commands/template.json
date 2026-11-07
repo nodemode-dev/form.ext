@@ -1,0 +1,6 @@
+{
+  "title": "Panel with commands",
+  "name": "Skill Finder",
+  "summary": "A panel that runs formskills' search and opens a hit with open-skill and open-file, a command that opens it, and a headless command that downloads the open skill.",
+  "uses": ["document.read selection", "app.run search open-skill open-file download", "storage.get", "storage.set", "ext.activate", "ext.done"]
+}
