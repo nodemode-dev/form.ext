@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+PYINSTALLER_VERSION="6.22.3"
+say() { printf '[formext] %s\n' "$*"; }
+die() { printf '[formext] %s\n' "$*" >&2; exit 1; }
+case "$(uname -s 2>/dev/null)" in
+  Darwin) os=macos ;;
+  Linux) os=linux ;;
+  MINGW*|MSYS*|CYGWIN*|*_NT-*) os=windows ;;
+  *) os=unknown ;;
+esac
+ext=""
+sep=":"
+py="$ROOT/backend/venv/bin/python"
+if [ "$os" = windows ]; then ext=".exe"; sep=";"; py="$ROOT/backend/venv/Scripts/python.exe"; fi
+[ -x "$py" ] || die "backend venv missing: run backend/boot_backend once (or python3.12 -m venv backend/venv)"
+"$py" -m pip install -q -r "$ROOT/backend/requirements.txt"
+"$py" -c "import PyInstaller" 2>/dev/null || "$py" -m pip install -q "pyinstaller==$PYINSTALLER_VERSION"
+if [ -n "${FORMEXT_TARGET:-}" ]; then
+  triple="$FORMEXT_TARGET"
+else
+  command -v rustc >/dev/null 2>&1 || die "rustc not found; install Rust or set FORMEXT_TARGET"
+  triple="$(rustc -vV | awk '/^host:/ {print $2}')"
+fi
+if [ ! -f "$ROOT/frontend/dist/index.html" ]; then
+  command -v npm >/dev/null 2>&1 || die "frontend/dist missing and npm not found"
+  (cd "$ROOT/frontend" && npm run build)
+fi
+data=(--add-data "$ROOT/frontend/dist${sep}frontend_dist" --add-data "$ROOT/contract${sep}contract")
+[ -d "$ROOT/templates" ] && data+=(--add-data "$ROOT/templates${sep}templates")
+[ -d "$ROOT/docs" ] && data+=(--add-data "$ROOT/docs${sep}docs")
+cd "$ROOT/backend"
+rm -rf build/pyinstaller dist-engine
+"$py" -m PyInstaller --noconfirm --clean --onefile --name formext-engine \
+  --distpath dist-engine --workpath build/pyinstaller --specpath build/pyinstaller \
+  "${data[@]}" \
+  --paths "$ROOT/backend" --paths "$ROOT/contract/host/python" --paths "$ROOT/contract/tools" \
+  --hidden-import formext_host --hidden-import formpkg \
+  --collect-submodules app --collect-submodules uvicorn --collect-submodules websockets \
+  --exclude-module tkinter \
+  "$ROOT/backend/formext_engine.py"
+mkdir -p "$ROOT/src-tauri/binaries"
+out="$ROOT/src-tauri/binaries/formext-engine-${triple}${ext}"
+cp "dist-engine/formext-engine${ext}" "$out"
+FORMEXT_HOME="$(mktemp -d)" "$out" --selfcheck || die "the frozen engine failed its self-check"
+say "sidecar ready: $out"
