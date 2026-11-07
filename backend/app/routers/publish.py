@@ -21,6 +21,16 @@ def send(pid: str):
     return publish.send(pid)
 
 
+@router.post("/{pid}/registry")
+def submit(pid: str):
+    return publish.submit(pid)
+
+
+@router.post("/{pid}/registry/reveal")
+def reveal_registry(pid: str):
+    return publish.reveal_registry(pid)
+
+
 @router.post("/{pid}/reveal")
 def reveal(pid: str):
     return publish.reveal(pid)

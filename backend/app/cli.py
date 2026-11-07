@@ -34,6 +34,7 @@ ROUTES = {
     "open_app": ("POST", "/api/runapp/apps/{product}/open"),
     "publish": ("POST", "/api/publish/{id}"),
     "send": ("POST", "/api/publish/{id}/send"),
+    "submit": ("POST", "/api/publish/{id}/registry"),
 }
 
 MODULES = {
@@ -738,6 +739,30 @@ def _say_publish(d: dict) -> str:
     return "\n".join(lines)
 
 
+def op_submit(eng: Engine, id: str, checkout: str | None = None) -> dict:
+    route = _route("submit", id=id)
+    _need(eng, "publish", "Submit to Registry", route)
+    if checkout:
+        folder = Path(checkout).expanduser().resolve()
+        if not (folder / "tools" / "check.py").is_file():
+            raise OpError(f"{folder} is not a form.ext-registry checkout (it has no tools/check.py)")
+        eng.call("PUT", "/api/settings", {"registry": {"checkout": str(folder)}})
+    return eng.call(route[0], route[1], {})
+
+
+def _say_submit(d: dict) -> str:
+    c = d.get("checks") or {}
+    lines = [f"registry folder {d.get('folder')}", f"files {', '.join(d.get('files') or [])}"]
+    if d.get("made"):
+        lines.append(f"written by form.ext (edit them): {', '.join(d['made'])}")
+    if not d.get("screenshot"):
+        lines.append(f"screenshot slot: add {d.get('screenshot_slot')} to the folder")
+    lines += [f"checks by {c.get('tool')}: {'passed' if c.get('ok') else 'FAILED'}", c.get("note") or "", c.get("report") or "", "", "then, in a terminal:"]
+    for step in d.get("commands") or []:
+        lines.append(f"# {step['say']}\n{step['run']}")
+    return "\n".join(lines)
+
+
 def _say_validate(d: dict) -> str:
     counts = d.get("counts") or {}
     lines = [("ok" if d.get("ok") else "problems") + f": {counts.get('error', 0)} errors, {counts.get('warning', 0)} warnings, {counts.get('info', 0)} notes ({d.get('files')} files, {d.get('bytes')} bytes)"]
@@ -916,6 +941,10 @@ OPS: list[Op] = [
         Param("unsigned", "boolean", "Do not sign."),
         Param("formportal", "boolean", "Also send the package to FormPortal to install."),
     ], read_only=False, say=_say_publish),
+    Op("submit", "Submit to Registry", "Write the project into a folder in form.ext-registry's layout (extensions/<id>/ with package/, the source, package.json when there is one, README.md, LICENSE, CHANGELOG.md and a screenshot slot), run the registry's tools/check.py on it when a local registry checkout is set (else form.ext's own Check, and it says which ran), and give the git and gh commands that fork nodemode-dev/form.ext-registry, add the folder and open the pull request. It never pushes anything itself.", op_submit, [
+        P_ID,
+        Param("checkout", help="A local clone of nodemode-dev/form.ext-registry whose tools/check.py runs on the folder (saved as the setting registry.checkout)."),
+    ], read_only=False, say=_say_submit),
     Op("agents_sync", "Sync agent files", "Regenerate the harness skill's references/tools.md from this table and mirror the harness skill into .agents/skills.", op_agents_sync, mcp=False, read_only=False),
 ]
 

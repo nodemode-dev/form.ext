@@ -34,6 +34,7 @@ The table lists every tool; a section per tool follows with its arguments.
 | `apps` | `apps` | read | FormPortal's folder, the Form apps it has installed on this computer, and the development extensions each app loads from dev.json (with what the host would say about each). |
 | `run_in_app` | `run-in-app` | changes | Add the project's package folder to FormPortal's dev.json for its app, so the real app loads it live as a development extension and picks up every save. remove takes it out again, status only reports, open also opens the app. |
 | `publish` | `publish` | changes | Build, sign with the publisher key (unless unsigned) and make the submission folder for formai.studio: the .formpkg, entry.json, a one-package extensions.json and a README. formportal also sends the package to FormPortal to install. |
+| `submit` | `submit` | changes | Write the project into a folder in form.ext-registry's layout (extensions/<id>/ with package/, the source, package.json when there is one, README.md, LICENSE, CHANGELOG.md and a screenshot slot), run the registry's tools/check.py on it when a local registry checkout is set (else form.ext's own Check, and it says which ran), and give the git and gh commands that fork nodemode-dev/form.ext-registry, add the folder and open the pull request. It never pushes anything itself. |
 
 ## status
 
@@ -271,3 +272,12 @@ Build, sign with the publisher key (unless unsigned) and make the submission fol
 | `passphrase` | string | no | The key's passphrase, when it has one. |
 | `unsigned` | boolean | no | Do not sign. |
 | `formportal` | boolean | no | Also send the package to FormPortal to install. |
+
+## submit
+
+Write the project into a folder in form.ext-registry's layout (extensions/<id>/ with package/, the source, package.json when there is one, README.md, LICENSE, CHANGELOG.md and a screenshot slot), run the registry's tools/check.py on it when a local registry checkout is set (else form.ext's own Check, and it says which ran), and give the git and gh commands that fork nodemode-dev/form.ext-registry, add the folder and open the pull request. It never pushes anything itself.
+
+| Argument | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `id` | string | yes | The project id (projects lists them). |
+| `checkout` | string | no | A local clone of nodemode-dev/form.ext-registry whose tools/check.py runs on the folder (saved as the setting registry.checkout). |

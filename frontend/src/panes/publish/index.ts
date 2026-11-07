@@ -18,7 +18,23 @@ interface Submission {
   stale: boolean;
   warnings?: { message: string }[];
 }
+interface RegistrySubmission {
+  project: string;
+  id: string;
+  version: string;
+  folder: string;
+  files: string[];
+  made: string[];
+  screenshot: string | null;
+  screenshot_slot: string;
+  checks: { by: 'registry' | 'formext'; tool: string; ok: boolean; report: string; note: string };
+  update: boolean;
+  published_version: string | null;
+  commands: { say: string; run: string }[];
+  prepared_at: number;
+}
 interface Status {
+  registry: { submission: RegistrySubmission | null; folder: string; checkout: string; repo: string };
   project: string;
   manifest: Record<string, unknown>;
   default_url: string;
@@ -103,6 +119,32 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
             <div class="section-title">entry.json</div>
             <pre class="code-block publish-json">&nbsp;</pre>
           </section>
+          <section class="section publish-reg">
+            <div class="section-title">Submit to Registry</div>
+            <p class="publish-reg-lead">Official Form extensions live in form.ext-registry, one folder per extension. Submit writes this project into that layout, runs the registry's checks on it, and gives the commands that open the pull request; the owners review it, and once merged the registry signs and publishes it.</p>
+            <div class="publish-form">
+              <div class="field publish-checkout-field">
+                <label for="publish-checkout">Registry checkout</label>
+                <input id="publish-checkout" class="input code publish-checkout" spellcheck="false" autocomplete="off" placeholder="/path/to/form.ext-registry" />
+                <span class="hint">A local clone of nodemode-dev/form.ext-registry. With one, Submit runs its tools/check.py, the checks CI runs; without one, form.ext's own Check.</span>
+              </div>
+              <div class="publish-reg-go"><button class="btn primary publish-submit" type="button" disabled>${icon('upload')}<span>Submit to Registry</span></button></div>
+            </div>
+            <div class="notice publish-reg-status info" role="status"><span class="publish-reg-icon">${icon('info')}</span><span class="publish-reg-text">&nbsp;</span></div>
+            <dl class="publish-facts publish-reg-facts">
+              <dt>Folder</dt><dd><code class="publish-reg-folder">&nbsp;</code></dd>
+              <dt>Files</dt><dd class="publish-reg-files">&nbsp;</dd>
+              <dt>Screenshot</dt><dd class="publish-reg-shot">&nbsp;</dd>
+            </dl>
+            <div class="btn-group publish-actions">
+              <button class="btn publish-reg-reveal" type="button" disabled>${icon('folder-open')}<span>Open Folder</span></button>
+              <button class="btn publish-reg-copy" type="button" disabled>${icon('copy')}<span>Copy Commands</span></button>
+            </div>
+            <div class="section-title">Checks</div>
+            <pre class="code-block publish-reg-report">&nbsp;</pre>
+            <div class="section-title">Commands for the pull request</div>
+            <pre class="code-block publish-reg-commands">&nbsp;</pre>
+          </section>
         </div>
       </div>
     </div>`;
@@ -131,6 +173,17 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
   const copyBtn = q<HTMLButtonElement>('.publish-copy');
   const sendBtn = q<HTMLButtonElement>('.publish-send');
   const jsonEl = q('.publish-json');
+  const checkoutInput = q<HTMLInputElement>('.publish-checkout');
+  const submitBtn = q<HTMLButtonElement>('.publish-submit');
+  const regStatus = q('.publish-reg-status');
+  const regFolder = q('.publish-reg-folder');
+  const regFiles = q('.publish-reg-files');
+  const regShot = q('.publish-reg-shot');
+  const regReveal = q<HTMLButtonElement>('.publish-reg-reveal');
+  const regCopy = q<HTMLButtonElement>('.publish-reg-copy');
+  const regReport = q('.publish-reg-report');
+  const regCommands = q('.publish-reg-commands');
+  let regLevel = '';
 
   let state: Status | null = null;
   let busy = false;
@@ -169,6 +222,64 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     setText(keyHint, !s.keys.length ? 'No publisher key yet: make one in Package to sign. Unsigned script extensions still install.' : chosen ? `Fingerprint ${chosen.fingerprint}. The entry carries the Ed25519 signature and the folder's extensions.json lists the public key.` : 'The entry goes without a signature.');
   }
 
+  function setRegStatus(kind: 'info' | 'success' | 'warning' | 'error', text: string): void {
+    if (regLevel !== kind) {
+      regStatus.className = `notice publish-reg-status ${kind}`;
+      regStatus.firstElementChild!.innerHTML = icon(kind);
+      regLevel = kind;
+    }
+    setText(regStatus.lastElementChild, text);
+  }
+
+  function renderRegistry(s: Status): void {
+    const r = s.registry;
+    if (document.activeElement !== checkoutInput) checkoutInput.value = r.checkout;
+    checkoutInput.disabled = busy;
+    submitBtn.disabled = busy;
+    const sb = r.submission;
+    regReveal.disabled = busy || !sb;
+    regCopy.disabled = busy || !sb;
+    if (!sb) {
+      setText(regFolder, r.folder);
+      setText(regFiles, 'package/, the source, package.json when there is one, README.md, LICENSE, CHANGELOG.md');
+      setText(regShot, 'docs/screenshot.png: the extension in its app');
+      setText(regReport, 'Submit to see the checks.');
+      setText(regCommands, `The git and gh commands that fork ${r.repo}, add the folder and open the pull request appear here.`);
+      if (!busy) setRegStatus('info', `Writes extensions/${String(s.manifest.id ?? 'id')}/ in the registry's layout and checks it. Nothing is pushed: you run the commands.`);
+      return;
+    }
+    setText(regFolder, sb.folder);
+    setText(regFiles, sb.files.join(', ') + (sb.made.length ? ` (form.ext wrote ${sb.made.join(', ')}: edit them)` : ''));
+    setText(regShot, sb.screenshot ? sb.screenshot : `missing: add ${sb.screenshot_slot} to the folder`);
+    setText(regReport, `${sb.checks.note}\n\n${sb.checks.report}`.trim());
+    setText(regCommands, sb.commands.map((c) => `# ${c.say}\n${c.run}`).join('\n\n'));
+    if (busy) return;
+    const by = sb.checks.by === 'registry' ? "the registry's tools/check.py" : "form.ext's own Check (no registry checkout set)";
+    const what = sb.update ? `an update of ${sb.published_version ?? 'the listed version'} to ${sb.version}` : `${sb.id} ${sb.version}, new in the registry`;
+    if (sb.checks.ok) setRegStatus('success', `Ready for a pull request: ${what}. Checked with ${by}, which passed.`);
+    else setRegStatus('error', `Not ready: ${by} found problems (below). Fix them in the project, then submit again.`);
+  }
+
+  async function submitRegistry(): Promise<void> {
+    const project = ctx.project.current();
+    if (!project || busy) return;
+    const checkout = checkoutInput.value.trim();
+    busy = true;
+    setRegStatus('info', 'Writing the registry folder and running the checks...');
+    render();
+    try {
+      if (state && checkout !== state.registry.checkout) await ctx.api.put('/api/settings', { registry: { checkout } });
+      const sb = await ctx.api.post<RegistrySubmission>(`/api/publish/${encodeURIComponent(project.id)}/registry`);
+      if (state) state = { ...state, registry: { ...state.registry, submission: sb, checkout } };
+      busy = false;
+      await load();
+    } catch (err) {
+      busy = false;
+      render();
+      setRegStatus('error', `Not submitted: ${errorMessage(err)}`);
+    }
+  }
+
   function render(): void {
     const project = ctx.project.current();
     none.classList.toggle('hidden', !!project);
@@ -182,6 +293,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     const s = state && state.project === project.id ? state : null;
     if (!s) return;
     renderKeys(s);
+    renderRegistry(s);
     urlInput.placeholder = s.default_url;
     urlInput.disabled = busy;
     const m = s.manifest;
@@ -321,8 +433,17 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     else ctx.notify(`Opened the package with ${r.opened}; FormPortal asks before it installs it.`, 'info');
   }));
   q('.publish-choose').addEventListener('click', () => void chooseProject());
+  submitBtn.addEventListener('click', () => void submitRegistry());
+  regReveal.addEventListener('click', () => void act(async () => {
+    await ctx.api.post(`/api/publish/${encodeURIComponent(ctx.project.current()!.id)}/registry/reveal`);
+  }));
+  regCopy.addEventListener('click', () => void act(async () => {
+    await navigator.clipboard.writeText((state?.registry.submission?.commands ?? []).map((c) => c.run).join('\n'));
+    ctx.notify('The commands are on the clipboard.', 'success');
+  }));
 
   ctx.commands.register({ id: 'publish.prepare', title: 'Prepare Submission for formai.studio', run: () => { ctx.openPane('publish'); return prepare(); } });
+  ctx.commands.register({ id: 'publish.registry', title: 'Submit to Registry', run: () => { ctx.openPane('publish'); return submitRegistry(); } });
 
   const offs = [
     ctx.project.onChange((_p: ProjectRef | null) => {

@@ -2,15 +2,16 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
 import shutil
 import time
 from pathlib import Path
 
-from app.services import paths, portal, settings
+from app.services import paths, portal, registry, settings
 from app.services.bus import bus
 from app.services.keys import keys
 from app.services.package import DEFAULT_URL, packages
-from app.services.validate import schema_errors
+from app.services.validate import schema_errors, validate_folder
 from app.services.workspace import NotFound, WorkspaceError, workspace
 
 PLAIN = {
@@ -173,6 +174,12 @@ def status(pid: str) -> dict:
         "publisher": settings.value("publisher") or "",
         "submission": _latest_submission(pid),
         "submissions_dir": str(submissions_dir()),
+        "registry": {
+            "submission": registry_submission(pid),
+            "folder": str(registry_root() / "extensions" / str(manifest.get("id", "id"))),
+            "checkout": str(registry_checkout() or ""),
+            "repo": registry.REPO,
+        },
     }
 
 
@@ -261,5 +268,228 @@ def send(pid: str) -> dict:
 
 def reveal(pid: str) -> dict:
     sub = _submission_or_fail(pid)
+    portal.open_with_system(sub["folder"])
+    return {"opened": sub["folder"]}
+
+
+SKIP_ROOT = {"import.json", "dist", "build"}
+SCREENSHOT_NAMES = ("docs/screenshot.png", "docs/screenshot.jpg", "docs/screenshot.webp", "screenshot.png", "screenshot.jpg", "screenshot.webp")
+
+
+def registry_root() -> Path:
+    return submissions_dir() / "registry"
+
+
+def registry_checkout() -> Path | None:
+    configured = settings.value("registry.checkout")
+    if not isinstance(configured, str) or not configured.strip():
+        return None
+    return Path(configured.strip()).expanduser()
+
+
+def _registry_readme(m: dict) -> str:
+    perms = [p for p in m.get("permissions") or [] if isinstance(p, str)]
+    app = portal.app_name(str(m.get("product") or ""))
+    name = m.get("name") or m["id"]
+    lines = [f"# {name}", "", m.get("description") or name, "", f"![{name} in {app}](docs/screenshot.png)", "", f"{name} is an extension for {app}, made with form.ext. It runs in {app}'s sandboxed extension panel under the Form Extension Contract (API 1), and FormPortal installs it from the Form Extension Registry once the owners merge it.", "", "## Permissions", ""]
+    lines += [f"- `{p}`: {PLAIN.get(p, p)}. Why: say here what the extension does with it." for p in perms] or ["- None: it asks for no permission."]
+    lines += ["", "## Using it", "", f"Open {app}, then the Extensions panel, and choose {name}.", ""]
+    return "\n".join(lines)
+
+
+def _registry_licence(m: dict) -> str:
+    year = time.strftime("%Y")
+    return f"SPDX-License-Identifier: {m.get('licence') or 'NOASSERTION'}\n\nCopyright {year} {m.get('author') or 'the author'}\n\nReplace this file with the full text of the {m.get('licence') or 'chosen'} licence before the pull request.\n"
+
+
+def _registry_changelog(m: dict) -> str:
+    return f"# Changelog\n\n## {m['version']}\n\n- {m.get('description') or 'First version.'}\n"
+
+
+def _registry_tree(pid: str, manifest: dict) -> tuple[dict[str, Path], list[str]]:
+    root = workspace.dir(pid)
+    prefix = workspace.package_prefix(pid)
+    files: dict[str, Path] = {}
+    for row in workspace.list_files(pid):
+        rel = row["path"]
+        top = rel.split("/", 1)[0]
+        if prefix and rel.startswith(prefix + "/"):
+            files["package/" + rel[len(prefix) + 1:]] = root / rel
+        elif not prefix:
+            files["package/" + rel] = root / rel
+        elif top not in SKIP_ROOT:
+            files[rel] = root / rel
+    made = []
+    for name in ("README.md", "LICENSE", "CHANGELOG.md"):
+        if not any(k == name or (name == "LICENSE" and k in ("LICENSE.md", "LICENSE.txt", "LICENCE")) for k in files):
+            made.append(name)
+    return files, made
+
+
+def _commands(manifest: dict, folder: Path, update: bool) -> list[dict]:
+    eid, version, name = manifest["id"], manifest["version"], manifest.get("name") or manifest["id"]
+    branch = f"{'update' if update else 'add'}-{eid}-{version}"
+    title = f"{'Update' if update else 'Add'} {name} {version}"
+    body = f"{title}: {str(manifest.get('description') or name).rstrip('.')}. For {portal.app_name(str(manifest.get('product') or ''))}. Made and checked with form.ext."
+    return [
+        {"say": "Fork the registry and clone your fork (once).", "run": f"gh repo fork {registry.REPO} --clone --remote"},
+        {"say": "Go into the clone and start a branch from the registry's main.", "run": "cd form.ext-registry && git fetch upstream && git switch -c " + shlex.quote(branch) + " upstream/main"},
+        {"say": "Copy the extension folder in.", "run": f"rm -rf extensions/{eid} && mkdir -p extensions && cp -R {shlex.quote(str(folder))} extensions/{eid}"},
+        {"say": "Run the registry's checks, as CI will.", "run": f"python3 tools/check.py extensions/{eid}"},
+        {"say": "Commit it.", "run": f"git add extensions/{eid} && git commit -m {shlex.quote(('feat(' + eid + '): ' + ('version ' + version if update else 'add ' + name + ' ' + version)))}"},
+        {"say": "Push the branch to your fork.", "run": f"git push -u origin {shlex.quote(branch)}"},
+        {"say": "Open the pull request; @nodemode-ai and @gbarnai review it.", "run": f"gh pr create --repo {registry.REPO} --base main --title {shlex.quote(title)} --body {shlex.quote(body)}"},
+    ]
+
+
+def _own_checks(folder: Path, manifest: dict) -> dict:
+    problems: list[dict] = []
+    package_dir = folder / "package"
+    check = validate_folder(package_dir)
+    for p in check["problems"]:
+        if p["severity"] == "error":
+            problems.append({"level": "error", "where": f"package/{p['file']}" + (f":{p['line']}" if p.get("line") else ""), "message": p["message"]})
+    if manifest.get("api") != "1":
+        problems.append({"level": "error", "where": "package/manifest.json", "message": 'api must be "1"'})
+    if manifest.get("native") is not False:
+        problems.append({"level": "error", "where": "package/manifest.json", "message": "native must be false"})
+    for name in ("README.md", "CHANGELOG.md"):
+        if not (folder / name).is_file():
+            problems.append({"level": "error", "where": name, "message": f"{name} is missing"})
+    if not any((folder / n).is_file() for n in ("LICENSE", "LICENSE.md", "LICENSE.txt", "LICENCE")):
+        problems.append({"level": "error", "where": "LICENSE", "message": "LICENSE is missing"})
+    if not any((folder / n).is_file() for n in SCREENSHOT_NAMES):
+        problems.append({"level": "error", "where": "docs/screenshot.png", "message": "a screenshot is missing: add docs/screenshot.png (the extension in its app)"})
+    errors = [p for p in problems if p["level"] == "error"]
+    lines = [f"form.ext Check on extensions/{manifest['id']}: {'passed' if not errors else f'{len(errors)} problem' + ('s' if len(errors) != 1 else '')}"]
+    lines += [f"  {p['level']}: {p['where']}: {p['message']}" for p in problems]
+    return {"by": "formext", "tool": "form.ext Check", "ok": not errors, "problems": problems, "report": "\n".join(lines), "note": "The registry's tools/check.py was not run: set registry.checkout to a local clone of nodemode-dev/form.ext-registry to run the same checks CI runs. form.ext ran its own Check, the kit's package rules and the metadata files instead."}
+
+
+def _registry_checks(root: Path, folder: Path, manifest: dict) -> dict:
+    checkout = registry_checkout()
+    script = checkout / "tools" / "check.py" if checkout else None
+    if not script or not script.is_file():
+        out = _own_checks(folder, manifest)
+        if checkout:
+            out["note"] = f"No tools/check.py in {checkout}, so form.ext ran its own Check instead of the registry's."
+        return out
+    return _run_registry_check(checkout, script, root, folder, manifest)
+
+
+def _run_registry_check(checkout: Path, script: Path, root: Path, folder: Path, manifest: dict) -> dict:
+    import contextlib
+    import importlib.util
+    import io
+    import sys
+    from types import SimpleNamespace
+
+    added = [str(checkout / "tools"), str(checkout / "contract" / "tools")]
+    for p in added:
+        if p not in sys.path:
+            sys.path.insert(0, p)
+    spec = importlib.util.spec_from_file_location("formext_registry_check", script)
+    if spec is None or spec.loader is None:
+        raise WorkspaceError(f"{script} cannot be imported")
+    module = importlib.util.module_from_spec(spec)
+    buf = io.StringIO()
+    url = registry.index_url()
+    with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+        try:
+            sys.modules[spec.name] = module
+            spec.loader.exec_module(module)
+            probe = module.Result("published index")
+            published = module.published_index(None if url == registry.DEFAULT_URL else url, probe)
+            blocked, _ = module.registry.load_blocklist()
+            args = SimpleNamespace(skip_npm=False)
+            result = module.check_extension(folder, args, published, None, True, blocked)
+        except (SystemExit, AttributeError, TypeError) as e:
+            raise WorkspaceError(f"the registry's tools/check.py in {checkout} could not run on the folder ({e})") from None
+    lines = [f"Form Extension Registry checks ({script})"] + [f"note: {n}" for n in probe.notes]
+    lines += ["", f"{result.name}: {'FAILED' if result.errors else 'passed'}"]
+    lines += [f"  ok    {p}" for p in result.passed] + [f"  error {e}" for e in result.errors] + [f"  note  {n}" for n in result.notes]
+    noise = buf.getvalue().strip()
+    if noise:
+        lines += ["", noise]
+    problems = [{"level": "error", "where": result.name, "message": e} for e in result.errors]
+    return {"by": "registry", "tool": str(script), "ok": not result.errors, "problems": problems, "report": "\n".join(lines), "note": f"The registry's own tools/check.py from {checkout} ran on the folder (imported, nothing vendored), as CI runs it on a pull request."}
+
+
+def submit(pid: str) -> dict:
+    manifest = workspace.manifest(pid)
+    eid = manifest.get("id")
+    version = manifest.get("version")
+    if not isinstance(eid, str) or not isinstance(version, str):
+        raise WorkspaceError("the manifest needs an id and a version before it goes to the registry")
+    files, made = _registry_tree(pid, manifest)
+    root = registry_root()
+    folder = root / "extensions" / eid
+    staging = root / "extensions" / f".{eid}-{os.getpid()}"
+    shutil.rmtree(staging, ignore_errors=True)
+    staging.mkdir(parents=True)
+    try:
+        for rel, source in sorted(files.items()):
+            target = staging / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
+        writers = {"README.md": _registry_readme, "LICENSE": _registry_licence, "CHANGELOG.md": _registry_changelog}
+        for name in made:
+            (staging / name).write_text(writers[name](manifest), encoding="utf-8")
+        old = root / "extensions" / f".{eid}-old-{os.getpid()}"
+        if folder.exists():
+            os.replace(folder, old)
+        os.replace(staging, folder)
+        shutil.rmtree(old, ignore_errors=True)
+    except Exception:
+        shutil.rmtree(staging, ignore_errors=True)
+        raise
+    screenshot = next((n for n in SCREENSHOT_NAMES if (folder / n).is_file()), None)
+    checks = _registry_checks(root, folder, manifest)
+    try:
+        listed = {e["id"]: e for e in registry.registry.shelf()["extensions"]}
+    except WorkspaceError:
+        listed = {}
+    update = eid in listed
+    record = {
+        "format": "formext-registry-submission",
+        "format_version": 1,
+        "project": pid,
+        "id": eid,
+        "version": version,
+        "folder": str(folder),
+        "root": str(root),
+        "files": sorted(p.relative_to(folder).as_posix() for p in folder.rglob("*") if p.is_file()),
+        "made": made,
+        "screenshot": screenshot,
+        "screenshot_slot": "docs/screenshot.png",
+        "checks": checks,
+        "update": update,
+        "published_version": listed.get(eid, {}).get("version"),
+        "commands": _commands(manifest, folder, update),
+        "prepared_at": time.time(),
+    }
+    (root / f"{eid}.submission.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    bus.emit("publish.registry", {"id": pid, "folder": str(folder), "ok": checks["ok"], "by": checks["by"]})
+    return record
+
+
+def registry_submission(pid: str) -> dict | None:
+    try:
+        eid = workspace.manifest(pid).get("id")
+    except WorkspaceError:
+        return None
+    if not isinstance(eid, str):
+        return None
+    try:
+        data = json.loads((registry_root() / f"{eid}.submission.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return data if data.get("project") == pid else None
+
+
+def reveal_registry(pid: str) -> dict:
+    sub = registry_submission(pid)
+    if not sub:
+        raise NotFound("submit to the registry first")
     portal.open_with_system(sub["folder"])
     return {"opened": sub["folder"]}

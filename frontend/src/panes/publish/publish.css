@@ -32,6 +32,18 @@
 .publish-pane .publish-facts code { font-family: var(--font-code); font-size: var(--fs-12); color: var(--ink); overflow-wrap: anywhere; }
 .publish-pane .publish-actions { flex-wrap: wrap; gap: var(--sp-2); }
 .publish-pane .publish-json { min-height: 120px; max-height: 420px; white-space: pre; font-size: var(--fs-12); }
+.publish-pane .publish-reg { display: flex; flex-direction: column; gap: var(--sp-3); }
+.publish-pane .publish-reg-lead { color: var(--ink-soft); font-size: var(--fs-13); max-width: 80ch; margin: 0; }
+.publish-pane .publish-reg-go { display: flex; align-items: flex-start; padding-top: 21px; }
+.publish-pane .publish-reg-status { min-height: 58px; align-items: center; }
+.publish-pane .publish-reg-status > span:last-child { flex: 1 1 auto; min-width: 0; }
+.publish-pane .publish-reg-icon { display: inline-grid; place-items: center; width: var(--icon-s); height: var(--icon-s); flex: none; }
+.publish-pane .publish-reg-icon svg { margin-top: 0; }
+.publish-pane .publish-reg-status.success .publish-reg-icon { color: var(--success); }
+.publish-pane .publish-reg-status.warning .publish-reg-icon { color: var(--warning); }
+.publish-pane .publish-reg-status.error .publish-reg-icon { color: var(--error); }
+.publish-pane .publish-reg-status.info .publish-reg-icon { color: var(--info); }
+.publish-pane .publish-reg-report, .publish-pane .publish-reg-commands { min-height: 96px; max-height: 360px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--fs-12); }
 
 @media (max-width: 860px) {
   .publish-pane .publish-form { grid-template-columns: 1fr; }

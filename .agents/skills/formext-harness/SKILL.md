@@ -1,6 +1,6 @@
 ---
 name: formext-harness
-description: Makes extensions for the Form apps with form.ext through its formext MCP server or the ./formext cli command line. Use whenever the person wants an extension, plugin, add-on, panel or command made, changed, fixed, checked, previewed, packaged, signed, loaded in a running app or published for formvis, formcut, formwav, formpdf, formdeck, formlit, form.md, formencoder, formvfx, formMCP, formtray or formskills; asks what an extension may do in the sandbox or which permission it needs; has a .formpkg, a manifest.json or an extension folder to work on; wants an index entry or a formai.studio submission; or when formext tools such as status, new, write, validate, preview, package, sign, run_in_app or publish are available or fail. Not for changing form.ext's own source code (use formext-skillset) and not for installing finished extensions from the catalogue (use formportal-harness).
+description: Makes extensions for the Form apps with form.ext through its formext MCP server or the ./formext cli command line. Use whenever the person wants an extension, plugin, add-on, panel or command made, changed, fixed, checked, previewed, packaged, signed, loaded in a running app, published or submitted to form.ext-registry for formvis, formcut, formwav, formpdf, formdeck, formlit, form.md, formencoder, formvfx, formMCP, formtray or formskills; asks what an extension may do in the sandbox or which permission it needs; has a .formpkg, a manifest.json or an extension folder to work on; wants an index entry or a formai.studio submission; or when formext tools such as status, new, write, validate, preview, package, sign, run_in_app, publish or submit are available or fail. Not for changing form.ext's own source code (use formext-skillset) and not for installing finished extensions from the catalogue (use formportal-harness).
 ---
 
 # formext harness
@@ -32,7 +32,7 @@ When the form.ext window is open, the tools talk to its engine and every change 
 3. **Check**: `validate {id}` until it reports no errors. Each problem has file, line, rule and fix.
 4. **Look**: `preview {id}` says whether a host accepts it, which frame it loads with which headers, the consent words, the panels and commands, and whether every file the page references is served. The person sees it running in form.ext's Preview pane.
 5. **Run in the real app** (ask first): `run_in_app {id}` adds it to FormPortal's `dev.json`; the app picks it up while it runs and reloads it on every save.
-6. **Ship**: `package {id, reproduce: true}`, `keys`, `sign`, `verify`, then `publish {id}` for the formai.studio submission folder (and `formportal: true` to install it, after asking).
+6. **Ship**: `package {id, reproduce: true}`, `keys`, `sign`, `verify`, then `publish {id}` for the formai.studio submission folder (and `formportal: true` to install it, after asking), or `submit {id, checkout?}` to make it an official extension through a pull request to form.ext-registry.
 
 ## Routing
 
@@ -42,7 +42,7 @@ When the form.ext window is open, the tools talk to its engine and every change 
 | Connecting: the MCP server, the command line, the engine, the data folder, errors that mention the engine | `sub-skills/session-and-connection/SUB-SKILL.md` |
 | Writing the code and manifest: the SDK, the sandbox, panels, headless commands, document ops, events, permissions, theming | `sub-skills/writing-extensions/SUB-SKILL.md` |
 | Checking and previewing: validate rules, preview snapshot, what counts as verified | `sub-skills/check-and-preview/SUB-SKILL.md` |
-| Run in App, packaging, keys, signing, index entries, publishing, sending to FormPortal | `sub-skills/ship/SUB-SKILL.md` |
+| Run in App, packaging, keys, signing, index entries, publishing, sending to FormPortal, submitting to form.ext-registry | `sub-skills/ship/SUB-SKILL.md` |
 
 ## Rules that hold everywhere
 

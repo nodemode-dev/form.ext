@@ -1,6 +1,6 @@
 ---
 name: ship
-description: "Shipping a Form extension from form.ext: Run in App through FormPortal's dev.json, the installed apps, deterministic .formpkg packages and the reproducibility check, Ed25519 publisher keys, signing and verifying builds, formai-extensions index entries, the formai.studio submission folder, and sending a package to FormPortal to install. Use when the person wants the extension loaded in the real app, packaged, signed, published or installed."
+description: "Shipping a Form extension from form.ext: Run in App through FormPortal's dev.json, the installed apps, deterministic .formpkg packages and the reproducibility check, Ed25519 publisher keys, signing and verifying builds, formai-extensions index entries, the formai.studio submission folder, sending a package to FormPortal to install, and submitting to form.ext-registry (the registry layout, its tools/check.py, the git and gh pull request commands). Use when the person wants the extension loaded in the real app, packaged, signed, published, installed or registered."
 ---
 
 # ship
@@ -27,3 +27,13 @@ description: "Shipping a Form extension from form.ext: Run in App through FormPo
 `publish {id, url?, publisher?, passphrase?, unsigned?}` builds, signs (unless `unsigned`; it picks the settings' publisher or the only key), and writes the submission folder: the `.formpkg`, `entry.json`, a one-package `extensions.json` that passes the index schema, `README.md` and `submission.json`. Report the folder, SHA-256, size, URL and signer.
 
 `formportal: true` also sends the package to FormPortal: through its command line (`extension-install --path`) when found, otherwise by opening the package with the FormPortal app or the system's handler for `.formpkg`. The answer's `method` says which; `installed` is known only for the command line. Ask first: it changes what the app loads for everyone on this computer.
+
+## Submit to the registry
+
+Official Form extensions live in `nodemode-dev/form.ext-registry` (one `extensions/<id>/` folder each; the owners review every pull request, CI runs `tools/check.py`, and the merge publishes a signed release).
+
+1. Make the project registry-ready first: `README.md` that says what it does, a `## Permissions` section naming every permission and why, and the screenshot `![...](docs/screenshot.png)` with the picture at `docs/screenshot.png`; `LICENSE`; `CHANGELOG.md` with an entry for the version; source in `src/` when there is any (without `src/` the registry reads the shipped files, bundled SDK included, for the permission check). A changed extension raises its version above the published one.
+2. `submit {id, checkout?}` writes `submissions/registry/extensions/<id>/` in the data folder (package/, the source, the metadata; it writes README, LICENSE or CHANGELOG only when missing, and lists them in `made` for you to finish). `checkout` is a local clone of the registry: then the clone's own `tools/check.py` runs on the folder (`checks.by` is `registry`); without it form.ext's Check runs (`checks.by` is `formext`). Say which ran.
+3. When `checks.ok` is false, fix the project and submit again. When it is true, give the person `commands` (fork, branch, copy, check, commit, push, `gh pr create`). Never run the push or the pull request yourself unless the person asks.
+
+The Library's Registry shelf (in the window) lists the registry's verified extensions from its signed index; importing one checks its SHA-256 and publisher signature.
