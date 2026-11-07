@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
+  <title>form.ext</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="./favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <style>html,body{background:#111;height:100%;margin:0;padding:0;overflow:hidden}html[data-theme=light],html[data-theme=light] body{background:#ecebe6}#app{visibility:hidden}body.app-ready.demo-ready #app{visibility:visible}</style>
+  <script>
+(function () {
+  var mode = 'dark';
+  try {
+    var saved = localStorage.getItem('formext.theme');
+    if (saved === 'light' || saved === 'dark') mode = saved;
+  } catch (e) {}
+  var root = document.documentElement;
+  root.setAttribute('data-theme', mode);
+  root.style.colorScheme = mode;
+})();
+  </script>
+  <script src="./packs/packages.js"></script>
+  <script defer src="./assets/formext.js"></script>
+  <link rel="stylesheet" href="./assets/formext.css">
+</head>
+<body>
+  <div id="app">
+    <header class="fx-topbar" data-tauri-drag-region>
+      <div class="fx-brand" data-tauri-drag-region><span>form<span class="dot">.</span>ext</span></div>
+      <button class="fx-project" type="button" data-empty="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4a2 2 0 1 1 4 0v2h4a1 1 0 0 1 1 1v4h-2a2 2 0 1 0 0 4h2v4a1 1 0 0 1-1 1h-4v-2a2 2 0 1 0-4 0v2H6a1 1 0 0 1-1-1v-4h2a2 2 0 1 0 0-4H5V7a1 1 0 0 1 1-1h4z"/></svg><span class="name ellipsis">No project open</span><span class="chip hue hidden"></span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="fx-top-actions">
+        <button class="fx-search" type="button" data-action="palette" aria-label="Command palette"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><span>Commands</span><span class="kbd" data-keys="Mod+K">Ctrl K</span></button>
+        <button class="btn ghost icon" type="button" data-action="theme" aria-label="Theme"></button>
+      </div>
+    </header>
+    <aside class="fx-sidebar"></aside>
+    <main class="fx-main"></main>
+    <footer class="fx-status">
+      <button class="item btn ghost sm" type="button" data-status="engine" data-state="wait"><span class="led"></span><span>Engine starting</span></button>
+      <span class="item" data-status="project"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.5h8.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></svg><span class="ellipsis">No project</span></span>
+      <span class="item right" data-status="version">form.ext</span>
+    </footer>
+  </div>
+  <div class="fx-scrim"></div>
+  <form class="fx-dialog" role="dialog" aria-modal="true" novalidate>
+    <div class="fx-dialog-head"></div>
+    <div class="fx-dialog-body"></div>
+    <div class="fx-dialog-foot"><button class="btn" type="button" data-role="cancel">Cancel</button><button class="btn primary" type="submit" data-role="ok">OK</button></div>
+  </form>
+  <div class="fx-palette" role="dialog" aria-label="Command palette">
+    <div class="fx-palette-input"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input type="text" spellcheck="false" autocomplete="off" aria-label="Search"></div>
+    <ul class="fx-palette-list" role="listbox"></ul>
+  </div>
+  <div class="fx-toasts" aria-live="polite"></div>
+</body>
+</html>
