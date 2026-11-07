@@ -1,0 +1,52 @@
+.run-pane > .pane-head { flex: none; }
+.run-pane .run-mark { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-md); background: var(--accent-color-dim); color: var(--accent-color); flex: none; }
+.run-pane .run-mark svg { width: 18px; height: 18px; }
+.run-pane .run-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.run-pane .run-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.run-pane .empty .btn svg { width: var(--icon-s); height: var(--icon-s); color: currentColor; }
+.run-pane .run-toggle { width: 212px; justify-content: flex-start; }
+.run-pane .run-toggle-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.run-pane .run-slot { display: grid; }
+.run-pane .run-slot > * { grid-area: 1 / 1; min-width: 0; }
+.run-pane .run-off { visibility: hidden; }
+.run-pane .run-toggle-icon { display: inline-grid; place-items: center; width: 16px; height: 16px; }
+
+.run-pane .run-body { display: flex; flex-direction: column; gap: var(--sp-6); }
+.run-pane .section + .section { margin-top: 0; }
+.run-pane .run-status { min-height: 58px; align-items: center; }
+.run-pane .run-status-icon { display: inline-grid; place-items: center; width: var(--icon-s); height: var(--icon-s); flex: none; }
+.run-pane .run-status-icon svg { margin-top: 0; }
+.run-pane .run-status.success .run-status-icon { color: var(--success); }
+.run-pane .run-status.warning .run-status-icon { color: var(--warning); }
+.run-pane .run-status.error .run-status-icon { color: var(--error); }
+.run-pane .run-status.info .run-status-icon { color: var(--info); }
+
+.run-pane .run-card { display: flex; flex-direction: column; gap: var(--sp-4); }
+.run-pane .run-app { display: flex; align-items: center; gap: var(--sp-3); min-height: 40px; }
+.run-pane .run-app-icon { display: inline-flex; flex: none; }
+.run-pane .run-app-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.run-pane .run-app-name { font-weight: 600; font-size: var(--fs-14); }
+.run-pane .run-app-meta { color: var(--ink-soft); font-size: var(--fs-12); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.run-pane .run-host-chip { vertical-align: middle; }
+.run-pane .run-facts { display: grid; grid-template-columns: max-content 1fr; gap: var(--sp-2) var(--sp-4); margin: 0; font-size: var(--fs-13); }
+.run-pane .run-facts dt { color: var(--ink-faint); font-size: var(--fs-12); line-height: 20px; }
+.run-pane .run-facts dd { margin: 0; min-width: 0; line-height: 20px; min-height: 20px; }
+.run-pane .run-facts code, .run-pane .run-root { font-family: var(--font-code); font-size: var(--fs-12); color: var(--ink); overflow-wrap: anywhere; }
+.run-pane .run-actions { flex-wrap: wrap; gap: var(--sp-2); }
+
+.run-pane .run-portal-row { display: flex; align-items: center; gap: var(--sp-3); min-height: 24px; font-size: var(--fs-13); flex-wrap: wrap; }
+.run-pane .run-portal-label { width: 104px; flex: none; color: var(--ink-faint); font-size: var(--fs-12); }
+.run-pane .run-cli { color: var(--ink-soft); overflow-wrap: anywhere; min-width: 0; flex: 1 1 0; }
+
+.run-pane .run-table { table-layout: fixed; }
+.run-pane .run-col-app { width: 18%; }
+.run-pane .run-col-installed { width: 18%; }
+.run-pane .run-col-dev { width: 34%; }
+.run-pane .run-col-ext { width: 18%; }
+.run-pane .run-col-open { width: 12%; }
+.run-pane .run-table td { vertical-align: middle; height: 40px; overflow-wrap: anywhere; }
+.run-pane .run-table .run-cell-app { display: inline-flex; align-items: center; gap: var(--sp-2); white-space: nowrap; }
+.run-pane .run-table .run-cell-installed, .run-pane .run-table .run-cell-ext { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.run-pane .run-table .run-cell-open { text-align: right; white-space: nowrap; }
+.run-pane .run-dev-row { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; min-height: 24px; }
+.run-pane .run-dev-reason, .run-pane .run-dev-outside, .run-pane .run-faint { color: var(--ink-faint); font-size: var(--fs-12); }
