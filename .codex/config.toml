@@ -1,0 +1,6 @@
+# form.ext for Codex in this repository (trusted projects only).
+[mcp_servers.formext]
+command = "sh"
+args = ["-c", "exec \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/formext\" mcp"]
+startup_timeout_sec = 90
+tool_timeout_sec = 600

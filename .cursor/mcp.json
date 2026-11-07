@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "formext": {
+      "command": "${workspaceFolder}/formext",
+      "args": ["mcp"]
+    }
+  }
+}

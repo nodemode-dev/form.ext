@@ -1,0 +1,30 @@
+---
+name: engine-modules
+description: "form.ext's engine modules, each a routers/[module].py with its services/[module].py: validate (the Check rules), templates and the starters in templates/, preview (contract file serving and the preview fetch proxy), package and keys (deterministic builds, reproducibility, Ed25519 signing, index entries), runapp and portal (FormPortal's folder, installed apps, dev.json, opening apps, sending packages), publish (submission folders) and library (import and inspect .formpkg, compare builds, examples). Use when adding or changing a module route, a Check rule, a starter, or the package, signing, Run in App or publish behaviour."
+---
+
+# engine-modules
+
+## Routes by module
+
+| Module | Routes |
+| --- | --- |
+| validate | `POST /api/projects/{id}/validate` answers `{ok, counts, problems: [{rule, severity, file, line, column, message, fix, path}], files, bytes, checked_at}` and emits `validate.done`; `GET /api/validate/rules` |
+| templates | `GET /api/templates` (products, starters, examples), `GET /api/templates/{product}/{starter}`, `POST /api/templates/create {product, starter, name, description?}`, `GET /api/templates/examples`, `POST /api/templates/examples/{id}` |
+| preview | `GET /api/preview/{id}?product&app_version` (the host check and the frame record), `GET/HEAD /api/preview/{id}/files/{ext}/{version}/{path}` (contract headers and CSP), `POST /api/preview/fetch` (https only, public hosts only, no redirects, 50 MB) |
+| package, keys | `POST /api/projects/{id}/package {anyway?}`, `POST .../package/reproduce`, `GET .../builds`, `GET/DELETE .../builds/{sha}`, `GET .../builds/{sha}/file`, `POST .../builds/{sha}/sign {key, passphrase}`, `POST .../builds/{sha}/verify`, `GET .../builds/{sha}/entry?url&publisher`; `GET/POST /api/keys`, `GET/DELETE /api/keys/{id}`, `GET /api/keys/{id}/public` |
+| runapp | `GET /api/runapp` (root, installs, dev rows with host views), `GET /api/runapp/root`, `GET/POST/DELETE /api/runapp/projects/{id}`, `POST /api/runapp/projects/{id}/install`, `POST /api/runapp/send {path}`, `GET/PUT /api/runapp/apps/{product}/dev`, `DELETE /api/runapp/apps/{product}/dev/{ext}`, `POST /api/runapp/apps/{product}/{reload,open,manage}` |
+| publish | `GET /api/publish/{id}`, `POST /api/publish/{id} {url, publisher, passphrase, sign}`, `POST /api/publish/{id}/send`, `POST /api/publish/{id}/reveal` |
+| library | `POST /api/library/inspect`, `POST /api/library/import` (JSON `{path}` or the raw bytes), `GET/POST /api/library/builds/{id}/{sha}[/import]`, `GET /api/library/compare/{id}[/file]`, `GET /api/library/examples[/{key}[/import]]` |
+
+Each module keeps its own notes in its pane folder's `HASHOUT_LOG.md` (for example `frontend/src/panes/check/HASHOUT_LOG.md` covers the validate service and router).
+
+## Rules
+
+- **Use the kit, do not copy it.** Host acceptance is `formext_host.check`, file serving `formext_host.file_for` and `headers_for`, the CSP `formext_host.csp_for`, package rules and builds `formpkg.problems` and `formpkg.build`, index entries `formpkg.entry`. One rule implemented twice drifts.
+- **Check rules carry their fix.** A new rule goes into `RULES` in `services/validate.py` with id, severity, title and text, and each problem it reports has file, line, column and a fix sentence a person can follow. Rules in `CONTRACT_RULES` (`json`, `package`, `schema`, `host`, `missing-entry`) make `package` refuse even with `anyway`.
+- **Builds are deterministic.** The same package folder gives the same SHA-256; builds are stored by SHA-256 under the project's builds folder with a `formext-build` record; `reproduce` rebuilds with the kit's own command line and compares.
+- **Keys never leave the data folder.** Only the public part is exported; a passphrase encrypts the private key; signatures are Ed25519 over the package bytes.
+- **Outside folders are written atomically and only where the contract says.** Run in App writes `extensions/[product]/dev.json` under FormPortal's root (`FORMPORTAL_ROOT` first, the same order as FormPortal's `Portal::default_root`); publish writes only into the data folder's `submissions/`.
+- **Starters must stay Check-clean.** Each of the twelve hosts has `panel`, `command` and `panel-commands` under `templates/[product]/`, written against that app's `docs/apps/[product].md`. After changing one, create it in a scratch data folder and run `validate` on it.
+- **Emit an event** for anything the window should refresh on, and add the op to `backend/app/cli.py` for anything an agent should be able to do.
