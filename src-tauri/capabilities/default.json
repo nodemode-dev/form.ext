@@ -1,0 +1,21 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "The page talks HTTP to its engine on 127.0.0.1 (a remote origin to Tauri, so the capability lists it, and the Vite address for development). Through Tauri it tells the shell its first paint is ready, asks the engine's address, opens links and folders with the system, and uses the system's open and save panels.",
+  "windows": ["splash", "main"],
+  "remote": { "urls": ["http://127.0.0.1:*", "http://localhost:5640"] },
+  "permissions": [
+    "core:default",
+    "core:window:allow-set-title",
+    "core:window:allow-close",
+    "core:window:allow-minimize",
+    "core:window:allow-toggle-maximize",
+    "shell:allow-open",
+    "dialog:allow-open",
+    "dialog:allow-save",
+    "dialog:allow-message",
+    "dialog:allow-ask",
+    "allow-app-ready",
+    "allow-engine-url"
+  ]
+}

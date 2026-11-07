@@ -1,0 +1,16 @@
+node_modules/
+frontend/dist/
+frontend/dist-demo/
+backend/venv/
+backend/build/
+backend/dist-engine/
+__pycache__/
+*.pyc
+.pytest_cache/
+src-tauri/target/
+src-tauri/gen/
+src-tauri/binaries/
+src-tauri/engine/
+*.log
+.DS_Store
+.vite/

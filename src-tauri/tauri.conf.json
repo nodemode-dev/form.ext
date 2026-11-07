@@ -1,0 +1,55 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "form.ext",
+  "mainBinaryName": "formext",
+  "version": "0.1.0",
+  "identifier": "ai.nodemode.formext",
+  "build": {
+    "frontendDist": "../frontend/dist",
+    "devUrl": "http://localhost:5640"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "splash",
+        "title": "form.ext",
+        "url": "splash.html",
+        "width": 360,
+        "height": 200,
+        "resizable": false,
+        "decorations": false,
+        "center": true,
+        "transparent": true,
+        "shadow": false,
+        "visible": false
+      }
+    ],
+    "macOSPrivateApi": true,
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "DeveloperTool",
+    "shortDescription": "The Form extension studio",
+    "longDescription": "form.ext makes, previews, checks, packages, signs and publishes extensions for every Form app, against the Form Extension Contract.",
+    "publisher": "NodeAgentc, Inc.",
+    "copyright": "Copyright 2026 NodeAgentc, Inc. GPL-3.0-only",
+    "license": "GPL-3.0-only",
+    "licenseFile": "../LICENSE",
+    "externalBin": ["binaries/formext-engine"],
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+    "macOS": {
+      "minimumSystemVersion": "13.0",
+      "hardenedRuntime": true,
+      "entitlements": "entitlements.plist"
+    },
+    "windows": {
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "http://timestamp.digicert.com"
+    },
+    "createUpdaterArtifacts": false
+  }
+}
