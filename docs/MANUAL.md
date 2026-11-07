@@ -145,7 +145,16 @@ The Library imports and inspects packages.
 - **Import .formpkg**: a package from disk becomes a project, after the kit's checks (layout, file types, paths, the manifest). A package that fails them can still be imported to fix it.
 - **Inspect**: any package, without importing it: its manifest, files, sizes, SHA-256 of each file and of the whole, permissions in plain words, whether it is deterministic (the kit's sort order, dates and modes), and whether it matches a build of yours.
 - **Compare**: two builds of a project, or a build and the working files: what changed in the manifest, which files were added, removed or changed, and a line diff of a text file.
-- **Examples**: the first-party extensions for each app, when their packages are on this computer, imported as projects to read and change. Their source repositories are linked.
+- **Registry**: the extensions registered in form.ext-registry (`nodemode-dev/form.ext-registry`), the single source of official Form extensions. form.ext downloads the registry's signed index (`extensions.json`) and checks `extensions.json.sig` with the registry keys it trusts before it shows anything. Each card has the Verified mark, its app, version, permissions in plain words and a link to its source folder in the registry. Inspect and Import download the package, check its SHA-256 against the index and its publisher signature against the index's publisher key, then go through the same checks as any import. Refresh downloads the index again; the last good copy is kept and used, with a note, when the registry cannot be reached.
+
+The registry address is the setting `registry.url` (by default `https://github.com/nodemode-dev/form.ext-registry/releases/download/index/extensions.json`); `FORMEXT_REGISTRY_URL` overrides it. The registry keys are compiled into the engine (`backend/app/registry_keys.txt`); `FORMEXT_REGISTRY_PUBKEY` (comma-separated base64 Ed25519 keys) adds keys for testing. When the index comes from another address than the default, packages are fetched from the same address with the registry's release paths (a mirror). The shelf says plainly why it is empty:
+
+| It says | What it means |
+|---|---|
+| This build trusts no registry key yet | `registry_keys.txt` holds no key yet and none was given in `FORMEXT_REGISTRY_PUBKEY`. The developer setting `registry.developer` reads the index without checking it, and its cards are not marked Verified. |
+| The registry is private or not published yet | GitHub answered 404, 401 or 403. While the registry is private its downloads need a token: set `GITHUB_TOKEN` (or `FORMEXT_GITHUB_TOKEN`). |
+| The registry is unreachable | No answer (no network, a wrong address), and no copy kept from before. |
+| Signature mismatch | The index or a package does not match its signature: it was changed, or signed with a key this build does not trust. Nothing from it is shown or imported. |
 
 ## Run in App
 
@@ -180,6 +189,7 @@ Publish turns a build into what the catalogue needs.
 - **The index entry**: the package's row for formai.studio's extensions index (`formai-extensions`, format 1): id, name, product, version, description, permissions, the package address (by default `https://formai.studio/extensions/packages/<id>-<version>.formpkg`), SHA-256, size, and the signature when signed. It is checked against the contract's `extensions.schema.json` before anything is written.
 - **Prepare Submission** builds the package if needed, signs it with your publisher key (Settings chooses the default key), and writes a submission folder in the data folder (`submissions/<id>-<version>/`): the `.formpkg`, `entry.json`, a one-package `extensions.json` with your publisher entry, a `README.md` for the reviewer, and `submission.json`. Reveal opens the folder.
 - **Send to FormPortal** installs the package through FormPortal's command line (`formportal cli extension-install --path <package>`) when it is found, otherwise opens the package with FormPortal or with the system's handler for `.formpkg`. FormPortal applies its own checks and signature policy, and its answer is shown.
+- **Submit to Registry** is how an extension becomes official. It writes the project into a folder in form.ext-registry's layout, `submissions/registry/extensions/<id>/` in the data folder: `package/` (exactly what goes in the `.formpkg`), the source beside it (`src/`, `package.json` and its lock file when the project has them, `docs/`), and `README.md`, `LICENSE` and `CHANGELOG.md` (form.ext writes the ones the project lacks, for you to finish). The screenshot slot is `docs/screenshot.png`, shown in the README. Then it runs the registry's checks on the folder: with **Registry checkout** set to a local clone of the registry (the setting `registry.checkout`), form.ext imports that clone's `tools/check.py` and runs exactly the checks CI runs on a pull request (contract, version and immutability against the published index, reproducible build, code bans, permissions declared and used, README, licence, changelog and screenshot, block list); without one it runs its own Check and the metadata checks, and says which ran. Last, it shows the `git` and `gh` commands that fork `nodemode-dev/form.ext-registry`, copy the folder in on a branch, run the checks, commit, push and open the pull request; Copy Commands puts them on the clipboard. form.ext never pushes anything itself. The owners review the pull request, and once it is merged the registry builds, signs and publishes the new version.
 
 ## Docs
 
@@ -202,7 +212,7 @@ Search (top of the list) counts the matches in every page and marks them in the 
 | Make | `new NAME --app formcut --starter panel` (or `--example hello`), `projects`, `project`, `import` (a folder or a `.formpkg`), `inspect`, `files`, `read`, `write`, `delete`, `move`, `manifest` |
 | Check and try | `validate`, `preview` (a snapshot: the host check, the frame address and its headers) |
 | Package | `package` (`--anyway` builds past code-lint errors), `builds`, `keys`, `sign`, `verify`, `entry` |
-| Ship | `apps`, `run-in-app` (`--remove`, `--status`, `--open`), `publish` (`--url`, `--publisher`, `--unsigned`, `--formportal`) |
+| Ship | `apps`, `run-in-app` (`--remove`, `--status`, `--open`), `publish` (`--url`, `--publisher`, `--unsigned`, `--formportal`), `submit` (`--checkout` a local clone of the registry) |
 
 `./formext cli --help` lists them and `./formext cli <command> --help` explains one. Answers are short text by default and JSON with `--json`; failures exit non-zero with the reason in the same words the window uses. Changes made from the command line appear in the open window at once.
 
@@ -210,11 +220,11 @@ The desktop app's frozen engine takes the same commands (`formext-engine cli ...
 
 ## The MCP server
 
-`./formext mcp` is form.ext's MCP server on standard input and output. The repository's `.mcp.json` registers it for Claude Code, `.codex/config.toml` for Codex and `.cursor/mcp.json` for Cursor, so an agent working in this repository makes extensions the way a person does. Its tools are the command line's commands under the same names (`status`, `docs`, `templates`, `new`, `write`, `manifest`, `validate`, `preview`, `package`, `sign`, `run_in_app`, `publish` and the rest), with the same arguments, and its resources (`formext://docs/<topic>`) are the contract, the SDK source, the schema, the example and every app's API page. The tools answer what the panes show, and every change an agent makes appears in the open window at once (the engine's live events). The skill `formext-harness` teaches the loop: read the app's page, start from a starter, write, validate, preview, package, run in the app.
+`./formext mcp` is form.ext's MCP server on standard input and output. The repository's `.mcp.json` registers it for Claude Code, `.codex/config.toml` for Codex and `.cursor/mcp.json` for Cursor, so an agent working in this repository makes extensions the way a person does. Its tools are the command line's commands under the same names (`status`, `docs`, `templates`, `new`, `write`, `manifest`, `validate`, `preview`, `package`, `sign`, `run_in_app`, `publish`, `submit` and the rest), with the same arguments, and its resources (`formext://docs/<topic>`) are the contract, the SDK source, the schema, the example and every app's API page. The tools answer what the panes show, and every change an agent makes appears in the open window at once (the engine's live events). The skill `formext-harness` teaches the loop: read the app's page, start from a starter, write, validate, preview, package, run in the app.
 
 ## Settings and the data folder
 
-Settings (`settings.json` in the data folder, read and changed through the engine's `/api/settings`) hold the theme, your author name, the default publisher key, the default licence, the default app for New, FormPortal's folder, the editor's font size, tab size and wrapping, and the Preview's theme and consent defaults.
+Settings (`settings.json` in the data folder, read and changed through the engine's `/api/settings`) hold the theme, your author name, the default publisher key, the default licence, the default app for New, FormPortal's folder, the editor's font size, tab size and wrapping, the Preview's theme and consent defaults, and the registry: `registry.url` (the index address), `registry.checkout` (a local clone for Submit to Registry's checks) and `registry.developer` (read an index without a trusted key; for development only).
 
 form.ext keeps its projects and everything it makes in its data folder: `FORMEXT_HOME` when set, otherwise the OS app-data folder `ai.nodemode.formext` (macOS Application Support, Windows `%APPDATA%`, Linux `~/.local/share`).
 
@@ -225,7 +235,8 @@ form.ext keeps its projects and everything it makes in its data folder: `FORMEXT
 | `settings.json` | the settings you changed |
 | `builds/<id>/<sha256>/` | builds, each with its `.formpkg` and `build.json` |
 | `keys/` | publisher keys |
-| `submissions/` | prepared submissions |
+| `submissions/` | prepared submissions; `submissions/registry/extensions/<id>/` for the registry |
+| `registry/` | the last verified registry index and its signature, and the registry packages already downloaded (by SHA-256) |
 | `trash/` | removed projects |
 
 ## Keys

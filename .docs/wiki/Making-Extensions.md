@@ -24,4 +24,4 @@ The manifest against the kit's package rules, the schema and the hosts' refusals
 
 ## Library
 
-Import a `.formpkg` into a project with the kit's checks, inspect any package (manifest, files, hashes, permissions, determinism), compare two builds of a project or a build and the working files, and the Examples shelf of first-party extensions.
+Import a `.formpkg` into a project with the kit's checks, inspect any package (manifest, files, hashes, permissions, determinism), compare two builds of a project or a build and the working files, and the Registry shelf: the extensions of form.ext-registry from its signed index (the signature checked with the registry keys compiled into the engine, `backend/app/registry_keys.txt`, plus `FORMEXT_REGISTRY_PUBKEY`), each with the Verified mark, its app, version, permissions and source link. Importing one downloads the package and checks its SHA-256 and publisher signature first. The index address is the setting `registry.url`, or `FORMEXT_REGISTRY_URL`.

@@ -88,10 +88,10 @@
       Writes the app's `dev.json` in FormPortal's folder so the installed app loads the extension live, shows which Form apps are installed, and opens them.
     </td>
     <td width="50%" valign="top">
-      <img src="assets/formext-library.png" alt="The Library's Examples shelf with the first-party extensions for each Form app" width="100%">
+      <img src="assets/formext-library.png" alt="The Library's shelf of first-party extensions for each Form app" width="100%">
       <br><sub>First-party extensions to open, read and change.</sub>
       <h3>Library and publishing</h3>
-      Import or inspect any `.formpkg`, compare two builds, and open the first-party examples. Publish writes the extensions index entry and a submission folder for formai.studio, or sends the package to FormPortal.
+      Import or inspect any `.formpkg`, compare two builds, and start from form.ext-registry's verified extensions, read from its signed index. Publish writes the extensions index entry and a submission folder, sends the package to FormPortal, or submits the project to the registry: its layout, its own checks, and the commands for the pull request.
     </td>
   </tr>
 </table>
@@ -101,7 +101,7 @@
 <table>
   <tr>
     <td width="33%" valign="top"><h4>In the window</h4>Home · New · Edit · Preview · Check · Library · Run in App · Package · Publish · Docs</td>
-    <td width="33%" valign="top"><h4>26 MCP tools</h4>status · docs · templates · new · read · write · manifest · validate · preview · package · sign · verify · run_in_app · publish and the rest</td>
+    <td width="33%" valign="top"><h4>27 MCP tools</h4>status · docs · templates · new · read · write · manifest · validate · preview · package · sign · verify · run_in_app · publish · submit and the rest</td>
     <td width="33%" valign="top"><h4>Twelve hosts</h4>FormVis · FormCut · FormWav · FormPDF · FormDeck · FormLit · form.md · FormEncoder · FormVFX · FormMCP · FormTray · FormSkills</td>
   </tr>
 </table>

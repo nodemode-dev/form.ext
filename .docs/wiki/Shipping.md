@@ -22,3 +22,15 @@ Builds live in `builds/<project>/<sha256>/` with a `build.json` record.
 Prepare Submission builds (if needed), signs with the default publisher key and writes `submissions/<id>-<version>/`: the `.formpkg`, `entry.json`, a one-package `extensions.json` checked against the contract's `extensions.schema.json`, the publisher entry, a `README.md` for the reviewer and `submission.json`. The package address defaults to `https://formai.studio/extensions/packages/<id>-<version>.formpkg`.
 
 Send to FormPortal installs the package with `formportal cli extension-install --path <package>` when FormPortal's command line is found, otherwise opens it with FormPortal or the system's handler for `.formpkg`. FormPortal's own checks and signature policy apply.
+
+## Submit to Registry
+
+Official Form extensions live in `nodemode-dev/form.ext-registry`, one folder per extension. Submit to Registry (the Publish pane, `./formext cli submit <id>`, the MCP tool `submit`):
+
+| Step | What happens |
+| --- | --- |
+| Folder | Writes `submissions/registry/extensions/<id>/` in the data folder: `package/`, the source (`src/`, `package.json` and its lock file, `docs/`), `README.md`, `LICENSE`, `CHANGELOG.md` (written for you when missing) and the screenshot slot `docs/screenshot.png`. |
+| Checks | With the setting `registry.checkout` (a local clone of the registry), the clone's own `tools/check.py` is imported and run on the folder, exactly as CI runs it on the pull request. Without it, form.ext's Check and the metadata checks run instead, and the result says which. |
+| Pull request | The `git` and `gh` commands that fork the registry, copy the folder in on a branch, run the checks, commit, push and open the pull request. form.ext never pushes. |
+
+The owners (`@nodemode-ai`, `@gbarnai`) review it; after the merge the registry builds, signs and publishes the version, and every Library and FormPortal lists it as Verified.
