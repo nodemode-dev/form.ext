@@ -1,0 +1,34 @@
+{
+  "name": "@formai/ext",
+  "version": "0.1.0",
+  "description": "The extension side of the Form Extension Contract, API 1: a typed client for extensions that run in any Form app.",
+  "license": "Apache-2.0",
+  "author": "nodemode",
+  "homepage": "https://formai.studio/extensions/",
+  "keywords": ["formai", "form", "extension", "formpkg", "json-rpc", "postmessage"],
+  "type": "module",
+  "main": "./dist/formext.js",
+  "module": "./dist/formext.js",
+  "types": "./dist/formext.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/formext.d.ts",
+      "import": "./dist/formext.js"
+    },
+    "./formext.ts": "./src/formext.ts",
+    "./package.json": "./package.json"
+  },
+  "files": ["dist/formext.js", "dist/formext.d.ts", "src/formext.ts", "README.md", "LICENSE"],
+  "sideEffects": ["./dist/formext.js", "./src/formext.ts"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2"
+  },
+  "formext": {
+    "api": "1",
+    "contract": "../contract/CONTRACT.md"
+  }
+}
