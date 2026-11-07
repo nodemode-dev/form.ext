@@ -3,6 +3,8 @@ from fastapi.responses import JSONResponse
 
 from app.services import library
 from app.services.library import Refused
+from app.services import registry
+from app.services.registry import RegistryError
 from app.services.workspace import WorkspaceError
 
 router = APIRouter(prefix="/api/library", tags=["library"])
@@ -41,21 +43,33 @@ async def _body(request: Request) -> tuple[bytes | None, dict]:
     return b"".join(chunks), {}
 
 
-@router.get("/examples")
-def list_examples():
-    return library.examples()
+def _registry_error(e: RegistryError) -> JSONResponse:
+    return JSONResponse({"detail": e.message, "problem": e.problem}, status_code=e.status)
 
 
-@router.get("/examples/{key}")
-def inspect_example(key: str):
-    return library.inspect_example(key)
+@router.get("/registry")
+def registry_shelf(refresh: str = ""):
+    try:
+        return library.registry_shelf(_flag(refresh))
+    except RegistryError as e:
+        return {"error": {"detail": e.message, "problem": e.problem, "status": e.status}, "url": registry.index_url(), "extensions": []}
 
 
-@router.post("/examples/{key}/import")
-def import_example(key: str, body: dict | None = Body(None)):
+@router.get("/registry/{eid}")
+def inspect_registry(eid: str):
+    try:
+        return library.inspect_registry(eid)
+    except RegistryError as e:
+        return _registry_error(e)
+
+
+@router.post("/registry/{eid}/import")
+def import_registry(eid: str, body: dict | None = Body(None)):
     body = body or {}
     try:
-        return library.import_example(key, body.get("name"), _flag(body.get("anyway")))
+        return library.import_registry(eid, body.get("name"), _flag(body.get("anyway")))
+    except RegistryError as e:
+        return _registry_error(e)
     except Refused as e:
         return _refused(e)
 

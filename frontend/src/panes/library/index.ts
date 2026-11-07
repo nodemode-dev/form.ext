@@ -19,13 +19,18 @@ interface Report {
   check: { ok: boolean; counts: Record<string, number>; problems: CheckProblem[] } | null;
   rebuild: { ok: boolean; sha256: string | null; same?: boolean; reason: string } | null;
   known: { kind: string; project: string; name?: string }[];
-  source?: { kind: string; repo?: string; repo_name?: string; project?: string; path?: string };
+  source?: { kind: string; repo?: string; repo_name?: string; project?: string; path?: string; signed_by?: string | null; index_verified?: boolean; version?: string };
   ms: number;
 }
-interface Example {
-  key: string; file: string; folder: string; sha256: string; bytes: number; ok: boolean; id: string; name: string; product: string; version: string;
-  description: string; permissions: Perm[]; repo: string | null; repo_name: string | null; imported: string[];
-  older: { key: string; version: string | null }[];
+interface RegEntry {
+  id: string; name: string; product: string; version: string; kind: string; author: string; licence: string; description: string;
+  permissions: Perm[]; verified: boolean; listed_verified: boolean; source: string; registry_commit: string | null; url: string;
+  sha256: string; bytes: number | null; signed_by: string | null; imported: string[];
+}
+interface Shelf {
+  url: string; url_source: string; name: string; verified: boolean; key: string | null; keys: number; note: string; offline: string | null;
+  fetched_at: number; sha256: string; registry_commit: string | null; publishers: { id: string; name: string }[]; extensions: RegEntry[];
+  error?: { detail: string; problem: string; status: number };
 }
 interface Build { sha256: string; version: string; bytes: number; built_at: number; last_built_at: number; signatures?: unknown[] }
 interface Side { kind: string; sha256: string | null; bytes: number; version: string; label: string }
@@ -41,13 +46,13 @@ interface ImportResult { project: { id: string; name: string }; report: Report }
 type Source =
   | { kind: 'upload'; name: string; data: ArrayBuffer }
   | { kind: 'path'; path: string }
-  | { kind: 'example'; key: string }
+  | { kind: 'registry'; id: string }
   | { kind: 'build'; project: string; sha: string };
 
 const TAB_KEY = 'formext.library.tab';
 const WORKING = 'current';
 const TABS: { id: Tab; label: string; glyph: string }[] = [
-  { id: 'examples', label: 'Examples', glyph: 'star' },
+  { id: 'examples', label: 'Registry', glyph: 'star' },
   { id: 'inspect', label: 'Inspect and Import', glyph: 'search' },
   { id: 'compare', label: 'Compare Builds', glyph: 'layers' },
 ];
@@ -85,7 +90,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     <div class="pane-fill library-pane">
       <header class="pane-head">
         <span class="lib-mark">${icon('library', 18)}</span>
-        <div class="lib-title"><h1>Library</h1><div class="sub">Import, inspect and compare packages, and start from the first-party extensions.</div></div>
+        <div class="lib-title"><h1>Library</h1><div class="sub">Import, inspect and compare packages, and start from the registry's verified extensions.</div></div>
         <div class="actions">
           <button class="btn lib-choose-top" type="button">${icon('import')}<span>Import .formpkg</span></button>
         </div>
@@ -96,9 +101,13 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       <input class="lib-file hidden" type="file" accept=".formpkg,.zip,application/zip" />
       <div class="pane-body lib-body">
         <section class="lib-panel" data-panel="examples">
-          <p class="lib-lead">The first-party extensions, one for each Form app. Import one to read how it uses its app's API, preview it, or start your own from it. Each lives in its own repository.</p>
+          <p class="lib-lead">The extensions registered in form.ext-registry, the Form family's registry. form.ext downloads its signed index, checks the signature with the registry's key, and checks each package's SHA-256 and publisher signature before it imports it. Import one to read how it uses its app's API, preview it, or start your own from it.</p>
+          <div class="lib-reg-bar">
+            <div class="notice lib-reg-status info" role="status"><span class="lib-reg-icon"><span class="spinner"></span></span><span class="lib-reg-text">Reading the registry index...</span></div>
+            <button class="btn ghost sm lib-reg-refresh" type="button" title="Download the index again">${icon('refresh')}<span>Refresh</span></button>
+          </div>
           <div class="grid-cards lib-examples" aria-busy="true">${Array.from({ length: 4 }, () => '<div class="card lib-skel"></div>').join('')}</div>
-          <div class="empty lib-examples-none hidden">${icon('library')}<h3>No example packages here</h3><p class="lib-examples-folders">&nbsp;</p></div>
+          <div class="empty lib-examples-none hidden">${icon('library')}<h3 class="lib-none-title">No extensions in the registry index</h3><p class="lib-examples-folders">&nbsp;</p></div>
         </section>
 
         <section class="lib-panel" data-panel="inspect">
@@ -178,7 +187,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
   let source: Source | null = null;
   let report: Report | null = null;
   let examplesLoaded = false;
-  let examples: Example[] = [];
+  let examples: RegEntry[] = [];
   let builds: Build[] = [];
   let buildsFor = '';
   let comparison: Comparison | null = null;
@@ -206,31 +215,59 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     setText(target.lastElementChild, text);
   }
 
-  async function loadExamples(): Promise<void> {
+  async function loadExamples(refresh = false): Promise<void> {
+    const status = q('.lib-reg-status');
+    const refreshBtn = q<HTMLButtonElement>('.lib-reg-refresh');
+    refreshBtn.disabled = true;
+    if (refresh) notice(status, 'info', 'Downloading the registry index again...', true);
     try {
-      const r = await ctx.api.get<{ examples: Example[]; folders: string[] }>('/api/library/examples');
-      examples = r.examples;
+      const r = await ctx.api.get<Shelf>(`/api/library/registry${refresh ? '?refresh=1' : ''}`);
+      if (r.error) {
+        regFailed(r.error.problem, r.error.detail);
+        return;
+      }
+      examples = r.extensions;
       examplesLoaded = true;
       exNone.classList.toggle('hidden', examples.length > 0);
       exGrid.classList.toggle('hidden', examples.length === 0);
-      setText(q('.lib-examples-folders'), r.folders.length ? `form.ext looks for .formpkg files in ${r.folders.join(', ')}.` : 'Put .formpkg files in the examples folder of form.ext\'s data folder, or set FORMEXT_EXAMPLES.');
+      setText(q('.lib-none-title'), 'No extensions in the registry index');
+      setText(q('.lib-examples-folders'), `The index at ${r.url} lists none yet.`);
+      const when = new Date(r.fetched_at * 1000).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const trust = r.verified && r.key ? `signature verified with registry key ${r.key}` : r.note || 'signature not checked';
+      const commit = r.registry_commit ? ` · registry commit ${r.registry_commit.slice(0, 10)}` : '';
+      const text = `${plural(examples.length, 'extension')} from ${r.url}: ${trust}${commit}, read ${when}.${r.offline ? ` Offline: the copy kept on this computer (${r.offline})` : ''}`;
+      notice(status, r.verified && !r.offline ? 'success' : 'warning', text);
       const html = examples.map(exampleCard).join('');
       if (exGrid.innerHTML !== html) exGrid.innerHTML = html;
     } catch (err) {
-      exGrid.innerHTML = `<div class="notice error">${icon('error')}<span>${esc(errorMessage(err))}</span></div>`;
+      regFailed(err instanceof ApiError ? (err.detail as { problem?: string } | null)?.problem : undefined, errorMessage(err));
+    } finally {
+      refreshBtn.disabled = false;
+      exGrid.removeAttribute('aria-busy');
     }
-    exGrid.removeAttribute('aria-busy');
   }
 
-  function exampleCard(x: Example): string {
+  function regFailed(problem: string | undefined, message: string): void {
+    examples = [];
+    exGrid.classList.add('hidden');
+    exNone.classList.remove('hidden');
+    const titles: Record<string, string> = { 'no-key': 'This build trusts no registry key yet', private: 'The registry is private or not published yet', unreachable: 'The registry is unreachable', signature: 'Signature mismatch' };
+    setText(q('.lib-none-title'), titles[problem ?? ''] ?? 'The registry index could not be read');
+    setText(q('.lib-examples-folders'), message);
+    notice(q('.lib-reg-status'), 'error', message);
+  }
+
+  function exampleCard(x: RegEntry): string {
     const perms = x.permissions.map((p) => `<span class="chip" title="${esc(p.id)}">${esc(p.words)}</span>`).join('');
     const done = x.imported.length;
-    return `<article class="card lib-ex" data-key="${esc(x.key)}">
-      <div class="lib-ex-head">${appIcon(x.product)}<div class="lib-ex-title"><strong>${esc(x.name)}</strong><span>${esc(productName(x.product))} · ${esc(x.version)} · ${esc(size(x.bytes))}</span></div>${x.ok ? '' : `<span class="chip error">${icon('error')}refused</span>`}</div>
+    const mark = x.verified
+      ? `<span class="chip success lib-verified" title="Listed by form.ext-registry in an index whose signature verified${x.signed_by ? `; package signed by ${esc(x.signed_by)}` : ''}">${icon('shield')}Verified</span>`
+      : `<span class="chip warning" title="The index signature was not checked">${icon('warning')}Not verified</span>`;
+    return `<article class="card lib-ex" data-key="${esc(x.id)}">
+      <div class="lib-ex-head">${appIcon(x.product)}<div class="lib-ex-title"><strong>${esc(x.name)}</strong><span>${esc(productName(x.product))} · ${esc(x.version)}${x.bytes ? ` · ${esc(size(x.bytes))}` : ''}</span></div>${mark}</div>
       <p class="lib-ex-desc">${esc(x.description)}</p>
       <div class="lib-ex-perms">${perms || '<span class="chip">Asks for nothing</span>'}</div>
-      ${x.older.length ? `<div class="lib-ex-older"><span class="lib-muted">Earlier:</span>${x.older.map((o) => `<button class="chip" type="button" data-ex-older="${esc(o.key)}" title="Inspect ${esc(o.version ?? '')}">${esc(o.version ?? o.key)}</button>`).join('')}</div>` : ''}
-      ${x.repo ? `<a class="lib-ex-repo" href="${esc(x.repo)}" data-external="1" target="_blank" rel="noopener noreferrer" title="Source repository">${icon('link')}<span>${esc(x.repo_name ?? x.repo)}</span></a>` : ''}
+      <a class="lib-ex-repo" href="${esc(x.source)}" data-external="1" target="_blank" rel="noopener noreferrer" title="Source in form.ext-registry">${icon('link')}<span>form.ext-registry/extensions/${esc(x.id)}</span></a>
       <div class="lib-ex-actions">
         <button class="btn sm" type="button" data-ex-inspect>${icon('search')}<span>Inspect</span></button>
         ${done ? `<button class="btn sm" type="button" data-ex-open="${esc(x.imported[0])}">${icon('folder-open')}<span>Open Project</span></button>` : ''}
@@ -247,7 +284,9 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     }
     if (r.kit_refuses) return { level: 'warning', text: `The kit's formpkg refuses ${name} (${plural(r.errors.length, 'problem')} below), so no Form app would load it. You can still import it to fix it.` };
     const rebuilt = r.rebuild?.ok ? (r.rebuild.same ? ' Packing it again gives the same SHA-256 byte for byte.' : ' Packing it again gives a different SHA-256 (it was not made by the kit\'s build).') : '';
-    return { level: r.warnings.length ? 'warning' : 'success', text: `${name} passes the kit's checks: safe paths, allowed file types, no symlinks, valid manifest.${rebuilt}` };
+    const src = r.source;
+    const from = src?.kind === 'registry' ? ` Downloaded from form.ext-registry: its SHA-256 matches the ${src.index_verified ? 'signed ' : ''}index${src.signed_by ? ` and its signature verifies with publisher ${src.signed_by}'s key` : ''}.` : '';
+    return { level: r.warnings.length ? 'warning' : 'success', text: `${name} passes the kit's checks: safe paths, allowed file types, no symlinks, valid manifest.${rebuilt}${from}` };
   }
 
   function renderReport(r: Report): void {
@@ -320,7 +359,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       let r: Report;
       if (src.kind === 'upload') r = await ctx.api.post<Report>(`/api/library/inspect?name=${encodeURIComponent(src.name)}`, src.data);
       else if (src.kind === 'path') r = await ctx.api.post<Report>('/api/library/inspect', { path: src.path });
-      else if (src.kind === 'example') r = await ctx.api.get<Report>(`/api/library/examples/${encodeURIComponent(src.key)}`);
+      else if (src.kind === 'registry') r = await ctx.api.get<Report>(`/api/library/registry/${encodeURIComponent(src.id)}`);
       else r = await ctx.api.get<Report>(`/api/library/builds/${encodeURIComponent(src.project)}/${src.sha}`);
       if (token === inspectToken) renderReport(r);
     } catch (err) {
@@ -343,7 +382,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       const body = { anyway };
       if (src.kind === 'upload') r = await ctx.api.post<ImportResult>(`/api/library/import?name=${encodeURIComponent(src.name)}${anyway ? '&anyway=1' : ''}`, src.data);
       else if (src.kind === 'path') r = await ctx.api.post<ImportResult>('/api/library/import', { path: src.path, anyway });
-      else if (src.kind === 'example') r = await ctx.api.post<ImportResult>(`/api/library/examples/${encodeURIComponent(src.key)}/import`, body);
+      else if (src.kind === 'registry') r = await ctx.api.post<ImportResult>(`/api/library/registry/${encodeURIComponent(src.id)}/import`, body);
       else r = await ctx.api.post<ImportResult>(`/api/library/builds/${encodeURIComponent(src.project)}/${src.sha}/import`, body);
       ctx.notify(`Imported ${r.project.name} as project ${r.project.id}`, 'success');
       examplesLoaded = false;
@@ -353,7 +392,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     } catch (err) {
       const detail = err instanceof ApiError ? (err.detail as { report?: Report } | null) : null;
       if (detail?.report && detail.report.kit_refuses && detail.report.can_import && !anyway) {
-        if (src.kind !== 'example' || tab === 'inspect') renderReport(detail.report);
+        if (src.kind !== 'registry' || tab === 'inspect') renderReport(detail.report);
         busy = false;
         const ok = await ctx.dialog.confirm('Import anyway?', `${errorMessage(err)} No Form app would load it as it is; form.ext opens it so you can fix the manifest.`, 'Import Anyway');
         if (ok) await runImport(src, true);
@@ -513,7 +552,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     if (args.action === 'import') choose();
     else if (args.action === 'inspect' && args.path) inspect({ kind: 'path', path: args.path });
     else if (args.action === 'inspect' && args.project && args.sha) inspect({ kind: 'build', project: args.project, sha: args.sha });
-    else if (args.action === 'inspect' && args.key) inspect({ kind: 'example', key: args.key });
+    else if (args.action === 'inspect' && args.key) inspect({ kind: 'registry', id: args.key });
     else if (args.action === 'compare') setTab('compare');
     else if (args.action === 'examples') setTab('examples');
   }
@@ -573,16 +612,15 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     }
     const card = t.closest<HTMLElement>('.lib-ex');
     if (!card) return;
-    const key = card.dataset.key!;
-    const older = t.closest<HTMLElement>('[data-ex-older]');
-    if (older) inspect({ kind: 'example', key: older.dataset.exOlder! });
-    else if (t.closest('[data-ex-inspect]')) inspect({ kind: 'example', key });
-    else if (t.closest('[data-ex-import]')) runImport({ kind: 'example', key }, false);
+    const id = card.dataset.key!;
+    if (t.closest('[data-ex-inspect]')) inspect({ kind: 'registry', id });
+    else if (t.closest('[data-ex-import]')) runImport({ kind: 'registry', id }, false);
     else {
       const open = t.closest<HTMLElement>('[data-ex-open]');
       if (open) ctx.project.open(open.dataset.exOpen!).then(() => ctx.openPane('edit')).catch((err) => ctx.notify(errorMessage(err), 'error'));
     }
   });
+  q('.lib-reg-refresh').addEventListener('click', () => void loadExamples(true));
   selA.addEventListener('change', runCompare);
   selB.addEventListener('change', runCompare);
   q('.lib-swap').addEventListener('click', () => {
@@ -602,7 +640,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
   });
 
   ctx.commands.register({ id: 'library.import', title: 'Library: Import .formpkg', run: choose });
-  ctx.commands.register({ id: 'library.examples', title: 'Library: Examples', run: () => ctx.openPane('library', { action: 'examples' }) });
+  ctx.commands.register({ id: 'library.examples', title: 'Library: Registry', run: () => ctx.openPane('library', { action: 'examples' }) });
   ctx.commands.register({ id: 'library.compare', title: 'Library: Compare Builds', run: () => ctx.openPane('library', { action: 'compare' }) });
 
   let timer = 0;

@@ -1,6 +1,6 @@
 # HASHOUT_LOG · library · form.ext
 
-Living log of the Library module: `frontend/src/panes/library/`, `backend/app/services/library.py`, `backend/app/routers/library.py`. Source files stay comment-free; what they would have said lives here.
+Living log of the Library module: `frontend/src/panes/library/`, `backend/app/services/library.py`, `backend/app/services/registry.py`, `backend/app/registry_keys.txt`, `backend/app/routers/library.py`. Source files stay comment-free; what they would have said lives here.
 
 Current build version: v0.1.0
 Last updated: 2026-11-07 · v0.1.0 library
@@ -14,9 +14,9 @@ Last updated: 2026-11-07 · v0.1.0 library
 
 | Route | Answer |
 |---|---|
-| `GET /api/library/examples` | `{examples, packages, folders}`: one card per extension (newest version first, earlier versions in `older[]`), each `{key, file, folder, sha256, bytes, ok, id, name, product, version, description, permissions[{id, words}], repo, repo_name, homepage, imported[project ids], older[{key, version, sha256, imported}]}` |
-| `GET /api/library/examples/{key}` | the inspect report of that package (`key` is the file name without `.formpkg`, `id-x.y.z`) |
-| `POST /api/library/examples/{key}/import` | `{name?, anyway?}` makes a new project from it |
+| `GET /api/library/registry?refresh=1` | the registry shelf `{url, url_source, name, verified, key, keys, note, offline, fetched_at, sha256, registry_commit, publishers, extensions}`, each extension `{id, name, product, version, kind, author, licence, description, permissions[{id, words}], verified, listed_verified, source, registry_commit, url, sha256, bytes, signed_by, imported[project ids]}`. A refusal answers 200 with `{error: {detail, problem, status}, url, extensions: []}` so the pane shows it without a failed request in the console |
+| `GET /api/library/registry/{id}` | the inspect report of the registry's newest package of that id, after the SHA-256 and signature checks; `source` is `{kind: "registry", id, version, sha256, url, index, repo, repo_name, signed_by, index_verified}` |
+| `POST /api/library/registry/{id}/import` | `{name?, anyway?}` makes a new project from it; a registry refusal answers its status with `{detail, problem}` |
 | `POST /api/library/inspect` | raw bytes (`application/octet-stream`, `?name=file.formpkg`) or JSON `{path}` of a file on this computer |
 | `POST /api/library/import` | raw bytes (`?name=`, `?project=` new project name, `?anyway=1`) or JSON `{path, name?, anyway?}` |
 | `GET /api/library/builds/{pid}/{sha}` | the inspect report of a Package build |
@@ -45,12 +45,19 @@ A package not laid out the way `formpkg build` writes it (unsorted entries, time
 
 ---
 
-## Examples shelf {#examples}
-- refers-to: services/library.py :: example_dirs, examples
+## Registry shelf {#examples}
+- refers-to: services/registry.py · services/library.py :: registry_shelf, inspect_registry, import_registry
 - kind: decision
-- logged: v0.1.0 · 2026-11-07
+- logged: v0.1.1 · 2026-11-07
 
-Folders searched, in order: `FORMEXT_EXAMPLES` (path list), the setting `library.examples_dir`, `<data folder>/examples`, and `/home/claude/ext/packages` (the build machine's package drop, used only when it exists). Files must be named `<id>-<x.y.z>.formpkg`. The packages are read in place and never copied into the repository; importing one copies it into the data folder like any other import. Each card links the extension's source repository, `https://github.com/nodemode-dev/formext-<product>-<id>`, opened with the system browser in the desktop app (Tauri shell `open`, the same way the Docs pane does). Reports are cached per file by size and modification time.
+The shelf (tab id `examples`, labelled Registry) reads only form.ext-registry; the v0.1.0 folder search (`FORMEXT_EXAMPLES`, `library.examples_dir`, `<data>/examples` and the build machine's package drop) is gone, and no machine path is left in the code.
+
+- Address: `FORMEXT_REGISTRY_URL`, else the setting `registry.url` (default `https://github.com/nodemode-dev/form.ext-registry/releases/download/index/extensions.json`, REGISTRY_SPEC). `https`, `http` (local tests) and `file` addresses are read; GitHub hosts get `Authorization: Bearer` from `FORMEXT_GITHUB_TOKEN`, `GITHUB_TOKEN` or `GH_TOKEN` when set.
+- Keys: `backend/app/registry_keys.txt` (comment lines only until the owners add the real key; packed beside `app/` by `setup/freeze_backend`) plus `FORMEXT_REGISTRY_PUBKEY`, comma-separated; only base64 of 32 bytes counts. No key: refused before any download with "this build trusts no registry key yet" (409, `no-key`), unless the developer setting `registry.developer` is true, which reads the index unchecked and leaves every card unverified.
+- The index and `extensions.json.sig` are downloaded, the signature checked against each key (`keys.verify`), and the fingerprint of the key that matched is shown. A missing `.sig` or no matching key is "signature mismatch" (422, `signature`). 401, 403 and 404 are `private` ("private while it is tested, so its downloads need a GitHub token, or nothing is published yet"); no answer is `unreachable`. A verified index is kept in `<data>/registry/` (`extensions.json`, `.sig`, `kept.json`); when the registry is unreachable the kept copy for the same address is checked again and used, and the shelf says so (`offline`). Answers are cached in memory for 5 minutes; Refresh (`?refresh=1`) downloads again.
+- Entries are the index's `packages` (or `extensions`) list, newest version per id. A card is Verified when the entry says `verified` and the index signature verified. `source` is the entry's, else the registry tree URL of the id.
+- Inspect and Import: the package is downloaded from the entry's `url`, or from the same relative release path under the index address when the index is not the default one (a mirror: `mirrored()`), its SHA-256 and size compared with the entry (`sha256`), then the publisher signature checked with `keys.check_signature` against the index's `publishers` (an unsigned entry is refused unless `registry.developer`). Verified bytes are kept by SHA-256 in `<data>/registry/packages/`; a kept file that no longer matches is deleted and refused. Then the ordinary import path (`import_bytes`), with the registry `source` in `import.json`.
+- Verified against the test index (`/home/claude/ext/registry-test`, served over HTTP with the release paths): 12 cards, all Verified, signed by `nodemode`; Inspect and Import of Golden Hour and Focus Timer; refusals with no key, a tampered index, a wrong key, a 404 and a closed port; a tampered kept package and a wrong publisher key.
 
 ---
 
@@ -68,4 +75,4 @@ A side is a Package build (read from `builds/<project>/<sha>/`, its recorded man
 - kind: decision
 - logged: v0.1.0 · 2026-11-07
 
-Three tabs (Examples, Inspect and Import, Compare Builds), all present in the first render and switched with `.hidden`; the tab is kept in `localStorage['formext.library.tab']`. Arguments through `openPane('library', args)` (heard on `pane.open`, which also fires for the opening call): `{action: 'import'}` (Home's Import .formpkg: shows Inspect and opens the file chooser in the same click), `{action: 'inspect', path}`, `{action: 'inspect', project, sha}`, `{action: 'inspect', key}`, `{action: 'compare'}`, `{action: 'examples'}`. A package can also be dropped anywhere on the pane. After an import the project opens and the Edit pane shows `package/manifest.json`. Commands: Library: Import .formpkg, Library: Examples, Library: Compare Builds. The pane reloads its build list on `package.built` and `package.removed`, and recompares on `project.changed` when the To side is the current files.
+Three tabs (Registry, Inspect and Import, Compare Builds), all present in the first render and switched with `.hidden`; the tab is kept in `localStorage['formext.library.tab']`. Arguments through `openPane('library', args)` (heard on `pane.open`, which also fires for the opening call): `{action: 'import'}` (Home's Import .formpkg: shows Inspect and opens the file chooser in the same click), `{action: 'inspect', path}`, `{action: 'inspect', project, sha}`, `{action: 'inspect', key}` (`key` is a registry id), `{action: 'compare'}`, `{action: 'examples'}`. A package can also be dropped anywhere on the pane. After an import the project opens and the Edit pane shows `package/manifest.json`. Commands: Library: Import .formpkg, Library: Registry, Library: Compare Builds. The Registry tab has a fixed-height status notice (two lines, the icon in a fixed box so a spinner turning into a mark moves nothing) and Refresh above the cards; a refusal hides the grid and shows the empty state with a plain title (no trusted key, private or not published, unreachable, signature mismatch) and the engine's words. The pane reloads its build list on `package.built` and `package.removed`, and recompares on `project.changed` when the To side is the current files.

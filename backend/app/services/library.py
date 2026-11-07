@@ -9,14 +9,14 @@ import os
 import re
 import stat
 import tempfile
-import threading
 import time
 import zipfile
 from pathlib import Path, PurePosixPath
 
-from app.services import paths, settings
+from app.services import paths
 from app.services.bus import bus
 from app.services.package import packages
+from app.services.registry import registry
 from app.services.validate import validate_folder
 from app.services.workspace import NotFound, WorkspaceError, safe_join, workspace
 
@@ -30,8 +30,6 @@ MAX_UNPACKED = 200 * 1024 * 1024
 MAX_RATIO = 200
 TEXT_TYPES = {".html", ".js", ".mjs", ".css", ".json", ".svg", ".txt", ".md", ".cube"}
 DIFF_LINES = 4000
-DEV_EXAMPLES = Path("/home/claude/ext/packages")
-REPO_URL = "https://github.com/nodemode-dev/formext-{product}-{id}"
 IMPORT_RECORD = "import.json"
 WORKING = "current"
 
@@ -45,7 +43,6 @@ PERMISSION_WORDS = {
 }
 
 SHA_RE = re.compile(r"^[0-9a-f]{64}$")
-EXAMPLE_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,63}-[0-9]+\.[0-9]+\.[0-9]+$")
 
 
 class Refused(WorkspaceError):
@@ -376,134 +373,33 @@ def import_build(pid: str, sha: str, project_name: str | None = None, anyway: bo
     return import_bytes(target.read_bytes(), target.name, project_name, {"kind": "build", "project": pid, "sha256": sha}, anyway)
 
 
-_example_cache: dict[str, tuple[tuple[int, float], dict]] = {}
-_example_lock = threading.Lock()
-
-
-def example_dirs() -> list[Path]:
-    found: list[Path] = []
-    env = os.environ.get("FORMEXT_EXAMPLES", "")
-    for part in env.split(os.pathsep) if env else []:
-        if part.strip():
-            found.append(Path(part.strip()).expanduser())
-    configured = settings.value("library.examples_dir")
-    if isinstance(configured, str) and configured.strip():
-        found.append(Path(configured.strip()).expanduser())
-    found.append(paths.home() / "examples")
-    found.append(DEV_EXAMPLES)
-    out: list[Path] = []
-    for folder in found:
-        try:
-            if folder.is_dir() and not folder.is_symlink() and folder.resolve() not in [o.resolve() for o in out]:
-                out.append(folder)
-        except OSError:
-            continue
-    return out
-
-
-def _example_files() -> dict[str, Path]:
-    files: dict[str, Path] = {}
-    for folder in example_dirs():
-        try:
-            items = sorted(folder.iterdir())
-        except OSError:
-            continue
-        for item in items:
-            if item.suffix == ".formpkg" and item.is_file() and not item.is_symlink() and EXAMPLE_RE.match(item.stem) and item.stem not in files:
-                files[item.stem] = item
-    return files
-
-
-def _example_info(key: str, path: Path) -> dict:
-    st = path.stat()
-    stamp = (st.st_size, st.st_mtime)
-    with _example_lock:
-        hit = _example_cache.get(str(path))
-        if hit and hit[0] == stamp:
-            return dict(hit[1])
-    data = path.read_bytes()
-    report, _files = read_package(data)
-    m = report["manifest"] or {}
-    product = str(m.get("product") or "")
-    pid = str(m.get("id") or key.rsplit("-", 1)[0])
-    info = {
-        "key": key,
-        "file": path.name,
-        "folder": str(path.parent),
-        "sha256": report["sha256"],
-        "bytes": report["bytes"],
-        "ok": not report["errors"],
-        "problems": len(report["errors"]),
-        "id": pid,
-        "name": m.get("name") or pid,
-        "product": product,
-        "version": m.get("version"),
-        "description": m.get("description") or "",
-        "permissions": [{"id": p, "words": PERMISSION_WORDS.get(p, p)} for p in m.get("permissions") or [] if isinstance(p, str)],
-        "repo": REPO_URL.format(product=product, id=pid) if product and pid else None,
-        "repo_name": f"nodemode-dev/formext-{product}-{pid}" if product and pid else None,
-        "homepage": m.get("homepage") or "",
-    }
-    with _example_lock:
-        _example_cache[str(path)] = (stamp, info)
-    return dict(info)
-
-
-def examples() -> dict:
-    out = []
-    files = _example_files()
+def _imported_by_sha() -> dict[str, list[str]]:
     imported: dict[str, list[str]] = {}
     for p in workspace.projects():
         rec = _import_record(p["id"])
         if rec and rec.get("sha256"):
             imported.setdefault(rec["sha256"], []).append(p["id"])
-    for key, path in files.items():
-        try:
-            info = _example_info(key, path)
-        except OSError:
-            continue
-        info["imported"] = imported.get(info["sha256"], [])
-        out.append(info)
-    newest: dict[tuple, dict] = {}
-    for info in sorted(out, key=lambda e: _version_key(e.get("version")), reverse=True):
-        group = (info.get("product"), info.get("id"))
-        if group in newest:
-            newest[group]["older"].append({"key": info["key"], "version": info.get("version"), "sha256": info["sha256"], "imported": info["imported"]})
-        else:
-            info["older"] = []
-            newest[group] = info
-    shelf = sorted(newest.values(), key=lambda e: (str(e.get("product")), str(e.get("name"))))
-    return {"examples": shelf, "packages": len(out), "folders": [str(f) for f in example_dirs()]}
+    return imported
 
 
-def _version_key(version) -> tuple[int, ...]:
-    try:
-        return tuple(int(p) for p in str(version).split("."))
-    except ValueError:
-        return (0,)
+def registry_shelf(refresh: bool = False) -> dict:
+    return registry.shelf(refresh, _imported_by_sha())
 
 
-def _example_path(key: str) -> Path:
-    if not isinstance(key, str) or not EXAMPLE_RE.match(key):
-        raise NotFound("no such example")
-    path = _example_files().get(key)
-    if not path:
-        raise NotFound(f"no example package {key}")
-    return path
+def _registry_file(eid: str, entry: dict) -> str:
+    return f"{eid}-{entry.get('version')}.formpkg"
 
 
-def inspect_example(key: str) -> dict:
-    path = _example_path(key)
-    out = inspect_bytes(path.read_bytes(), path.name)
-    info = _example_info(key, path)
-    out["source"] = {"kind": "example", "key": key, "repo": info["repo"], "repo_name": info["repo_name"]}
+def inspect_registry(eid: str) -> dict:
+    body, entry, source = registry.package(eid)
+    out = inspect_bytes(body, _registry_file(eid, entry))
+    out["source"] = source
     return out
 
 
-def import_example(key: str, project_name: str | None = None, anyway: bool = False) -> dict:
-    path = _example_path(key)
-    info = _example_info(key, path)
-    return import_bytes(path.read_bytes(), path.name, project_name, {"kind": "example", "key": key, "repo": info["repo"]}, anyway)
+def import_registry(eid: str, project_name: str | None = None, anyway: bool = False) -> dict:
+    body, entry, source = registry.package(eid)
+    return import_bytes(body, _registry_file(eid, entry), project_name, source, anyway)
 
 
 def _flatten(value, prefix: str = "") -> dict[str, object]:

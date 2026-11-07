@@ -27,7 +27,7 @@ if [ ! -f "$ROOT/frontend/dist/index.html" ]; then
   command -v npm >/dev/null 2>&1 || die "frontend/dist missing and npm not found"
   (cd "$ROOT/frontend" && npm run build)
 fi
-data=(--add-data "$ROOT/frontend/dist${sep}frontend_dist" --add-data "$ROOT/contract${sep}contract")
+data=(--add-data "$ROOT/frontend/dist${sep}frontend_dist" --add-data "$ROOT/contract${sep}contract" --add-data "$ROOT/backend/app/registry_keys.txt${sep}app")
 [ -d "$ROOT/templates" ] && data+=(--add-data "$ROOT/templates${sep}templates")
 [ -d "$ROOT/docs" ] && data+=(--add-data "$ROOT/docs${sep}docs")
 cd "$ROOT/backend"

@@ -18,6 +18,8 @@ The living log of the form.ext engine. Read it before editing `backend/`. Core f
 | `projects.json` | `linked` (id to an outside folder opened in place), `recent` (ids, newest first), `meta` (name, product, created, opened) |
 | `settings.json` | only the keys a person changed; defaults live in `services/settings.py` |
 | `builds/`, `keys/`, `trash/` | for the package module, the keys module, and removed projects |
+| `registry/` | the last verified registry index (`extensions.json`, `.sig`, `kept.json`) and `packages/<sha256>.formpkg` already downloaded and checked (library module) |
+| `submissions/` | Publish's folders; `submissions/registry/extensions/<id>/` for Submit to Registry |
 | `engine.port` | `{pid, port}` while the frozen engine runs |
 
 ### Interfaces
@@ -70,11 +72,11 @@ A project is `{id, name, product, version, dir, package_dir, package_prefix, man
 | New and Home | `services/templates.py`, `routers/templates.py`, `templates/` | `frontend/src/panes/new/HASHOUT_LOG.md` |
 | Preview | `routers/preview.py` | `frontend/src/panes/preview/HASHOUT_LOG.md` (covers `frontend/src/sim/` too) |
 | Package | `services/package.py`, `services/keys.py`, `routers/package.py` | `frontend/src/panes/package/HASHOUT_LOG.md` |
-| Ship | `services/portal.py`, `services/publish.py`, `routers/runapp.py`, `routers/publish.py` | `frontend/src/panes/run/HASHOUT_LOG.md` |
-| Library | `services/library.py`, `routers/library.py` | `frontend/src/panes/library/HASHOUT_LOG.md` |
+| Ship | `services/portal.py`, `services/publish.py`, `routers/runapp.py`, `routers/publish.py` | `frontend/src/panes/run/HASHOUT_LOG.md` (Submit to Registry in `#registry`) |
+| Library | `services/library.py`, `services/registry.py`, `registry_keys.txt`, `routers/library.py` | `frontend/src/panes/library/HASHOUT_LOG.md` (the registry shelf, its keys and refusals) |
 | Agents | `app/cli.py` (the engine client and the `OPS` table both surfaces are built from), `app/mcp.py` | `.claude/skills/formext-skillset/sub-skills/agent-substrate/SUB-SKILL.md`. After any op change run `./formext cli agents-sync` (regenerates `.claude/skills/formext-harness/references/tools.md` and the `.agents/skills/formext-harness` mirror) and commit both. |
-| Demo | none here | `demo/src/engine/` ports `services/{workspace,settings,templates,validate,package,keys,library,portal,publish}.py` and `routers/preview.py`; a change to those needs the same change there (`demo/HASHOUT_LOG.md#port`). |
+| Demo | none here | `demo/src/engine/` ports `services/{workspace,settings,templates,validate,package,keys,library,registry,portal,publish}.py` (the registry shelf in `engine/library.ts`) and `routers/preview.py`; a change to those needs the same change there (`demo/HASHOUT_LOG.md#port`). |
 
 ### Check lint scanner {#lint-scanner}
 
-`scan_js` gives two copies of a script, both the same length as the source so offsets stay lines and columns: `code` with comments blanked, and `bare` with string, template text and regular-expression contents blanked too (quotes kept, `${...}` expressions kept as code). The code rules (`fetch`, `eval`, storage, dialogs, the SDK calls) run on `bare`, so a word inside a string is never a call; an `import` counts only where `bare` still has the keyword and it is not a property (`x.import(`). A match that is followed by a parameter list and `{` is a definition, not a call (the bundled SDK's `fetch(t,n={}){...}` method). Method strings count as uses unless they are the first argument of `this.call(` or `this.on(` (the SDK's own wrappers) or items of an array made only of method strings (the SDK's long-timeout set). With these rules every first-party package in `/home/claude/ext/packages` checks with no problem, the minified ones included, and FX3's bad fixture gives exactly the problems it gave before. The demo's `engine/validate.ts` has the same scanner.
+`scan_js` gives two copies of a script, both the same length as the source so offsets stay lines and columns: `code` with comments blanked, and `bare` with string, template text and regular-expression contents blanked too (quotes kept, `${...}` expressions kept as code). The code rules (`fetch`, `eval`, storage, dialogs, the SDK calls) run on `bare`, so a word inside a string is never a call; an `import` counts only where `bare` still has the keyword and it is not a property (`x.import(`). A match that is followed by a parameter list and `{` is a definition, not a call (the bundled SDK's `fetch(t,n={}){...}` method). Method strings count as uses unless they are the first argument of `this.call(` or `this.on(` (the SDK's own wrappers) or items of an array made only of method strings (the SDK's long-timeout set). With these rules every first-party package (the registry's packages) checks with no problem, the minified ones included, and FX3's bad fixture gives exactly the problems it gave before. The demo's `engine/validate.ts` has the same scanner.

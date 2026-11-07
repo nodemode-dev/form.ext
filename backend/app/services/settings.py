@@ -17,6 +17,11 @@ DEFAULTS: dict[str, Any] = {
     "formportal_cli": "",
     "editor": {"font_size": 13, "tab_size": 2, "wrap": False},
     "preview": {"theme": "dark", "consent": "ask"},
+    "registry": {
+        "url": "https://github.com/nodemode-dev/form.ext-registry/releases/download/index/extensions.json",
+        "checkout": "",
+        "developer": False,
+    },
 }
 
 _lock = threading.Lock()
