@@ -1,7 +1,7 @@
 import { emit } from '../../../frontend/src/shell/events';
 import { basename, ext as suffix, fromB64, now, plural, shaHex, strictText, utf8 } from './bytes';
 import { grouped, lineCounts, splitLines } from './diff';
-import { bad, notFound, refused } from './errors';
+import { HttpError, bad, notFound, refused } from './errors';
 import * as kit from './kit';
 import type { Folder, Json } from './kit';
 import { packages } from './package';
@@ -16,9 +16,11 @@ const TEXT_TYPES = new Set(['.html', '.js', '.mjs', '.css', '.json', '.svg', '.t
 const DIFF_LINES = 4000;
 const IMPORT_RECORD = 'import.json';
 export const WORKING = 'current';
-export const EXAMPLES_FOLDER = '/home/demo/.local/share/ai.nodemode.formext/examples';
+const REGISTRY_RELEASES = 'https://github.com/nodemode-dev/form.ext-registry/releases/download/';
+const REGISTRY_INDEX = `${REGISTRY_RELEASES}index/extensions.json`;
+const REGISTRY_SOURCE = 'https://github.com/nodemode-dev/form.ext-registry/tree/main/extensions/{id}';
 const SHA_RE = /^[0-9a-f]{64}$/;
-const EXAMPLE_RE = /^[a-z0-9][a-z0-9-]{1,63}-[0-9]+\.[0-9]+\.[0-9]+$/;
+const PACKAGE_RE = /^[a-z0-9][a-z0-9-]{1,63}-[0-9]+\.[0-9]+\.[0-9]+$/;
 const WORDS = kit.PERMISSION_WORDS;
 
 function entryProblem(info: ZipInfo): string | null {
@@ -256,44 +258,35 @@ declare global {
   }
 }
 
-function exampleFiles(): Map<string, Uint8Array> {
+function bundledFiles(): Map<string, Uint8Array> {
   const out = new Map<string, Uint8Array>();
   for (const [file, b64] of Object.entries(window.__FORMEXT_PACKAGES__ ?? {}).sort()) {
     const stem = file.replace(/\.formpkg$/, '');
-    if (EXAMPLE_RE.test(stem)) out.set(stem, fromB64(b64));
+    if (PACKAGE_RE.test(stem)) out.set(stem, fromB64(b64));
   }
   return out;
 }
 
-const infoCache = new Map<string, Json>();
+let bundledIndex: { at: number; entries: Json[]; files: Map<string, Uint8Array> } | null = null;
 
-async function exampleInfo(key: string, data: Uint8Array): Promise<Json> {
-  const hit = infoCache.get(key);
-  if (hit) return { ...hit };
-  const [report] = await readPackage(data);
-  const m = report.manifest ?? {};
-  const product = String(m.product || '');
-  const pid = String(m.id || key.replace(/-[^-]+$/, ''));
-  const info = {
-    key,
-    file: `${key}.formpkg`,
-    folder: EXAMPLES_FOLDER,
-    sha256: report.sha256,
-    bytes: report.bytes,
-    ok: !report.errors.length,
-    problems: report.errors.length,
-    id: pid,
-    name: m.name || pid,
-    product,
-    version: m.version ?? null,
-    description: m.description || '',
-    permissions: (m.permissions || []).filter((p: unknown) => typeof p === 'string').map((p: string) => ({ id: p, words: WORDS[p] ?? p })),
-    repo: product && pid ? `https://github.com/nodemode-dev/formext-${product}-${pid}` : null,
-    repo_name: product && pid ? `nodemode-dev/formext-${product}-${pid}` : null,
-    homepage: m.homepage || '',
-  };
-  infoCache.set(key, info);
-  return { ...info };
+async function readIndex(): Promise<{ at: number; entries: Json[]; files: Map<string, Uint8Array> }> {
+  if (bundledIndex) return bundledIndex;
+  const files = new Map<string, Uint8Array>();
+  const newest = new Map<string, Json>();
+  for (const [key, data] of bundledFiles()) {
+    const [report] = await readPackage(data);
+    const m = report.manifest;
+    if (!m || report.errors.length || typeof m.id !== 'string') continue;
+    const have = newest.get(m.id);
+    if (have && cmpVersion(versionKey(have.version), versionKey(m.version)) >= 0) continue;
+    const e = kit.entry(m, `${REGISTRY_RELEASES}ext-${m.id}-v${m.version}/${key}.formpkg`, report.sha256, report.bytes);
+    e.verified = true;
+    e.source = REGISTRY_SOURCE.replace('{id}', m.id);
+    newest.set(m.id, e);
+    files.set(e.url, data);
+  }
+  bundledIndex = { at: now(), entries: [...newest.values()], files };
+  return bundledIndex;
 }
 
 function versionKey(v: unknown): number[] {
@@ -309,51 +302,72 @@ function cmpVersion(a: number[], b: number[]): number {
   return 0;
 }
 
-export async function examples(): Promise<Json> {
+export async function registryShelf(): Promise<Json> {
   const imported = new Map<string, string[]>();
   for (const p of workspace.projects()) {
     const rec = importRecord(p.id);
     if (rec?.sha256) imported.set(rec.sha256, [...(imported.get(rec.sha256) ?? []), p.id]);
   }
-  const out: Json[] = [];
-  for (const [key, data] of exampleFiles()) {
-    const info = await exampleInfo(key, data);
-    info.imported = imported.get(info.sha256) ?? [];
-    out.push(info);
-  }
-  const newest = new Map<string, Json>();
-  for (const info of out.sort((a, b) => cmpVersion(versionKey(b.version), versionKey(a.version)))) {
-    const g = `${info.product}\u0000${info.id}`;
-    const have = newest.get(g);
-    if (have) have.older.push({ key: info.key, version: info.version, sha256: info.sha256, imported: info.imported });
-    else {
-      info.older = [];
-      newest.set(g, info);
-    }
-  }
-  const shelf = [...newest.values()].sort((a, b) => (String(a.product) + '\u0000' + String(a.name) < String(b.product) + '\u0000' + String(b.name) ? -1 : 1));
-  return { examples: shelf, packages: out.length, folders: [EXAMPLES_FOLDER] };
+  const index = await readIndex();
+  const rows = index.entries.map((e) => ({
+    id: e.id,
+    name: e.name || e.id,
+    product: e.product || '',
+    version: e.version,
+    kind: e.kind,
+    author: e.author || '',
+    licence: e.licence || '',
+    description: e.description || '',
+    permissions: (e.permissions || []).filter((p: unknown) => typeof p === 'string').map((p: string) => ({ id: p, words: WORDS[p] ?? p })),
+    verified: true,
+    listed_verified: true,
+    source: e.source,
+    registry_commit: null,
+    url: e.url,
+    sha256: e.sha256,
+    bytes: e.bytes,
+    signed_by: null,
+    imported: imported.get(e.sha256) ?? [],
+  }));
+  rows.sort((a, b) => (String(a.product) + '\u0000' + String(a.name).toLowerCase() < String(b.product) + '\u0000' + String(b.name).toLowerCase() ? -1 : 1));
+  return {
+    url: REGISTRY_INDEX,
+    url_source: 'bundled',
+    name: 'Form Extension Registry',
+    verified: true,
+    key: null,
+    keys: 0,
+    note: 'the copy of the registry index bundled with this page (form.ext itself downloads the signed index and checks its signature with the registry key)',
+    offline: null,
+    fetched_at: index.at,
+    sha256: '',
+    registry_commit: null,
+    publishers: [],
+    extensions: rows,
+  };
 }
 
-function examplePath(key: string): Uint8Array {
-  if (typeof key !== 'string' || !EXAMPLE_RE.test(key)) throw notFound('no such example');
-  const data = exampleFiles().get(key);
-  if (!data) throw notFound(`no example package ${key}`);
-  return data;
+async function registryPackage(id: string): Promise<{ data: Uint8Array; entry: Json; source: Json }> {
+  const index = await readIndex();
+  const entry = index.entries.find((e) => e.id === id);
+  if (!entry) throw notFound(`the registry index lists no extension ${id}`);
+  const data = index.files.get(entry.url);
+  if (!data) throw new HttpError(502, `The registry is unreachable: the package of ${id} is not bundled with this page.`, { problem: 'unreachable' });
+  if ((await shaHex(data)) !== entry.sha256) throw refused(`Not imported: the package downloaded for ${id} does not match the SHA-256 the signed index gives, so it was changed on the way or on the server.`, { problem: 'sha256' });
+  const source = { kind: 'registry', id, version: entry.version, sha256: entry.sha256, url: entry.url, index: REGISTRY_INDEX, repo: entry.source, repo_name: `nodemode-dev/form.ext-registry/extensions/${id}`, signed_by: null, index_verified: false };
+  return { data, entry, source };
 }
 
-export async function inspectExample(key: string): Promise<Json> {
-  const data = examplePath(key);
-  const out = await inspectBytes(data, `${key}.formpkg`);
-  const info = await exampleInfo(key, data);
-  out.source = { kind: 'example', key, repo: info.repo, repo_name: info.repo_name };
+export async function inspectRegistry(id: string): Promise<Json> {
+  const { data, entry, source } = await registryPackage(id);
+  const out = await inspectBytes(data, `${id}-${entry.version}.formpkg`);
+  out.source = source;
   return out;
 }
 
-export async function importExample(key: string, name: string | null = null, anyway = false): Promise<Json> {
-  const data = examplePath(key);
-  const info = await exampleInfo(key, data);
-  return importBytes(data, `${key}.formpkg`, name, { kind: 'example', key, repo: info.repo }, anyway);
+export async function importRegistry(id: string, name: string | null = null, anyway = false): Promise<Json> {
+  const { data, entry, source } = await registryPackage(id);
+  return importBytes(data, `${id}-${entry.version}.formpkg`, name, source, anyway);
 }
 
 export async function inspectBuild(pid: string, sha: string): Promise<Json> {

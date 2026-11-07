@@ -13,6 +13,7 @@ const DEFAULTS: Record<string, unknown> = {
   formportal_cli: '',
   editor: { font_size: 13, tab_size: 2, wrap: false },
   preview: { theme: 'dark', consent: 'ask' },
+  registry: { url: 'https://github.com/nodemode-dev/form.ext-registry/releases/download/index/extensions.json', checkout: '', developer: false },
 };
 
 type Obj = Record<string, any>;

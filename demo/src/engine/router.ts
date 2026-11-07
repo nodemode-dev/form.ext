@@ -199,12 +199,14 @@ on('POST', `/api/publish/${seg}`, (m, r) => {
 });
 on('POST', `/api/publish/${seg}/send`, (m) => publish.send(d(m[1])));
 on('POST', `/api/publish/${seg}/reveal`, (m) => publish.reveal(d(m[1])));
+on('POST', `/api/publish/${seg}/registry`, (m) => publish.submit(d(m[1])));
+on('POST', `/api/publish/${seg}/registry/reveal`, (m) => publish.revealRegistry(d(m[1])));
 
-on('GET', '/api/library/examples', () => library.examples());
-on('GET', `/api/library/examples/${seg}`, (m) => library.inspectExample(d(m[1])));
-on('POST', `/api/library/examples/${seg}/import`, (m, r) => {
+on('GET', '/api/library/registry', () => library.registryShelf());
+on('GET', `/api/library/registry/${seg}`, (m) => library.inspectRegistry(d(m[1])));
+on('POST', `/api/library/registry/${seg}/import`, (m, r) => {
   const b = json(r);
-  return library.importExample(d(m[1]), b.name ?? null, flag(b.anyway));
+  return library.importRegistry(d(m[1]), b.name ?? null, flag(b.anyway));
 });
 on('POST', '/api/library/inspect', async (_m, r) => {
   const data = await raw(r);

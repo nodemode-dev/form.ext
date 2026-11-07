@@ -7,9 +7,10 @@ import { keys } from './keys';
 import { DEFAULT_URL, packages } from './package';
 import { appName, send as portalSend } from './portal';
 import { settings } from './settings';
-import { schemaErrors } from './validate';
+import { registryShelf } from './library';
+import { schemaErrors, validateFolder } from './validate';
 import * as fs from './vfs';
-import { dataDir, readJson, workspace, writeJson } from './workspace';
+import { dataDir, folderAt, readJson, workspace, writeJson } from './workspace';
 import { writeZip } from './zip';
 import packageSchema from '../../../contract/schema/package.schema.json';
 import extensionsSchema from '../../../contract/schema/extensions.schema.json';
@@ -127,7 +128,8 @@ export async function status(pid: string): Promise<Json> {
   const m = project.manifest;
   const pick: Json = {};
   for (const k of ['id', 'name', 'product', 'version', 'kind', 'author', 'licence', 'permissions', 'description', 'minimum_app', 'api', 'native', 'homepage', 'support']) pick[k] = m[k] ?? null;
-  return { project: pid, manifest: pick, default_url: DEFAULT_URL(m.id ?? 'id', m.version ?? '0.0.0'), keys: await keys.list(), publisher: settings.value('publisher') || '', submission: latest(pid), submissions_dir: submissionsDir() };
+  const registry = { submission: registrySubmission(pid), folder: `${registryRoot()}/extensions/${m.id ?? 'id'}`, checkout: String(settings.value('registry.checkout') || ''), repo: REGISTRY_REPO };
+  return { project: pid, manifest: pick, default_url: DEFAULT_URL(m.id ?? 'id', m.version ?? '0.0.0'), keys: await keys.list(), publisher: settings.value('publisher') || '', submission: latest(pid), submissions_dir: submissionsDir(), registry };
 }
 
 export async function prepare(pid: string, url = '', publisher = '', passphrase = '', sign = true): Promise<Json> {
@@ -180,10 +182,151 @@ export function send(pid: string): Promise<Json> {
   return portalSend(path, fs.read(path)!);
 }
 
-export async function reveal(pid: string): Promise<Json> {
-  const sub = submission(pid);
-  const name = String(sub.folder).split('/').pop()!;
-  const entries = fs.walk(sub.folder).map((rel) => ({ path: `${name}/${rel}`, data: fs.read(`${sub.folder}/${rel}`)! }));
+const REGISTRY_REPO = 'nodemode-dev/form.ext-registry';
+const SKIP_ROOT = new Set(['import.json', 'dist', 'build']);
+const SCREENSHOT_NAMES = ['docs/screenshot.png', 'docs/screenshot.jpg', 'docs/screenshot.webp', 'screenshot.png', 'screenshot.jpg', 'screenshot.webp'];
+const registryRoot = () => `${submissionsDir()}/registry`;
+
+function quote(s: string): string {
+  return /^[A-Za-z0-9_\/.,:@%+=-]+$/.test(s) ? s : `'${s.replace(/'/g, "'\"'\"'")}'`;
+}
+
+function registryReadme(m: Json): string {
+  const perms: string[] = (m.permissions ?? []).filter((p: unknown) => typeof p === 'string');
+  const app = appName(String(m.product || ''));
+  const name = m.name || m.id;
+  return [
+    `# ${name}`,
+    '',
+    m.description || name,
+    '',
+    `![${name} in ${app}](docs/screenshot.png)`,
+    '',
+    `${name} is an extension for ${app}, made with form.ext. It runs in ${app}'s sandboxed extension panel under the Form Extension Contract (API 1), and FormPortal installs it from the Form Extension Registry once the owners merge it.`,
+    '',
+    '## Permissions',
+    '',
+    ...(perms.length ? perms.map((p) => `- \`${p}\`: ${PLAIN[p] ?? p}. Why: say here what the extension does with it.`) : ['- None: it asks for no permission.']),
+    '',
+    '## Using it',
+    '',
+    `Open ${app}, then the Extensions panel, and choose ${name}.`,
+    '',
+  ].join('\n');
+}
+
+function registryLicence(m: Json): string {
+  const year = new Date().getFullYear();
+  return `SPDX-License-Identifier: ${m.licence || 'NOASSERTION'}\n\nCopyright ${year} ${m.author || 'the author'}\n\nReplace this file with the full text of the ${m.licence || 'chosen'} licence before the pull request.\n`;
+}
+
+function registryChangelog(m: Json): string {
+  return `# Changelog\n\n## ${m.version}\n\n- ${m.description || 'First version.'}\n`;
+}
+
+function commands(m: Json, folder: string, update: boolean): Json[] {
+  const name = m.name || m.id;
+  const branch = `${update ? 'update' : 'add'}-${m.id}-${m.version}`;
+  const title = `${update ? 'Update' : 'Add'} ${name} ${m.version}`;
+  const body = `${title}: ${String(m.description || name).replace(/\.+$/, '')}. For ${appName(String(m.product || ''))}. Made and checked with form.ext.`;
+  return [
+    { say: 'Fork the registry and clone your fork (once).', run: `gh repo fork ${REGISTRY_REPO} --clone --remote` },
+    { say: "Go into the clone and start a branch from the registry's main.", run: `cd form.ext-registry && git fetch upstream && git switch -c ${quote(branch)} upstream/main` },
+    { say: 'Copy the extension folder in.', run: `rm -rf extensions/${m.id} && mkdir -p extensions && cp -R ${quote(folder)} extensions/${m.id}` },
+    { say: "Run the registry's checks, as CI will.", run: `python3 tools/check.py extensions/${m.id}` },
+    { say: 'Commit it.', run: `git add extensions/${m.id} && git commit -m ${quote(`feat(${m.id}): ${update ? `version ${m.version}` : `add ${name} ${m.version}`}`)}` },
+    { say: 'Push the branch to your fork.', run: `git push -u origin ${quote(branch)}` },
+    { say: 'Open the pull request; @nodemode-ai and @gbarnai review it.', run: `gh pr create --repo ${REGISTRY_REPO} --base main --title ${quote(title)} --body ${quote(body)}` },
+  ];
+}
+
+async function ownChecks(folder: string, m: Json): Promise<Json> {
+  const problems: Json[] = [];
+  const check = await validateFolder(folderAt(`${folder}/package`));
+  for (const p of check.problems) if (p.severity === 'error') problems.push({ level: 'error', where: `package/${p.file}${p.line ? `:${p.line}` : ''}`, message: p.message });
+  if (m.api !== '1') problems.push({ level: 'error', where: 'package/manifest.json', message: 'api must be "1"' });
+  if (m.native !== false) problems.push({ level: 'error', where: 'package/manifest.json', message: 'native must be false' });
+  for (const name of ['README.md', 'CHANGELOG.md']) if (!fs.isFile(`${folder}/${name}`)) problems.push({ level: 'error', where: name, message: `${name} is missing` });
+  if (!['LICENSE', 'LICENSE.md', 'LICENSE.txt', 'LICENCE'].some((n) => fs.isFile(`${folder}/${n}`))) problems.push({ level: 'error', where: 'LICENSE', message: 'LICENSE is missing' });
+  if (!SCREENSHOT_NAMES.some((n) => fs.isFile(`${folder}/${n}`))) problems.push({ level: 'error', where: 'docs/screenshot.png', message: 'a screenshot is missing: add docs/screenshot.png (the extension in its app)' });
+  const n = problems.length;
+  const lines = [`form.ext Check on extensions/${m.id}: ${n ? `${n} problem${n === 1 ? '' : 's'}` : 'passed'}`, ...problems.map((p) => `  ${p.level}: ${p.where}: ${p.message}`)];
+  return { by: 'formext', tool: 'form.ext Check', ok: !n, problems, report: lines.join('\n'), note: "The registry's tools/check.py was not run: set registry.checkout to a local clone of nodemode-dev/form.ext-registry to run the same checks CI runs. form.ext ran its own Check, the kit's package rules and the metadata files instead." };
+}
+
+export function registrySubmission(pid: string): Json {
+  let id: unknown;
+  try {
+    id = workspace.manifest(pid).id;
+  } catch {
+    return null;
+  }
+  if (typeof id !== 'string') return null;
+  const data = readJson(`${registryRoot()}/${id}.submission.json`);
+  return data && data.project === pid ? data : null;
+}
+
+export async function submit(pid: string): Promise<Json> {
+  const m = workspace.manifest(pid);
+  if (typeof m.id !== 'string' || typeof m.version !== 'string') throw bad('the manifest needs an id and a version before it goes to the registry');
+  const root = workspace.dir(pid);
+  const prefix = workspace.packagePrefix(pid);
+  const files = new Map<string, string>();
+  for (const row of workspace.listFiles(pid)) {
+    const rel: string = row.path;
+    if (prefix && rel.startsWith(`${prefix}/`)) files.set(`package/${rel.slice(prefix.length + 1)}`, `${root}/${rel}`);
+    else if (!prefix) files.set(`package/${rel}`, `${root}/${rel}`);
+    else if (!SKIP_ROOT.has(rel.split('/')[0])) files.set(rel, `${root}/${rel}`);
+  }
+  const made = ['README.md', 'LICENSE', 'CHANGELOG.md'].filter((name) => ![...files.keys()].some((k) => k === name || (name === 'LICENSE' && ['LICENSE.md', 'LICENSE.txt', 'LICENCE'].includes(k))));
+  const writers: Record<string, (m: Json) => string> = { 'README.md': registryReadme, LICENSE: registryLicence, 'CHANGELOG.md': registryChangelog };
+  const folder = `${registryRoot()}/extensions/${m.id}`;
+  fs.batch(() => {
+    fs.remove(folder);
+    for (const [rel, source] of [...files.entries()].sort()) fs.write(`${folder}/${rel}`, fs.read(source)!);
+    for (const name of made) fs.write(`${folder}/${name}`, utf8(writers[name](m)));
+  });
+  const screenshot = SCREENSHOT_NAMES.find((n) => fs.isFile(`${folder}/${n}`)) ?? null;
+  const checks = await ownChecks(folder, m);
+  checks.note = "The registry's tools/check.py needs a local clone of the registry, which a browser page cannot run, so form.ext ran its own Check, the kit's package rules and the metadata files instead.";
+  let listed: Json = null;
+  try {
+    listed = (await registryShelf()).extensions.find((e: Json) => e.id === m.id) ?? null;
+  } catch {
+    listed = null;
+  }
+  const record = {
+    format: 'formext-registry-submission',
+    format_version: 1,
+    project: pid,
+    id: m.id,
+    version: m.version,
+    folder,
+    root: registryRoot(),
+    files: fs.walk(folder).sort(),
+    made,
+    screenshot,
+    screenshot_slot: 'docs/screenshot.png',
+    checks,
+    update: !!listed,
+    published_version: listed?.version ?? null,
+    commands: commands(m, folder, !!listed),
+    prepared_at: now(),
+  };
+  writeJson(`${registryRoot()}/${m.id}.submission.json`, record);
+  emit('publish.registry', { id: pid, folder, ok: checks.ok, by: checks.by });
+  return record;
+}
+
+export async function revealRegistry(pid: string): Promise<Json> {
+  const sub = registrySubmission(pid);
+  if (!sub) throw notFound('submit to the registry first');
+  return saveZip(sub.folder);
+}
+
+async function saveZip(folder: string): Promise<Json> {
+  const name = String(folder).split('/').pop()!;
+  const entries = fs.walk(folder).map((rel) => ({ path: `${name}/${rel}`, data: fs.read(`${folder}/${rel}`)! }));
   const zip = await writeZip(entries);
   const url = URL.createObjectURL(new Blob([zip.buffer as ArrayBuffer], { type: 'application/zip' }));
   const a = document.createElement('a');
@@ -191,5 +334,9 @@ export async function reveal(pid: string): Promise<Json> {
   a.download = `${name}.zip`;
   a.click();
   window.setTimeout(() => URL.revokeObjectURL(url), 4000);
-  return { opened: sub.folder, demo: 'saved the folder as a zip' };
+  return { opened: folder, demo: 'saved the folder as a zip' };
+}
+
+export function reveal(pid: string): Promise<Json> {
+  return saveZip(submission(pid).folder);
 }

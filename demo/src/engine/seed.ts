@@ -1,6 +1,6 @@
 import { iso, now, utf8 } from './bytes';
 import { keys } from './keys';
-import { importExample } from './library';
+import { importRegistry } from './library';
 import { packages } from './package';
 import { PORTAL_ROOT } from './portal';
 import { settings } from './settings';
@@ -9,7 +9,7 @@ import * as fs from './vfs';
 import { DATA, workspace, writeJson } from './workspace';
 
 const SEED = `${DATA}/demo-seed.json`;
-const SEED_VERSION = 1;
+const SEED_VERSION = 2;
 export const SAMPLE = 'golden-hour';
 
 const APPS: [string, string, string][] = [
@@ -51,8 +51,8 @@ export async function seed(): Promise<void> {
   portalFolder();
   const rating = templates.create('formlit', 'panel', 'Rating Desk');
   await packages.build(rating.id);
-  await importExample('mail-merge-0.1.0').catch(() => null);
-  await importExample('golden-hour-0.1.1').catch(() => null);
+  await importRegistry('mail-merge').catch(() => null);
+  await importRegistry('golden-hour').catch(() => null);
   await keys.create('demo-publisher', 'Demo Publisher', '', '');
   if (workspace.exists(SAMPLE)) workspace.touch(SAMPLE);
   writeJson(SEED, { version: SEED_VERSION, at: now() });
