@@ -31,10 +31,6 @@ svg { flex: none; }
 ::selection { background: var(--accent-color-dim); }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 
-* { scrollbar-width: thin; scrollbar-color: var(--edge-strong) transparent; }
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: var(--edge-strong); border-radius: var(--radius-pill); border: 3px solid transparent; background-clip: padding-box; }
-::-webkit-scrollbar-track { background: transparent; }
 
 .hidden { display: none !important; }
 .muted { color: var(--ink-soft); }
