@@ -105,6 +105,16 @@ Inter (400, 500, 600) and JetBrains Mono (400, 500) latin woff2 are copied from 
 
 ---
 
+## README screenshots and icon {#readme-shots}
+
+- refers-to: README.md · assets/*.webp · assets/app-icon
+- kind: decision
+- logged: v0.2.0 · 2026-11-08
+
+The README's screenshots predated the redesign, the Terminal and the Home button. They are now taken from the running interface and engine (`./formext`, with the first-party `.formpkg` files from `demo/packs` imported into a separate data folder) with Playwright at 1440 by 900 and device scale 2, saved as WebP quality 85 in `assets/`: Home in dark and light, New, the Studio editor, Check, Preview with the simulated FormLit, Package and Sign, the Terminal (Mod+J) and Preferences. The old PNGs, including Run, Library, Docs and Publish, which need FormPortal or the registry to show anything real, are removed and those two features are described in text. The header icon was already the owner's new art (`assets/app-icon`, the same pixels as the design files); the `<picture>` now has one dark source with the light icon as the fallback.
+
+---
+
 ## Home control {#home}
 
 - refers-to: index.html · src/shell/shell.ts · src/shell/menus.ts · src/styles/shell.css
