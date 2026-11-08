@@ -2,7 +2,7 @@
 
 Living log for `frontend/src/panes/studio/` (formerly `edit/`), the Studio module (FX5). Source files stay comment-free; what they would have said lives here.
 
-Current build version: v0.2.0
+Current build version: v0.2.1
 
 ## Terminal dock {#terminal}
 

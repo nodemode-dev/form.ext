@@ -2,8 +2,8 @@
 
 Living log of the offline browser demo. Source files stay comment-free; what they would have said lives here.
 
-Current build version: v0.2.0
-Last updated: 2026-11-08 · v0.2.0 the redesigned interface
+Current build version: v0.2.1
+Last updated: 2026-11-08 · v0.2.1 the version only (the page reports 0.2.1). Before: v0.2.0 the redesigned interface
 
 ---
 
@@ -48,7 +48,7 @@ demo/
 
 Every pane reaches the engine through `ctx.api`, which is `frontend/src/shell/api.ts`; four shell files import it as `./api`. The build resolves that one specifier, only when the importer is inside `frontend/src/shell/`, to `demo/src/api.ts`, which exports the same names (`ApiError`, `apiUrl`, `readBody`, `request`, `api`, `errorMessage`) and hands each request to `engine/router.ts` instead of `fetch`. Nothing in `frontend/` is edited. Answers are deep-copied through JSON so a pane never holds the engine's own objects, binary answers (`?raw=1`, a build's file) come back as an `ArrayBuffer` like `readBody` gives, and errors become `ApiError` with the engine's status and `detail`.
 
-Live events need no socket: the page engine imports `emit` from the real `shell/events.ts` and emits the engine's event names (`project.created`, `project.changed`, `package.built`, `runapp.changed`, ...) with the engine's payloads. `connect()` already does nothing on `file:`. Health answers `version: "0.2.0 in this page"`, so the status bar reads "Engine 0.2.0 in this page".
+Live events need no socket: the page engine imports `emit` from the real `shell/events.ts` and emits the engine's event names (`project.created`, `project.changed`, `package.built`, `runapp.changed`, ...) with the engine's payloads. `connect()` already does nothing on `file:`. Health answers `version: "0.2.1 in this page"`, so the status bar reads "Engine 0.2.1 in this page".
 
 `apiUrl` has one more job: the Edit pane builds `<img src>` for binary files from it and appends `?raw=1&v=...`. For a project file it returns a `data:` address ending in `#`, so the appended query falls into the fragment and the picture still shows. The Package pane's Download is a plain `<a href="/api/...">`; `boot.ts` catches clicks on such links in the capture phase and saves the build's bytes as a file.
 

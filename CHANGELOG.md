@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.1 · 2026-11-08
+
+The README shows the new window, and the repository has the community files every Form repository has.
+
+- **README:** nine new screenshots of the 0.2.0 window (Home in dark and light, New Extension, the Studio, Check, Preview in a simulated app, Package and Sign, the Terminal and Preferences) as WebP, replacing the old PNGs; the icon in light and dark; Home, Terminal and Claude Code, and Preferences sections.
+- **Community:** `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md` (extensions go to form.ext-registry, contract changes to the kit first, and the studio, its starters and its SDK here, with the GPL and Apache-2.0 parts named) and `SECURITY.md` (what is supported and what counts here); the README links them.
+
 ## v0.2.0 · 2026-11-08
 
 form.ext takes the Form family's look: one window with a start page and a full-window Studio.
