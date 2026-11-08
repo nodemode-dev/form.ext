@@ -10,7 +10,7 @@ The MCP server is configured for Claude Code in `.mcp.json`, for Codex in `.code
 
 ## Changing form.ext's code
 
-Read `CLAUDE.md` and `.claude/skills/formext-skillset/SKILL.md`, then the in-tree HASHOUT logs (`backend/HASHOUT_LOG.md`, `frontend/HASHOUT_LOG.md`, `src-tauri/HASHOUT_LOG.md` and each pane folder's own). After changing a command or MCP tool in `backend/app/cli.py`, run `./formext cli agents-sync` and commit `references/tools.md` and the `.agents/skills` mirror with it.
+Read `CLAUDE.md` and `.claude/skills/formext-skillset/SKILL.md`, then the in-tree HASHOUT logs (`backend/HASHOUT_LOG.md`, `frontend/HASHOUT_LOG.md`, `src-tauri/HASHOUT_LOG.md` and each pane folder's own). After changing a command or MCP tool in `backend/app/cli.py`, run `./formext agents sync` (`--check` in CI) and commit `references/tools.md` and the `.agents/skills` mirror with it.
 
 Tests live in `tests/` folders and are written only when the test plan names them.
 

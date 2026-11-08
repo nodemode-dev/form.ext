@@ -64,6 +64,22 @@ A project is `{id, name, product, version, dir, package_dir, package_prefix, man
 
 `fastapi`, `uvicorn[standard]` (brings `websockets`, `watchfiles`, `httptools`, `uvloop`), `python-multipart`, `cryptography` (Ed25519 for the package and keys module). Each has a row in `NOTICE.md`. A new dependency gets its row there in the same commit.
 
+## Terminal, Claude Code and agents {#terminal}
+
+- refers-to: app/services/terminal.py · app/services/claude_code.py · app/services/agents.py · app/routers/terminal.py · app/routers/claude.py · requirements.txt
+- kind: decision
+- logged: v0.2.0 · 2026-11-08
+
+The engine owns the shells so the window, a browser tab and the desktop app see the same sessions, as FormVis does. `terminal.py` keeps a table of PTY sessions (`ptyprocess` on macOS and Linux, `pywinpty` on Windows, chosen by platform markers in requirements) with a scrollback buffer, resize, restart and close. A login shell starts in the project's folder (`workspace.dir`), with `FORMEXT_URL` set so `./formext` talks to this engine. In a source checkout the repo is put first on PATH, so `formext` works by name.
+
+The routes are local only. Every one checks the Host header is loopback and the Origin is loopback or absent, and the WebSocket handshake gets the same check plus a cap of 24 sockets. This is a shell: a page on another origin must never reach it. Guards are per route (`dependencies=LOCAL`) and the stream lives on the same router, because a router-level dependency did not cover the WebSocket route and a separate websocket router was not found by the auto-include.
+
+`claude_code.py` finds the CLI, reports installed, version and sign-in, and builds one launch: `--mcp-config` with the formext server (and formmcp when `agents.formmcp_command()` finds it), `--allowedTools mcp__formext mcp__formmcp`, `--append-system-prompt` saying where the project is and how to use the skills, and `--add-dir` for the repo in a source checkout so the skills load. The Claude Code tab runs that in a PTY; the Chat tab runs `claude -p` with stream-json and turns permission requests into cards. Missing Claude Code is a plain message with the install command, never a blank tab.
+
+`agents.py` is stdlib only so `setup/agents.py` and the frozen engine share the server definitions: frozen, the formext server is the sidecar with `mcp`; from source, `./formext mcp`.
+
+Dependencies: `ptyprocess` 0.7.0 (ISC) and `pywinpty` 3.0.5 (MIT), rows in NOTICE.md.
+
 ## Module notes (where each module's backend files are explained)
 
 | Module | Files | Notes |

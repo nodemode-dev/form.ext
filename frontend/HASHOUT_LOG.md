@@ -105,6 +105,14 @@ Inter (400, 500, 600) and JetBrains Mono (400, 500) latin woff2 are copied from 
 
 ---
 
+## Home control {#home}
+
+- refers-to: index.html · src/shell/shell.ts · src/shell/menus.ts · src/styles/shell.css
+- kind: decision
+- logged: v0.2.0 · 2026-11-08
+
+The sidebar shows only on the start pages, so inside the Studio there was no way back except the File menu. The family answers with three: the app name in the title row, a Home button first in the right-hand group, and File, Home with Mod+Shift+H. All three run one command, `shell.home`, so the macOS menu bar, the in-window menus, the buttons and the shortcut cannot disagree. Both buttons exist in `index.html` at their final size (the name already had its box, the button is one of the 28 px `.fx-tb-r` cells), and script only paints the icon and sets `aria-current` on Start, so nothing is added after first paint and nothing shifts.
+
 ## Family redesign: title row, start-only sidebar, menus, Preferences {#redesign}
 - refers-to: index.html · src/shell/shell.ts · src/shell/menus.ts · src/shell/native-menu.ts · src/shell/menubar.ts · src/shell/settings.ts · src/styles/shell.css · src/styles/settings.css
 - kind: decision

@@ -24,7 +24,7 @@ Ops call the engine's routes only (never services directly), so the window, the 
 
 ## Keeping the agents in step
 
-After changing `OPS`, run `./formext cli agents-sync`: it regenerates `.claude/skills/formext-harness/references/tools.md` and copies the harness skill to `.agents/skills/formext-harness`. Then update the harness sub-skill that teaches the changed tool. `.mcp.json` runs `./formext mcp`; `AGENTS.md` points Codex and other agents at the harness and at this skillset.
+After changing `OPS`, run `./formext agents sync`: it regenerates `.claude/skills/formext-harness/references/tools.md` and mirrors every skill to `.agents/skills`. Then update the harness sub-skill that teaches the changed tool. `.mcp.json` runs `./formext mcp`; `AGENTS.md` points Codex and other agents at the harness and at this skillset.
 
 ## Skills
 

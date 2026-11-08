@@ -125,6 +125,22 @@ The window, the command line and the MCP server call one engine, so an agent and
 
 `.mcp.json`, `.codex/config.toml` and `.cursor/mcp.json` are already wired in this repo, with the `formext-harness` skill for making extensions and `formext-skillset` for changing form.ext. See [`AGENTS.md`](AGENTS.md).
 
+### Agents
+
+```sh
+./formext claude            # Claude Code in this repo, already connected to formext (and formMCP when found)
+./formext agents install    # the same MCP servers and skills for your account: Claude Code, Codex and Cursor
+./formext agents status     # what is installed, which servers, how many skills, whether formMCP is found
+./formext agents sync       # regenerate the tool reference and mirror .claude/skills to .agents/skills
+./formext agents sync --check   # exits 1 on any drift, for CI
+```
+
+Two MCP servers are registered: `formext` (this studio) and `formmcp`, the Form family hub that reaches every installed Form app's own tools. formMCP is a separate app: when it is not installed, `formmcp` shows as failed or unavailable in your agent and everything else works; install it with FormPortal and run `./formext agents install` again. The skills include `formext-harness` (the build loop), `formext-hosts` (what an extension can do in each of the twelve apps, which host skill explains the app, how to test live) and the host skills copied from the apps themselves, recorded with their source commits in [`.claude/skills/HOSTS.md`](.claude/skills/HOSTS.md). With these, "make a FormWav extension that does X" can be built, checked, previewed, packaged and run in the app by Claude Code, Codex or Cursor.
+
+### Terminal
+
+The Studio's bottom panel has a Terminal tab (View, Terminal, or Mod+J) next to Problems, Host calls and Output. The engine owns the sessions: a real shell in the open project's folder, an xterm view, a Claude Code tab that starts `claude` with formext and formMCP connected and the skills available, and a Chat tab that runs `claude -p` with streamed output, tool chips and permission cards. If Claude Code is not installed the tab says so and shows the install command. The routes answer on 127.0.0.1 only and refuse any other Host or Origin.
+
 ## Under the hood
 
 - **One contract:** the Form Extension Contract kit is vendored unchanged in `contract/`: the spec, schemas, SDK, host bridge, the Python resolver and `formpkg`. Preview runs the kit's own bridge; Package builds with the kit's own rules.
@@ -146,6 +162,8 @@ cd form.ext
 ./formext_oc_install        # engine venv and interface packages
 ./formext           # interface at http://localhost:5640, engine on 127.0.0.1:8640
 ```
+
+`./formext_oc_install` is the install, `./formext` is the boot, and `./build_app` makes the desktop app start to finish and logs to `build_app.log`. On Windows use `formext_oc_install.bat`, `formext.bat` and `build_app.bat`.
 
 Ports: interface 5640 (Vite, localhost only), engine 8640 (`FORMEXT_PORT`). `./formext serve` serves a production build from the engine alone, `./formext desktop dev` opens the desktop window, and `./formext doctor` checks the toolchain. `FORMEXT_HOME` moves the data folder.
 

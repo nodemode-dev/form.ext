@@ -17,7 +17,7 @@ Point `FORMEXT_HOME` and `FORMPORTAL_ROOT` at scratch folders for every check, s
 
 ## MCP changes
 
-Drive the server with a real client over stdio (the `mcp` Python SDK's `stdio_client` and `ClientSession`, or a short JSON-RPC script): `initialize`, `tools/list`, a `tools/call` for each changed tool, an error case (unknown project) that must come back with `isError`, and an unknown tool that must be a protocol error. Then `./formext cli agents-sync`.
+Drive the server with a real client over stdio (the `mcp` Python SDK's `stdio_client` and `ClientSession`, or a short JSON-RPC script): `initialize`, `tools/list`, a `tools/call` for each changed tool, an error case (unknown project) that must come back with `isError`, and an unknown tool that must be a protocol error. Then `./formext agents sync --check`.
 
 ## Interface changes
 

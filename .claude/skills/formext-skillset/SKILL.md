@@ -37,7 +37,7 @@ contract/ (the Form Extension Contract kit, vendored unchanged: formext_host.py,
 - **Zero flash.** Every pane container exists in its final layout before the first paint and is filled in place; the window is revealed after the first pane mounts. Every `z-index` is a layer token from `frontend/src/styles/tokens.css`; icons are inline `currentColor` SVG.
 - **Surgical edits.** Hand-made edits, one region at a time; no codemods or scripted text replacement. No emoji, no em dashes in Markdown, no commented-out code, near-zero comments: the reasoning goes in the HASHOUT logs.
 - **Read the logs first.** `backend/HASHOUT_LOG.md`, `frontend/HASHOUT_LOG.md`, `src-tauri/HASHOUT_LOG.md` and each module's own `HASHOUT_LOG.md` in its pane folder.
-- **Keep the agents in step.** After changing an op in `cli.py`, run `./formext cli agents-sync` (regenerates the harness's `references/tools.md` and the `.agents/skills` mirror).
+- **Keep the agents in step.** After changing an op in `cli.py`, run `./formext agents sync` (regenerates the harness's `references/tools.md` and mirrors every skill to `.agents/skills`; `--check` fails on drift). `./formext agents install` sets the MCP servers and skills up for the user account. The skills copied from the Form apps are recorded in `.claude/skills/HOSTS.md` and are never edited here.
 - **Versions** are `X.YY.Z`; `backend/app/__init__.py`, `frontend/src/shell/version.ts`, `frontend/package.json` and `src-tauri` carry the same one.
 - **Commits** as `nodemode-ai <mackin@nodemode.ai>` only, no trailers of any kind (see `CLAUDE.md`).
 

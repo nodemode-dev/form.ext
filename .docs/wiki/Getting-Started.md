@@ -11,6 +11,8 @@ Node 20.19+ and Python 3.12. The desktop app also needs Rust and the Tauri 2 too
 ./formext           # the engine on 127.0.0.1:8640 and the interface on http://localhost:5640
 ```
 
+`./build_app` makes the desktop app start to finish (log in `build_app.log`). Windows: `formext_oc_install.bat`, `formext.bat`, `build_app.bat`. `./formext claude` and `./formext agents install` connect Claude Code, Codex and Cursor.
+
 `./formext backend` and `./formext frontend` start one half each. One process serving the built interface: `./formext build`, then `./formext serve` (http://127.0.0.1:8640).
 
 ## The first extension

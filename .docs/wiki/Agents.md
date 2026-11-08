@@ -10,10 +10,22 @@ form.ext's engine does every step a person does, so agents make extensions the s
 
 `./formext mcp` serves MCP on stdio. `.mcp.json` registers it for Claude Code in this repository, `.codex/config.toml` for Codex and `.cursor/mcp.json` for Cursor. Its tools are the command line's commands under the same names (`run_in_app` with an underscore), and its resources `formext://docs/<topic>` serve the contract, the SDK source, the schema, the example and each app's API page. What an agent does appears in the open window at once through the engine's live events.
 
+## Connect
+
+`./formext claude` starts Claude Code in the repository with formext (and formMCP when found) connected. `./formext agents install` registers the MCP servers and copies the skills for your account in Claude Code, Codex and Cursor (`--dry-run` shows the changes; files are backed up first). `./formext agents status` reports what it found. `./formext agents sync` regenerates the tool reference and mirrors `.claude/skills` to `.agents/skills`; `--check` exits 1 on drift.
+
+formMCP (`formmcp mcp`) is the family hub that reaches every installed Form app's tools. It is a separate app; when it is missing its entry shows as unavailable and the formext server still works.
+
 ## The skills
 
 - `.claude/skills/formext-harness`: using form.ext through MCP to make an extension for any Form app, from choosing the app's API calls to a signed package.
+- `.claude/skills/formext-hosts`: for each of the twelve host apps, what an extension can do, which host skill explains the app and how to test live through Run in App and formMCP.
+- Host skills copied byte for byte from the apps (`formvis-driving`, `formcut-mcp`, `formwav-harness` and the others), with their source commits in `.claude/skills/HOSTS.md`.
 - `.claude/skills/formext-skillset`: changing form.ext's own code (the panes, the engine modules, the contract kit rules).
+
+## In the app
+
+The Studio's bottom panel has Terminal, Claude Code and Chat tabs. They run in the open project's folder with these servers and skills, over local-only routes (127.0.0.1, session-guarded).
 
 ## Extensions and agents in the apps
 

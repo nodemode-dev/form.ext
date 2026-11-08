@@ -4,7 +4,10 @@
 ./formext desktop dev       # the app over the running engine and interface
 ./formext freeze            # the engine as the sidecar src-tauri/binaries/formext-engine-<target triple>
 ./formext desktop build     # interface build, freeze, then tauri build
+./build_app                 # the same start to finish: tools check, installs, freeze, tauri build, bundle; log in build_app.log
 ```
+
+On Windows run `build_app.bat`. The packaged app carries no repository skills: run `agents install` to give Claude Code, Codex and Cursor the skills and servers.
 
 The shell is Tauri 2 with the family splash: a 16 px rounded `#0a0a0a` card with the family gradient bar, shown for at least 2.6 s and until the interface reports its first paint. It starts the frozen engine on a free loopback port (`FORMEXT_PORT=0`), reads the port, and loads the interface from it. The engine exits with the app.
 
