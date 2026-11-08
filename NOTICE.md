@@ -13,6 +13,7 @@ form.ext is licensed under the GNU General Public License v3.0 (`LICENSE`, SPDX 
 | CodeMirror 6: `@codemirror/state` 6.7.6, `view` 6.43.15, `commands` 6.11.1, `language` 6.13.1, `search` 6.7.2, `autocomplete` 6.20.4, `lint` 6.9.7, `lang-javascript` 6.2.5, `lang-json` 6.0.2, `lang-css` 6.3.1, `lang-html` 6.4.12, `lang-markdown` 6.5.2, `streamparser` 6.0.0, by Marijn Haverbeke and contributors | the Edit pane's code editor, bundled into the interface | MIT |
 | Lezer: `@lezer/common` 1.5.5, `lr` 1.4.12, `highlight` 1.2.5, `javascript` 1.5.6, `json` 1.0.3, `css` 1.3.9, `html` 1.3.13, `markdown` 1.8.1, by Marijn Haverbeke and contributors | the editor's parsers and highlighting, bundled | MIT |
 | crelt 1.0.7, style-mod 4.1.4, w3c-keyname 2.2.8, `@marijn/find-cluster-break` 1.0.4, by Marijn Haverbeke | CodeMirror's DOM, style and key helpers, bundled | MIT |
+| xterm.js (`@xterm/xterm` 6.0.0) and its fit addon (`@xterm/addon-fit` 0.11.0), by the xterm.js authors | the Terminal tab's terminal screen, loaded when the tab first opens | MIT |
 | `@tauri-apps/api` 2.11.1 | the interface's calls into the desktop shell | Apache-2.0 OR MIT |
 | Tauri 2: tauri 2.11.6, tauri-build 2.6.3, tauri-plugin-shell 2.3.6, tauri-plugin-dialog 2.7.3, tauri-plugin-single-instance 2.4.5 | the desktop shell | Apache-2.0 OR MIT |
 | regex 1.13.1, serde_json 1.0.151 | the shell reading the engine's port and JSON | Apache-2.0 OR MIT |

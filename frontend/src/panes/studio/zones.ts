@@ -1,5 +1,6 @@
 import { icon, esc, setText, storage, setStatus, setNavCount, partRoot, output, commandRun, keyLabel } from '../../shell';
 import type { ShellContext } from '../../shell';
+import { TerminalDock } from './terminal';
 
 export interface Zones {
   setLeft(id: 'files' | 'library'): void;
@@ -82,11 +83,17 @@ export function mountZones(el: HTMLElement, ctx: ShellContext): Zones {
     markTools();
   }
 
+  function syncTerminal(): void {
+    dock.show(bottom.dataset.active === 'terminal' && !bottom.classList.contains('folded'));
+  }
+
   function setBottom(id: string, expand = true): void {
     pick('btab', 'bbody', id, BOTTOM_KEY);
+    bottom.dataset.active = id;
     q('.st-bacts').classList.toggle('hidden', id !== 'problems');
     if (expand) fold(false);
     markTools();
+    syncTerminal();
   }
 
   function fold(on: boolean): void {
@@ -94,6 +101,12 @@ export function mountZones(el: HTMLElement, ctx: ShellContext): Zones {
     q('.st-fold').setAttribute('aria-expanded', String(!on));
     storage.set(FOLD_KEY, on ? '1' : '0');
     markTools();
+    syncTerminal();
+  }
+
+  function showTerminal(): void {
+    ctx.openPane('studio');
+    setBottom('terminal');
   }
 
   function setSplit(on: boolean): void {
@@ -164,6 +177,22 @@ export function mountZones(el: HTMLElement, ctx: ShellContext): Zones {
     }
   });
   outBody.querySelector('.st-out-clear')!.addEventListener('click', () => output.clear());
+
+  const dock = new TerminalDock(ctx);
+  q('[data-bbody="terminal"]').append(dock.root);
+  ctx.commands.register({
+    id: 'terminal.toggle',
+    title: 'Terminal',
+    keys: 'Mod+J',
+    run: () => {
+      const on = bottom.dataset.active === 'terminal' && !bottom.classList.contains('folded');
+      if (on) fold(true);
+      else showTerminal();
+    },
+  });
+  ctx.commands.register({ id: 'terminal.new', title: 'New Terminal', run: () => { showTerminal(); void dock.newTerminal(); } });
+  ctx.commands.register({ id: 'terminal.claude', title: 'Claude Code', run: () => { showTerminal(); void dock.openClaude(); } });
+  ctx.commands.register({ id: 'terminal.chat', title: 'Chat with Claude', run: () => { showTerminal(); void dock.openChat(); } });
 
   const sum = q('[data-rbody="check"]');
   sum.innerHTML = `
@@ -337,7 +366,7 @@ export function mountZones(el: HTMLElement, ctx: ShellContext): Zones {
   };
   setLeft(stored(LEFT_KEY, ['files', 'library'] as const, 'files'));
   setRight(stored(RIGHT_KEY, ['manifest', 'permissions', 'check'] as const, 'manifest'));
-  setBottom(stored(BOTTOM_KEY, ['problems', 'calls', 'output'] as const, 'problems'), false);
+  setBottom(stored(BOTTOM_KEY, ['problems', 'calls', 'output', 'terminal'] as const, 'problems'), false);
   fold(storage.get(FOLD_KEY) !== '0');
   setSplit(storage.get(SPLIT_KEY) === '1');
   renderCheck(null);

@@ -58,6 +58,7 @@ const BOTTOM = [
   { id: 'problems', label: 'Problems', count: true, hidden: false },
   { id: 'calls', label: 'Host calls', count: true, hidden: false },
   { id: 'output', label: 'Output', count: false, hidden: false },
+  { id: 'terminal', label: 'Terminal', count: false, hidden: false },
   { id: 'events', label: 'Events', count: false, hidden: true },
   { id: 'document', label: 'Document', count: false, hidden: true },
 ];
@@ -134,7 +135,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
             <div class="st-rbody hidden" data-rbody="check"></div>
           </section>
         </div>
-        <section class="st-panel st-bottom" aria-label="Problems, host calls and output">
+        <section class="st-panel st-bottom" aria-label="Problems, host calls, output and terminal">
           <div class="st-ph"><div class="st-ptabs" role="tablist">
             ${BOTTOM.map((t, i) => `<button type="button" role="tab" data-btab="${t.id}" aria-selected="${i === 0}" ${t.hidden ? 'hidden' : ''}>${t.label}${t.count ? '<em>0</em>' : ''}</button>`).join('')}
           </div><button class="st-fold" type="button" aria-label="Show or hide the panel" aria-expanded="false">${icon('chevron-down', 14)}</button></div>
