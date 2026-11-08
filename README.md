@@ -195,7 +195,7 @@ Ports: interface 5640 (Vite, localhost only), engine 8640 (`FORMEXT_PORT`). `./f
 > [!IMPORTANT]
 > **Status:** in development. Run in App and Send to FormPortal need FormPortal and the Form apps installed on the same computer.
 
-**Contributing:** branch from `main`, keep changes to source here, and leave packaging and releases to FormCompiler. See [`AGENTS.md`](AGENTS.md) and [`CLAUDE.md`](CLAUDE.md).
+**Contributing:** changes to the studio, its starters and its SDK come here as pull requests into `main`; extensions you made go to [form.ext-registry](https://github.com/nodemode-dev/form.ext-registry) instead, and changes to the contract go to the Form Extension Contract kit first. See [`CONTRIBUTING.md`](CONTRIBUTING.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) and [`AGENTS.md`](AGENTS.md). Report security issues privately as [`SECURITY.md`](SECURITY.md) describes.
 
 ## Repository
 
