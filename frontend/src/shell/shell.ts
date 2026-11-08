@@ -194,6 +194,9 @@ export function openPane(id: string, a?: unknown): void {
     const hash = `#/${id}`;
     if (location.hash !== hash) history.replaceState(null, '', hash);
     document.title = `${slot.def.title} - form.ext`;
+    const homeBtn = document.querySelector('[data-action="home"]');
+    if (id === 'home') homeBtn?.setAttribute('aria-current', 'page');
+    else homeBtn?.removeAttribute('aria-current');
     const key = id === 'new' ? 'home' : id;
     for (const [k, nav] of navs) {
       if (k === key && !(k === 'recent')) nav.setAttribute('aria-current', 'page');
@@ -240,7 +243,12 @@ function renderTheme(): void {
   btn.setAttribute('aria-label', btn.title);
 }
 
+function goHome(): void {
+  openPane('home');
+}
+
 function paintTitleButtons(): void {
+  qs(document, '[data-action="home"]').innerHTML = icon('home');
   qs(document, '[data-action="palette"]').innerHTML = icon('search');
   qs(document, '[data-action="settings"]').innerHTML = icon('settings');
 }
@@ -283,6 +291,7 @@ async function checkEngine(): Promise<void> {
 }
 
 function registerBuiltins(defs: PaneDef[]): void {
+  register({ id: 'shell.home', title: 'Home', keys: 'Mod+Shift+H', icon: 'home', run: goHome });
   register({ id: 'shell.palette', title: 'Command Palette', keys: 'Mod+K', icon: 'command', run: openPalette });
   register({ id: 'shell.palette-alt', title: 'Command Palette', keys: 'Mod+Shift+P', icon: 'command', run: openPalette });
   register({ id: 'shell.project', title: 'Open Project', keys: 'Mod+O', icon: 'folder-open', run: chooseProject });
@@ -337,6 +346,8 @@ export function boot(): void {
   });
 
   qs(document, '[data-action="settings"]').addEventListener('click', () => void commandRun('settings'));
+  qs(document, '[data-action="home"]').addEventListener('click', goHome);
+  qs(document, '[data-action="home-name"]').addEventListener('click', goHome);
   qs(document, '[data-action="palette"]').addEventListener('click', () => void openPalette());
   qs(document, '[data-action="theme"]').addEventListener('click', toggleTheme);
   qs(document, '[data-status="engine"]').addEventListener('click', () => {
