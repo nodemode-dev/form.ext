@@ -78,7 +78,7 @@ The page layout of every starter is final in its HTML (lists carry a placeholder
 
 Three steps on one page: app (the twelve `HOSTS` as radio cards with their icons), starter (three cards that fill in each starter's name, panel and command counts and permissions for the chosen app), and name (name, optional description, and a detail card: what it asks for in the contract's plain words, what it adds, which API calls it uses). The cards and the detail card are drawn from `HOSTS` and the fixed starter list before the catalogue arrives, so the layout never moves; the catalogue fills text in place. The last app and starter are remembered (`formext.new.product`, `formext.new.starter`). Arrow keys move between radio cards. The name follows the chosen starter until the person types their own; the id preview uses the engine's slug rule.
 
-Create posts to `/api/templates/create`, opens the project (`ctx.project.open`) and calls `ctx.openPane('edit', { path: 'package/ui/app.js', from: 'new' })`.
+Create posts to `/api/templates/create`, opens the project (`ctx.project.open`) and calls `ctx.openPane('studio', { path: 'package/ui/app.js', from: 'new' })`.
 
 Other modules open it with `ctx.openPane('new', { product?, starter?, name? })`. It registers the command `new.extension` (Mod+N).
 

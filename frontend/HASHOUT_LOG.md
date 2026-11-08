@@ -102,3 +102,16 @@ Studio Dark is the default whatever the system says; the light theme is the top 
 - logged: v0.1.0 · 2026-11-07
 
 Inter (400, 500, 600) and JetBrains Mono (400, 500) latin woff2 are copied from `@fontsource` into `public/fonts` and declared with `font-display: block`; the Inter files and JetBrains Mono 400 (the code font of Docs, Check and Edit) are preloaded, so text never reflows when the font arrives (without the mono preload Docs measured CLS 0.0013 as table columns widened). Both are OFL-1.1.
+
+---
+
+## Family redesign: title row, start-only sidebar, menus, Preferences {#redesign}
+- refers-to: index.html · src/shell/shell.ts · src/shell/menus.ts · src/shell/native-menu.ts · src/shell/menubar.ts · src/shell/settings.ts · src/styles/shell.css · src/styles/settings.css
+- kind: decision
+- logged: v0.2.0 · 2026-11-08
+
+The window follows the approved fourth-pass design (`/home/claude/design/formext`). The family sidebar (Home, Recent, Registry, Learn, Docs; Preferences and Help at the foot; 49 px rail through the edge handle, key `formext.rail`) shows only on the start pages, so every pane declares `view`: `start`, `studio` or `part`. The root carries `data-layout` and `data-rail`, set by the boot script in `index.html` before the first paint, so a reload never shows the other layout. The top row is 38 px (`--title-h`): menus on the left where they are in the window, the open project (macOS only, where the menus are the system's), the app name and three 28 px buttons. The ground is #0a0a0a and the panels use the kit palette tokens (`--main`, `--bar`, `--raise`); the primary button is white in dark and ink in light, and orange stays the accent.
+
+Menus come from one list (`menus.ts`, the groupings of PRESENT.md) used twice: `native-menu.ts` builds the macOS menu bar with `@tauri-apps/api/menu` (app menu first; system Undo, Copy and the rest are predefined items, so `text_edit` is not needed), and `menubar.ts` draws the same list in the title row elsewhere. `has-native-menus` and `has-overlay-titlebar` are set by the boot script when Tauri runs on a Mac, so the in-window menus never flash before the native ones. Preferences (`settings.ts`) is FormVis's SettingsDialog in form.ext's tokens: rail with wire and port, foldable cards, Done; one `GET /api/settings` at boot and a debounced `PUT` per change; `settings.changed` carries the result (editor font size is the `--edit-font` variable, tab size and wrapping reach the editor for files opened afterwards). The Layout row of the mock (hide the inspector) is not built: the inspector is a tab strip, not a toggled column.
+
+Part panes keep their own query helper but it falls back to `document.querySelector`, since their pieces move out of their root into the Studio's zones; class names are pane-unique. Receiving zones carry the old pane class (`pv-pane`, `check-pane`) so the pane stylesheets still apply.

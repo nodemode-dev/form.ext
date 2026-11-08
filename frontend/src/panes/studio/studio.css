@@ -50,6 +50,7 @@
 .st-ctr > .st-panel { flex: 1 1 0; min-width: 0; }
 .st-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--bar); border: 1px solid var(--edge); border-radius: var(--radius-xl); overflow: hidden; }
 .st-code { background: var(--main); }
+.st-ctr > .st-prev { flex: 1.7 1 0; }
 
 .st-ph { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); height: 44px; flex: none; padding: 0 var(--sp-2); border-bottom: 1px solid var(--edge); }
 .st-ptabs { display: flex; align-items: center; gap: 2px; min-width: 0; overflow: hidden; }

@@ -44,5 +44,5 @@ Check reads what is saved on disk; unsaved editor buffers are not seen (the pane
 
 - The whole layout (head, filter bar, status notice, groups container, the three empty states, the rules table) is written in `mount`; later updates only set text, toggle `hidden` and move keyed rows. Rows are keyed by rule, file, line, column and message and kept between runs, so a re-check after a save changes only the rows that changed.
 - Runs when a project opens, on the Check button, on F7 (command `check.run`, Check Project), on `openPane('check', { run: true })`, and, with Check on save (default on, `localStorage['formext.check.auto']`), 500 ms after a `project.changed` for the open project. A `validate.done` from someone else re-runs it to fetch the problems; while a run is in flight such events are ignored, so the pane's own event does not loop.
-- Clicking a problem calls `ctx.openPane('edit', { path, line, column, from: 'check', rule })` with `path` relative to the project folder. The Edit pane is asked to open that file at that line.
+- Clicking a problem calls `ctx.openPane('studio', { path, line, column, from: 'check', rule })` with `path` relative to the project folder. The Edit pane is asked to open that file at that line.
 - The filter (All, Errors, Warnings, Info) is kept in `localStorage['formext.check.filter']`; groups collapse per file.

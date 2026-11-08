@@ -1,6 +1,6 @@
 # HASHOUT_LOG · Edit pane · form.ext
 
-Living log for `frontend/src/panes/edit/`, the Edit module (FX5). Source files stay comment-free; what they would have said lives here.
+Living log for `frontend/src/panes/studio/` (formerly `edit/`), the Studio module (FX5). Source files stay comment-free; what they would have said lives here.
 
 Current build version: v0.1.0
 Last updated: 2026-11-07 · v0.1.0 edit
@@ -83,7 +83,7 @@ The words are imported from the vendored kit, `contract/host/host-bridge.ts` `PE
 - kind: interface
 - logged: v0.1.0 · 2026-11-07
 
-`ctx.openPane('edit', { path, line, column })` (the Check pane sends `from` and `rule` too, ignored) opens `path` (relative to the project folder, as the files routes; a package-relative path is tried under `package_prefix` as well), puts the cursor at the 1-based line and column, scrolls it to the middle and flashes the line for 1.4 s. The call waits for the project to finish loading, so it works right after `ctx.project.open`.
+`ctx.openPane('studio', { path, line, column })` (the Check pane sends `from` and `rule` too, ignored) opens `path` (relative to the project folder, as the files routes; a package-relative path is tried under `package_prefix` as well), puts the cursor at the 1-based line and column, scrolls it to the middle and flashes the line for 1.4 s. The call waits for the project to finish loading, so it works right after `ctx.project.open`.
 
 ---
 
@@ -105,3 +105,16 @@ The tree marks files outside the package folder (not packed, italic) and files w
 - logged: v0.1.0 · 2026-11-07
 
 Installed by FX5 in `frontend/` with `npm install --no-save` (FX1 owns `package.json`; the pin is requested in `/home/claude/ext/status/formext-requests.md`): @codemirror/state 6.7.6, view 6.43.15, commands 6.11.1, language 6.13.1, search 6.7.2, autocomplete 6.20.4, lint 6.9.7, lang-javascript 6.2.5, lang-json 6.0.2, lang-css 6.3.1, lang-html 6.4.12, lang-markdown 6.5.2, @lezer/highlight 1.2.5, and what they pull in (@lezer/common, lr, javascript, json, css, html, markdown, @codemirror/streamparser, crelt, style-mod, w3c-keyname), all MIT.
+
+---
+
+## From Edit to Studio, and the zones compositor {#studio}
+- refers-to: index.ts · zones.ts · studio.css · tree.ts · ../library · ../check · ../preview · ../package · ../publish · ../run
+- kind: decision
+- logged: v0.2.0 · 2026-11-08
+
+The Edit pane (folder `edit`) became the Studio (`studio`, `view: 'studio'`): a full-window editor with a tool strip (project switcher, Check, Preview, Run in App, Package, hint line, Publish), a left Files and Library panel, the tabbed code editor, a right Manifest, Permissions and Check inspector and a collapsible bottom panel (Problems, Host calls, Output; Events and Document while Split is on). The `edit-*` class names inside the editor and manifest are kept; the file ids moved with `git mv`, so history follows.
+
+`zones.ts` is the compositor. The part panes (library, check, preview, package, publish, run) are mounted hidden into their own slots; on mount it moves their pieces into the zones: the Library root into the left panel, Preview's stage, bar and message log into the split panel and bottom panel, Check's list and filters into Problems and its Run button and options into the inspector. Package, Run in App and Publish open as a sheet: the part's first child moves into `.st-sheet` and goes back on close, so their code and state are untouched. A part opens through `ctx.openPane(id)`, which the shell turns into `studio.part`; the zones react. The choices (left tab, right tab, bottom tab, split, fold) are remembered in `formext.studio.*`. `check.result` and `library.count` carry the numbers for the inspector summary and the tab counts. The Output tab lists every toast and message (`shell/output.ts`).
+
+Differences from the mock: the host app art is a glyph tile, not the real app icons; the Manifest tab keeps the existing form (its groups are drawn by CSS) instead of the mock's rebuilt group rows; Package, Run in App and Publish open sheets rather than acting as one-click toolbar buttons that only toast.

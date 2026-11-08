@@ -196,6 +196,7 @@ export function mountZones(el: HTMLElement, ctx: ShellContext): Zones {
       move('.pv-tabbody[data-tab="events"]', q('[data-bbody="events"]'));
       move('.pv-tabbody[data-tab="document"]', q('[data-bbody="document"]'));
       move('.pv-tabbody[data-tab="permissions"]', q('[data-rbody="permissions"]'));
+      for (const dest of ['.st-prev-body', '.st-prev-bar', '.st-prev-as', '[data-bbody="calls"]', '[data-bbody="events"]', '[data-bbody="document"]', '[data-rbody="permissions"]']) q(dest).classList.add('pv-pane');
       const count = q('[data-bbody="calls"]').querySelector('.pv-log-count');
       if (count) {
         const sync = () => setText(q('[data-btab="calls"] em'), (count.textContent ?? '0').split(' ')[0]);
@@ -212,6 +213,7 @@ export function mountZones(el: HTMLElement, ctx: ShellContext): Zones {
 
     const ck = partRoot('check');
     if (ck) {
+      for (const dest of ['[data-bbody="problems"]', '.st-bacts', '[data-rbody="check"]']) q(dest).classList.add('check-pane');
       const body = ck.querySelector<HTMLElement>('.check-body');
       if (body) q('[data-bbody="problems"]').append(body);
       const filters = ck.querySelector<HTMLElement>('.check-filters');
