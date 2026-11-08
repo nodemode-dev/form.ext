@@ -7,6 +7,7 @@ form.ext is licensed under the GNU General Public License v3.0 (`LICENSE`, SPDX 
 | Component | Use | License |
 | --- | --- | --- |
 | Form Extension Contract kit, Apache-2.0, nodemode (`contract/`, vendored unchanged; `sdk/src/formext.ts` and the starters' `ui/formext.js` are a copy and a plain-JS translation of its `sdk/formext.ts`) | the spec, schemas, SDK, host bridge in Preview, `formext_host` and `formpkg` in the engine | Apache-2.0 |
+| Form family icon art: the form.ext app icon and in-app mark (`frontend/public`, `src-tauri/icons`, `assets/app-icon`) and the twelve host apps' icons (`frontend/src/assets/icons`), the owner's own art for the Form apps | the window, the Start and Studio screens, the splash, the desktop bundle and the README | GPL-3.0-only (this repository) |
 | Inter by Rasmus Andersson, latin woff2 from `@fontsource/inter` 5.3.0 (`frontend/public/fonts/inter-*`) | interface font | SIL Open Font License 1.1 |
 | JetBrains Mono by JetBrains, latin woff2 from `@fontsource/jetbrains-mono` 5.3.0 (`frontend/public/fonts/jetbrains-mono-*`) | code font | SIL Open Font License 1.1 |
 | CodeMirror 6: `@codemirror/state` 6.7.6, `view` 6.43.15, `commands` 6.11.1, `language` 6.13.1, `search` 6.7.2, `autocomplete` 6.20.4, `lint` 6.9.7, `lang-javascript` 6.2.5, `lang-json` 6.0.2, `lang-css` 6.3.1, `lang-html` 6.4.12, `lang-markdown` 6.5.2, `streamparser` 6.0.0, by Marijn Haverbeke and contributors | the Edit pane's code editor, bundled into the interface | MIT |

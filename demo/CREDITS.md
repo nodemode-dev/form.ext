@@ -6,7 +6,8 @@ The demo ships no photographs, video, recordings or other third-party media. Eve
 | --- | --- | --- | --- |
 | Inter (latin 400, 500, 600) | inlined in `assets/formext.css` | `frontend/public/fonts`, from @fontsource/inter 5.3.0, by Rasmus Andersson | SIL Open Font License 1.1 |
 | JetBrains Mono (latin 400, 500) | inlined in `assets/formext.css` | `frontend/public/fonts`, from @fontsource/jetbrains-mono 5.3.0, by JetBrains | SIL Open Font License 1.1 |
-| form.ext app icon | `favicon.svg`, `favicon.png`, `apple-touch-icon.png` | `frontend/public`, original art made for form.ext | Apache-2.0 (this repository) |
+| form.ext app icon and mark | `favicon.png`, `apple-touch-icon.png` | `frontend/public`, the owner's own art for form.ext | GPL-3.0-only (this repository) |
+| Form family app icons | inlined in `assets/formext.js` | `frontend/src/assets/icons`, the owner's own art for the Form apps | GPL-3.0-only (this repository) |
 | First-party extension packages (Citations, Focus Timer, Golden Hour, Halftone Separations, Handwriting Reveal, Mail Merge, Podcast Chapters, Rehearsal Coach, Scrub Thumbnails, Shot List, Tool Diff, Trigger Tester) | `packs/packages.js`, base64 of each `.formpkg` | the nodemode extension repositories, `github.com/nodemode-dev/formext-<product>-<id>` | Apache-2.0, nodemode (each package's manifest) |
 | Form Extension Contract kit (host bridge, schemas, examples, SDK) | bundled in `assets/formext.js` | `contract/` | Apache-2.0, nodemode |
 | Starter templates | bundled in `assets/formext.js` | `templates/` | Apache-2.0 (`templates/LICENSE`) |

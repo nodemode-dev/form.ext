@@ -8,7 +8,7 @@ const FRONTEND = resolve(HERE, '../frontend');
 const SHELL = resolve(FRONTEND, 'src/shell');
 const PUBLIC = resolve(FRONTEND, 'public');
 const PACKAGES = [process.env.FORMEXT_DEMO_PACKAGES].find((p) => p && existsSync(p));
-const ICONS = ['favicon.svg', 'favicon.png', 'apple-touch-icon.png'];
+const ICONS = ['favicon.png', 'apple-touch-icon.png'];
 
 function demo() {
   return {

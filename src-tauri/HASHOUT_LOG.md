@@ -17,7 +17,7 @@ src-tauri/
 ├── tauri.conf.json     the splash window, macOSPrivateApi, the sidecar, bundle metadata
 ├── entitlements.plist  hardened runtime exceptions for the frozen Python engine
 ├── capabilities/       default.json: the engine's 127.0.0.1 origin and the Vite address as remote URLs
-├── icons/              the app icon set made by `tauri icon` from icon.svg's 1024 px rendering
+├── icons/              the app icon set made by `tauri icon` from the owner's formext-app-dark-1024.png (v0.2.0; icon.svg is gone, the favicon and splash use PNGs of the in-app mark)
 └── src/
     ├── main.rs         engine start, main window, exit
     ├── reveal.rs       splash minimum, bar finish, fallback, rounded splash

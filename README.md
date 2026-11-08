@@ -1,4 +1,10 @@
-<p align="center"><img src="assets/app-icon/formext-256.png" width="128" height="128" alt="form.ext icon: the Form family mark on a dark rounded square"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/app-icon/formext-256.png">
+    <source media="(prefers-color-scheme: light)" srcset="assets/app-icon/formext-light-256.png">
+    <img src="assets/app-icon/formext-256.png" width="128" height="128" alt="form.ext icon: the puzzle piece in the Form family colours on a rounded square">
+  </picture>
+</p>
 
 <h1 align="center">form.ext</h1>
 
