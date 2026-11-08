@@ -41,6 +41,7 @@ When the form.ext window is open, the tools talk to its engine and every change 
 | A whole extension from an idea, several apps, or anything broad | `sub-skills/harness-director/SUB-SKILL.md` |
 | Connecting: the MCP server, the command line, the engine, the data folder, errors that mention the engine | `sub-skills/session-and-connection/SUB-SKILL.md` |
 | Writing the code and manifest: the SDK, the sandbox, panels, headless commands, document ops, events, permissions, theming | `sub-skills/writing-extensions/SUB-SKILL.md` |
+| What an extension can do in one particular app, which host skill explains the app, testing live in it (`formext-hosts` skill) | `../formext-hosts/SKILL.md` |
 | Checking and previewing: validate rules, preview snapshot, what counts as verified | `sub-skills/check-and-preview/SUB-SKILL.md` |
 | Run in App, packaging, keys, signing, index entries, publishing, sending to FormPortal, submitting to form.ext-registry | `sub-skills/ship/SUB-SKILL.md` |
 
