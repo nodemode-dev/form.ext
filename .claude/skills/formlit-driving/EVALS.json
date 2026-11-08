@@ -1,0 +1,203 @@
+{
+  "skill_name": "formlit-driving",
+  "notes": "Thirteen evaluations (the last two: news ethics and a professional ingest and cull) for using formlit through the plugin: two shoots from first call to files written, the first-call consent, the refusal and not-open paths, the clients that cannot reach the computer, the neighbour that gets compositing, a measured fix with analyze_photo, finding and previewing a preset before applying it, matching a reference in few calls, and checking a set and saving its look. Expected behaviours are observable in the transcript or on disk.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "cull-and-deliver-a-wedding-shoot",
+      "prompt": "I just shot the Okafor wedding, it's all in ~/Pictures/2026/okafor-wedding (about 900 CR3s). Can you get it into formlit, pick the best frame of every burst, reject the blurry ones, and export the picks as 2048px JPEGs to ~/Desktop/okafor-preview for the couple?",
+      "files": [],
+      "expected_behavior": [
+        "Calls import_photos with the absolute expanded path before anything else, and uses the returned ids rather than guessed ones",
+        "Runs analyze_culling before apply_culling, with pickBest and rejectBlurry true and rejectDuplicates left false because the person did not ask for it",
+        "Looks at a sample of picks and rejects with get_preview and reports pick and reject counts as numbers",
+        "Exports only flagged picks (find_photos with flags pick) with the builtin.web preset or equivalent settings to the absolute Desktop folder, with copyright-only metadata or says why not",
+        "Deletes nothing and names the written folder in the reply"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "moody-grade-with-sky-mask-synced",
+      "prompt": "These 30 landscape raws from Skye look flat. Give them a darker, moodier look with a deeper sky, keep it consistent across the set, but don't touch my crops.",
+      "files": [],
+      "expected_behavior": [
+        "Develops one hero frame first, proposing values with get_preview values before committing with develop_set",
+        "Uses add_ai_mask with kind sky (or a linear gradient) with a negative exposure adjust for the sky rather than darkening the whole frame",
+        "Syncs with sync_settings and either no groups (crop excluded by default) or groups that exclude crop and masks, and states which",
+        "Spot-checks at least two other frames after syncing and reports what changed in photographer's words"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "first-call-waits-for-the-person",
+      "prompt": "I just added the formlit plugin. How many 5 star photos are in my catalog?",
+      "files": [],
+      "expected_behavior": [
+        "Makes one formlit call (find_photos with a rating filter, or get_catalog) and waits for it instead of repeating it while it is pending",
+        "When the reply says formlit is waiting for the person to allow outside agents, tells the person to open formlit and choose Allow, and tries once more only after they say they did",
+        "Reports the count as a number taken from the tool result",
+        "Mentions no terminal commands, folders or config files"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "outside-agents-turned-off",
+      "prompt": "Give everything in my Lisbon 2026 folder three stars.",
+      "files": [],
+      "expected_behavior": [
+        "Reads the refusal and tells the person in plain words that outside agents are turned off in formlit under Preferences, AI agents",
+        "Stops after the one refusal: no second attempt, no loop, no waiting",
+        "Does not try run_command, another tool, a web address or a terminal as a way around the refusal",
+        "Offers to carry on once the person has turned it back on"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "formlit-is-not-open",
+      "prompt": "Cull my formlit import from yesterday and keep the sharp ones.",
+      "files": [],
+      "expected_behavior": [
+        "On a reply saying formlit is not open, asks the person to open formlit and tries once more after they have",
+        "Starts no engine, server or other process itself",
+        "Does not claim any photo was picked while no call has succeeded"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "chat-on-the-web-cannot-reach-the-computer",
+      "prompt": "(claude.ai in a browser, no formlit tools listed) Cull the photos in my formlit catalog from last weekend.",
+      "files": [],
+      "expected_behavior": [
+        "Says plainly that Claude chat on the web or the phone cannot reach apps on the person's computer",
+        "Suggests Cowork in the Claude desktop app, or Claude Code, with the formlit plugin added from the Form marketplace",
+        "Invents no counts, picks or file names"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "adjacent-request-for-compositing-goes-elsewhere",
+      "prompt": "Take the portrait I exported from formlit and swap the background for a beach, add a title on top and save it as a layered file.",
+      "files": [],
+      "expected_behavior": [
+        "Recognises layered compositing and text layers as formvis work, not formlit's develop or output tools",
+        "Offers formlit's Edit In (photo.editIn) to hand the photo to formvis rather than faking compositing with masks",
+        "Does not run develop_set or export_photos as a substitute for compositing"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "measured-fix-of-a-backlit-portrait",
+      "prompt": "Photo 412 is a backlit portrait, her face is too dark and the sky behind her is blown out. Fix it but keep it natural, no crazy filters.",
+      "files": [],
+      "expected_behavior": [
+        "Calls analyze_photo on 412 before changing anything and quotes its clipping and zone numbers",
+        "Proposes values through analyze_photo or get_preview with values (highlights or whites down, shadows or a subject mask brighter) and compares the clipping figures before committing",
+        "Brightens the face locally (add_ai_mask subject or people faceSkin) rather than raising global exposure until the sky clips further",
+        "Commits with develop_set or add_ai_mask, runs analyze_photo again, and reports the change in highlight clipping as numbers",
+        "Uses no colour-grading saturation above 25 and applies no stylised preset, because the person asked for natural"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "find-preview-and-tune-a-film-preset",
+      "prompt": "Give my Lisbon street set (collection 7) a Kodak film kind of look, warm but not orange, a little grain. Show me one before you do all of them.",
+      "files": [],
+      "expected_behavior": [
+        "Searches with list_presets and a query such as film, warm or portra instead of guessing preset ids, or reads references/presets.md",
+        "Previews the candidate on one photo with get_preview preset and amount before applying anything, and shows it to the person",
+        "Waits for the person's go-ahead, then applies with apply_preset at an amount below 100 if the preview looked too strong, or tunes grading saturation into the 7 to 20 range with develop_set",
+        "Applies to the rest of collection 7 (apply_preset with the ids or sync_settings without crop) only after the go-ahead, and spot-checks two frames"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "match-a-reference-in-few-calls",
+      "prompt": "Photo 1 is the overcast moody version I like. Make photo 2 look like it, then keep her red hair a bit richer than the rest.",
+      "files": [],
+      "expected_behavior": [
+        "Calls match_look with reference 1 and ids [2] (optionally report true) instead of trial-and-error develop_set calls",
+        "Quotes the distance before and after from the match_look result",
+        "Handles the hair with one targeted change (mixer red and orange saturation in a single develop_set, an AI people hair mask, or the Red Hair Glow preset) rather than undoing the match",
+        "Finishes in at most six formlit calls in total and looks at no more than two previews, at max_size 768 or less"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "check-a-set-and-save-the-look",
+      "prompt": "I synced my edit across the 24 photos in collection 3. Are they consistent? If they are, save the look as a preset called Harbor Dusk.",
+      "files": [],
+      "expected_behavior": [
+        "Gets the ids with find_photos and checks them with one analyze_photo call using ids, not a preview or analysis per photo",
+        "Names the outliers by id from the per-photo lines or the spread, and fixes them with match_look against a consistent frame or develop_set delta",
+        "Calls save_preset with the name Harbor Dusk from a representative photo, and reports the returned preset id",
+        "Does not open previews of all 24 photos"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "news-edit-stays-within-ethics",
+      "prompt": "These are from today's protest for the wire (collection 9). Make them look great, and get rid of the guy with the sign in the corner of photo 230, he's distracting.",
+      "files": [],
+      "expected_behavior": [
+        "Recognises wire news work and follows the news_sports_workflow prompt or references/pro-workflows.md",
+        "Declines to remove the person from photo 230 because news ethics (AP, NPPA) forbid changing content, and offers a crop instead if it does not mislead",
+        "Limits edits to crop, straighten, exposure, white balance and modest contrast (or the News Neutral presets); applies no creative grade, no match_look to a stylised reference and no generative remove",
+        "Adds or checks captions and copyright with set_metadata before export"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "pro-ingest-and-two-pass-cull",
+      "prompt": "Card from the Okafor engagement shoot is at /Volumes/EOS_DIGITAL/DCIM. Bring it in the way a pro would, with a backup to /Volumes/Backup, then help me get down to the keepers.",
+      "files": [],
+      "expected_behavior": [
+        "Calls import_photos with mode copy, a date folderTemplate, a renameTemplate that includes the client name, a copyright metadata object and backup set to the backup folder",
+        "Culls in passes: flags (apply_culling or set_flag), then refine_photos, then star ratings on the survivors",
+        "Reports how many photos were imported, rejected and kept, as numbers from the tool results",
+        "Deletes nothing and leaves deleting rejects to the person in the window"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "job-from-shoot-template",
+      "prompt": "Just got back from the Rivera wedding. Card is at /Volumes/EOS_DIGITAL/DCIM, put it under ~/Pictures/Clients. I'm Dana Cole Photography. Set the job up properly.",
+      "files": [],
+      "expected_behavior": [
+        "Calls setup_shoot once with recipe wedding, name for the Rivera wedding, values with creator Dana Cole Photography, the card path, mode copy and destination ~/Pictures/Clients, instead of separate import, collection and metadata calls",
+        "Reports the stage collections (Picks, To Edit, Edited, Portfolio, Rejects), how many photos were imported and whether noise by ISO ran, from the tool result",
+        "Names the next steps from the result: the wedding_event_workflow prompt and the export presets it returned",
+        "Does not invent a copyright text; the metadata comes from the recipe's template"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "licence-and-deliver",
+      "prompt": "These 40 picks from my landscape trip (collection 12) are going on my site under Creative Commons, non-commercial. Tag them, make sure the licence is in the files and give me web and print versions in ~/Desktop/out.",
+      "files": [],
+      "expected_behavior": [
+        "Uses apply_template kind metadata with the CC BY-NC 4.0 template (cc-by-nc), asking for or using the remembered creator rather than writing licence text by hand",
+        "Uses apply_template kind keywordSet with the Outdoor Photography set, or add_keywords, on the same ids",
+        "Exports with export_photos twice: a web preset (builtin.web, builtin.blog or builtin.4k) and builtin.print-lab, each into a folder under ~/Desktop/out",
+        "Reports the licence link written (https://creativecommons.org/licenses/by-nc/4.0/) and the written paths from the results"
+      ]
+    }
+  ],
+  "trigger_evals": [
+    { "query": "cull my formlit import from yesterday and pick the sharp ones", "should_trigger": true },
+    { "query": "can u export the 5 star photos from formlit as jpgs for instagram", "should_trigger": true },
+    { "query": "Please produce a 4 x 5 contact sheet PDF of the client selects in formlit.", "should_trigger": true },
+    { "query": "my raws look too orange and dark, fix the white balance and brighten them in the catalog", "should_trigger": true },
+    { "query": "make a slideshow video with music from my Lisbon picks", "should_trigger": true },
+    { "query": "colour grade these shots teal and orange in formlit, subtle", "should_trigger": true },
+    { "query": "which formlit preset would suit a snowy landscape, try a couple", "should_trigger": true },
+    { "query": "formlit says it is not open and Claude cannot see my photos, what do I do", "should_trigger": true },
+    { "query": "add a new slider to the develop pipeline and mirror it in the numba kernel", "should_trigger": false },
+    { "query": "the Book module in frontend/src/modules/output flashes when I change templates", "should_trigger": false },
+    { "query": "build the desktop app for windows and bump the version to 0.2.0", "should_trigger": false },
+    { "query": "remove the background of this image and add a new layer with text in formvis", "should_trigger": false },
+    { "query": "cut these video clips together and add a crossfade in formcut", "should_trigger": false },
+    { "query": "write a python script that renames jpg files by date in a folder", "should_trigger": false },
+    { "query": "what are the best Lightroom Classic shortcuts for culling", "should_trigger": false },
+    { "query": "design a poster with my photo and a headline", "should_trigger": false }
+  ]
+}

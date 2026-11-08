@@ -43,6 +43,10 @@ Tauri links these crates unedited (no `[patch]`, no vendored copy): cssparser, s
 | `@tauri-apps/cli` 2.11.4 | builds the desktop app | Apache-2.0 OR MIT |
 | PyInstaller 6.22.3, pyinstaller-hooks-contrib 2026.9, altgraph 0.17.5, packaging 26.3 | freezes the engine sidecar (`setup/freeze_backend`) | GPL-2.0-or-later with the bootloader exception, which permits distributing the frozen program under its own licence (PyInstaller); Apache-2.0 OR GPL-2.0 (hooks-contrib, used under Apache-2.0); MIT (altgraph); Apache-2.0 OR BSD-2-Clause (packaging) |
 
+## Agent skills copied from the Form apps (not shipped in the app)
+
+The skills in `.claude/skills` and `.agents/skills` named in `.claude/skills/HOSTS.md` are copied byte for byte from the Form apps' repositories, each by NodeAgentc, Inc. They teach an agent to understand and drive the host apps; they are read by Claude Code, Codex and Cursor, not bundled in the desktop app. `formvis-driving` (FormVis), `formcut-mcp` (FormCut), `formwav-harness` (FormWav), `formpdf-harness` (FormPDF), `formdeck-harness` (FormDeck), `formlit-driving` (FormLit), `formencoder-harness` (FormEncoder) and `formvfx-harness` (FormVFX) come from repositories licensed under the Apache License 2.0; `formmcp-harness` (formMCP) and `formportal-harness` (FormPortal) come from repositories licensed under the GNU General Public License version 3, as their `LICENSE` files say. The source repository and commit of each copy are in `HOSTS.md`.
+
 ## Demo and media
 
 The browser demo (`demo/`) bundles only what the interface bundles (the rows above) and the first-party extension packages from their own Apache-2.0 repositories (`nodemode-dev/formext-<product>-<id>`, linked from the Library). The screenshots in `assets/` are of form.ext itself. There are no photographs or third-party media (`demo/CREDITS.md`).
