@@ -3,6 +3,10 @@
     "formext": {
       "command": "${workspaceFolder}/formext",
       "args": ["mcp"]
+    },
+    "formmcp": {
+      "command": "formmcp",
+      "args": ["mcp"]
     }
   }
 }
