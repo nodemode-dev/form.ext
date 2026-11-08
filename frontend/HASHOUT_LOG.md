@@ -2,8 +2,8 @@
 
 Living log for the interface: the shell, the shared styles and the build files. Source files stay comment-free; what they would have said lives here. Each pane keeps its own `src/panes/<name>/HASHOUT_LOG.md`.
 
-Current build version: v0.2.0
-Last updated: 2026-11-08 · v0.2.0 family redesign
+Current build version: v0.2.1
+Last updated: 2026-11-08 · v0.2.1 the README's screenshots and the community files (no interface change). Before: v0.2.0 family redesign
 
 ---
 
@@ -102,6 +102,16 @@ Studio Dark is the default whatever the system says; the light theme is the top 
 - logged: v0.1.0 · 2026-11-07
 
 Inter (400, 500, 600) and JetBrains Mono (400, 500) latin woff2 are copied from `@fontsource` into `public/fonts` and declared with `font-display: block`; the Inter files and JetBrains Mono 400 (the code font of Docs, Check and Edit) are preloaded, so text never reflows when the font arrives (without the mono preload Docs measured CLS 0.0013 as table columns widened). Both are OFL-1.1.
+
+---
+
+## README screenshots and icon {#readme-shots}
+
+- refers-to: README.md · assets/*.webp · assets/app-icon
+- kind: decision
+- logged: v0.2.0 · 2026-11-08
+
+The README's screenshots predated the redesign, the Terminal and the Home button. They are now taken from the running interface and engine (`./formext`, with the first-party `.formpkg` files from `demo/packs` imported into a separate data folder) with Playwright at 1440 by 900 and device scale 2, saved as WebP quality 85 in `assets/`: Home in dark and light, New, the Studio editor, Check, Preview with the simulated FormLit, Package and Sign, the Terminal (Mod+J) and Preferences. The old PNGs, including Run, Library, Docs and Publish, which need FormPortal or the registry to show anything real, are removed and those two features are described in text. The header icon was already the owner's new art (`assets/app-icon`, the same pixels as the design files); the `<picture>` now has one dark source with the light icon as the fallback.
 
 ---
 
