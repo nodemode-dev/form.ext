@@ -143,7 +143,7 @@ The window, the command line and the MCP server call one engine, so an agent and
 ```sh
 git clone git@github.com:nodemode-dev/form.ext.git
 cd form.ext
-./oc_install        # engine venv and interface packages
+./formext_oc_install        # engine venv and interface packages
 ./formext           # interface at http://localhost:5640, engine on 127.0.0.1:8640
 ```
 

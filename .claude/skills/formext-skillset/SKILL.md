@@ -15,7 +15,7 @@ Route every change to form.ext's code through this file. It maps the subsystems,
 | Engine modules | `routers/[module].py` with `services/[module].py`: validate, templates (and `templates/`), preview, package and keys, runapp and portal, publish, library | `sub-skills/engine-modules/SUB-SKILL.md` |
 | Interface | `frontend/src/shell/`, `frontend/src/styles/`, `frontend/src/panes/[name]/`, `frontend/src/sim/` | `sub-skills/interface/SUB-SKILL.md` |
 | Command line and MCP | `backend/app/cli.py` (engine client, the op table, the commands), `backend/app/mcp.py` (stdio server), `.mcp.json`, `.claude/skills/formext-harness`, `.agents/skills`, `AGENTS.md` | `sub-skills/agent-substrate/SUB-SKILL.md` |
-| Desktop and release | `src-tauri/`, `setup/freeze_backend`, `./formext`, `./oc_install` | `sub-skills/desktop-and-release/SUB-SKILL.md` |
+| Desktop and release | `src-tauri/`, `setup/freeze_backend`, `./formext`, `./formext_oc_install`, `./build_app` | `sub-skills/desktop-and-release/SUB-SKILL.md` |
 | Checking a change | the servers, headless Chrome, the CLI and an MCP client | `sub-skills/verification/SUB-SKILL.md` |
 
 ## How the pieces depend
@@ -44,7 +44,7 @@ contract/ (the Form Extension Contract kit, vendored unchanged: formext_host.py,
 ## Run it
 
 ```bash
-./oc_install                      # backend venv and interface packages
+./formext_oc_install              # backend venv and interface packages
 ./formext boot                    # engine on 127.0.0.1:8640 and interface on localhost:5640
 ./formext serve                   # the built interface served by the engine on 8640
 ./formext cli status              # the command line

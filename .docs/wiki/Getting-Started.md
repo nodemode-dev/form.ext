@@ -7,7 +7,7 @@ Node 20.19+ and Python 3.12. The desktop app also needs Rust and the Tauri 2 too
 ## Install and run
 
 ```bash
-./oc_install        # the engine venv (backend/venv) and the interface packages
+./formext_oc_install        # the engine venv (backend/venv) and the interface packages
 ./formext           # the engine on 127.0.0.1:8640 and the interface on http://localhost:5640
 ```
 

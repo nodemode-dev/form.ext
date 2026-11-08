@@ -18,7 +18,7 @@ description: "form.ext's desktop build and release: the Tauri 2 shell in src-tau
 
 ## Scripts
 
-`./formext` (boot, install, backend, frontend, build, serve, freeze, desktop dev or build, cli, mcp, doctor, version) and `./oc_install` (one-command install). Vite keeps `server.host: false` on port 5640; the engine is 127.0.0.1:8640.
+`./formext` (boot, install, backend, frontend, build, serve, freeze, desktop dev or build, app, cli, mcp, claude, agents, doctor, version), `./formext_oc_install` (one-command install) and `./build_app` (the desktop build start to finish, logging to build_app.log; `formext.bat`, `formext_oc_install.bat` and `build_app.bat` are the Windows twins). Vite keeps `server.host: false` on port 5640; the engine is 127.0.0.1:8640.
 
 ## Releasing
 

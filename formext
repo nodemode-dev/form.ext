@@ -9,15 +9,18 @@ usage() {
 usage: ./formext [command] [options]
 
   (none) | boot       engine (127.0.0.1:8640) and interface (localhost:5640) together; reuses either if it already runs
-  install             one-command install: backend venv and frontend packages (same as ./oc_install)
+  install             one-command install: backend venv and frontend packages (same as ./formext_oc_install)
   backend             the engine only (reloads on backend/app changes)
   frontend            the interface only (Vite on 5640)
   build               production build of the interface into frontend/dist
   serve               the built interface served by the engine on http://127.0.0.1:8640
   freeze              freeze the engine into the Tauri sidecar (src-tauri/binaries/formext-engine-<target>)
   desktop dev|build   run or bundle the desktop app (Tauri 2)
+  app [options]       build the desktop app start to finish (same as ./build_app; --open, --clean, --no-install, --install)
   cli ...             the formext command line (new, validate, preview, package, sign, run-in-app, publish); cli --help
   mcp ...             the formext MCP server on stdio, for Claude Code and other MCP clients
+  claude [args]       Claude Code in this folder, already connected to the formext tools (and formMCP when it is installed)
+  agents install|status|sync  set up Claude Code, Codex and Cursor for making extensions in plain language (install), say what is set up (status), or refresh the skill references and the .agents mirror (sync [--check])
   doctor              check the toolchain, installs and ports
   version             the version (also --version)
   help                this text
@@ -63,7 +66,7 @@ desktop() {
         for _ in $(seq 1 60); do listening 8640 && listening 5640 && break; sleep 0.5; done
       fi
       exec node frontend/node_modules/.bin/tauri dev --no-dev-server-wait "$@" ;;
-    build) (cd frontend && npm run build); freeze; exec node frontend/node_modules/.bin/tauri build "$@" ;;
+    build) exec "$root/build_app" "$@" ;;
     *) usage; exit 2 ;;
   esac
 }
@@ -82,8 +85,9 @@ doctor() {
   ok node "$(node -v 2>/dev/null || echo missing)"
   ok npm "$(npm -v 2>/dev/null || echo missing)"
   ok python "$("$(py)" -V 2>&1 || echo missing)"
-  ok venv "$([ -x "$root/backend/venv/bin/python" ] && echo backend/venv || echo 'missing (./oc_install)')"
-  ok packages "$([ -d "$root/frontend/node_modules" ] && echo frontend/node_modules || echo 'missing (./oc_install)')"
+  ok venv "$([ -x "$root/backend/venv/bin/python" ] && echo backend/venv || echo 'missing (./formext_oc_install)')"
+  ok packages "$([ -d "$root/frontend/node_modules" ] && echo frontend/node_modules || echo 'missing (./formext_oc_install)')"
+  ok claude "$(command -v claude || echo 'missing (https://claude.com/claude-code)')"
   ok rust "$(rustc -V 2>/dev/null || echo 'missing (desktop builds only)')"
   ok target "$(target_triple || true)"
   ok engine "$(listening 8640 && echo 'listening on 8640' || echo 'not running')"
@@ -93,7 +97,14 @@ cmd="${1:-boot}"
 [ $# -gt 0 ] && shift
 case "$cmd" in
   boot|dev) boot ;;
-  install) exec "$root/oc_install" "$@" ;;
+  install) exec "$root/formext_oc_install" "$@" ;;
+  app) exec "$root/build_app" "$@" ;;
+  claude)
+    command -v claude > /dev/null || { echo "[formext] Claude Code is not installed. Install it with: curl -fsSL https://claude.ai/install.sh | bash" >&2; exit 1; }
+    cd "$root"
+    export CLAUDE_PROJECT_DIR="$root"
+    exec claude --mcp-config "$root/.mcp.json" --allowedTools mcp__formext mcp__formmcp "$@" ;;
+  agents) exec "$(py)" "$root/setup/agents.py" "$@" ;;
   backend) run_backend "$@" ;;
   frontend) run_frontend "$@" ;;
   build) ensure_frontend; cd "$root/frontend"; exec npm run build ;;

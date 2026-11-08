@@ -10,5 +10,5 @@ echo "[formext] engine: backend/venv"
 "$root/backend/venv/bin/python" -m pip install -q -r "$root/backend/requirements.txt"
 echo "[formext] interface: frontend/node_modules"
 (cd "$root/frontend" && npm ci --no-audit --no-fund)
-chmod +x "$root/formext" "$root/backend/boot_backend" 2>/dev/null || true
-echo "[formext] done. Start with ./formext (then open http://localhost:5640)"
+chmod +x "$root/formext" "$root/formext_oc_install" "$root/build_app" "$root/backend/boot_backend" "$root/setup/freeze_backend" 2>/dev/null || true
+echo "[formext] done. Start with ./formext (then open http://localhost:5640); ./formext agents install connects Claude Code, Codex and Cursor"

@@ -29,7 +29,7 @@ An extension is a small web page with a `manifest.json`. It runs in a sandboxed 
 From the repository:
 
 ```sh
-./oc_install        # the engine's Python venv and the interface packages, once
+./formext_oc_install        # the engine's Python venv and the interface packages, once
 ./formext           # engine on 127.0.0.1:8640 and interface on http://localhost:5640
 ```
 
