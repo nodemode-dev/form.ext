@@ -861,11 +861,12 @@ def op_agents_sync(eng: Engine) -> dict:
     target = skill / "references" / "tools.md"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(tools_markdown(), encoding="utf-8")
-    mirror = root / ".agents" / "skills" / "formext-harness"
-    if mirror.exists():
-        shutil.rmtree(mirror)
-    shutil.copytree(skill, mirror)
-    return {"tools_md": str(target), "mirror": str(mirror), "tools": sum(1 for op in OPS if op.mcp)}
+    mirrors = root / ".agents" / "skills"
+    for each in sorted(p for p in skill.parent.iterdir() if (p / "SKILL.md").is_file()):
+        if (mirrors / each.name).exists():
+            shutil.rmtree(mirrors / each.name)
+        shutil.copytree(each, mirrors / each.name)
+    return {"tools_md": str(target), "mirror": str(mirrors), "tools": sum(1 for op in OPS if op.mcp)}
 
 
 P_ID = Param("id", help="The project id (projects lists them).", required=True, positional=True)
@@ -941,7 +942,7 @@ OPS: list[Op] = [
         Param("unsigned", "boolean", "Do not sign."),
         Param("formportal", "boolean", "Also send the package to FormPortal to install."),
     ], read_only=False, say=_say_publish),
-    Op("submit", "Submit to Registry", "Write the project into a folder in form.ext-registry's layout (extensions/<id>/ with package/, the source, package.json when there is one, README.md, LICENSE, CHANGELOG.md and a screenshot slot), run the registry's tools/check.py on it when a local registry checkout is set (else form.ext's own Check, and it says which ran), and give the git and gh commands that fork nodemode-dev/form.ext-registry, add the folder and open the pull request. It never pushes anything itself.", op_submit, [
+    Op("submit", "Submit to Registry", "Write the project into a folder in form.ext-registry's layout (extensions/[id]/ with package/, the source, package.json when there is one, README.md, LICENSE, CHANGELOG.md and a screenshot slot), run the registry's tools/check.py on it when a local registry checkout is set (else form.ext's own Check, and it says which ran), and give the git and gh commands that fork nodemode-dev/form.ext-registry, add the folder and open the pull request. It never pushes anything itself.", op_submit, [
         P_ID,
         Param("checkout", help="A local clone of nodemode-dev/form.ext-registry whose tools/check.py runs on the folder (saved as the setting registry.checkout)."),
     ], read_only=False, say=_say_submit),
