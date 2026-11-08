@@ -1,5 +1,6 @@
 import { esc } from './dom';
 import { icon } from './icons';
+import { write } from './output';
 import type { Level } from './types';
 
 let host: HTMLElement | null = null;
@@ -10,6 +11,7 @@ export function mountToasts(el: HTMLElement): void {
 }
 
 export function notify(message: string, level: Level = 'info'): void {
+  write('form.ext', message, level);
   if (!host) {
     console.log(`[${level}] ${message}`);
     return;
@@ -23,7 +25,7 @@ export function notify(message: string, level: Level = 'info'): void {
     el.classList.add('leaving');
     window.setTimeout(() => el.remove(), 240);
   };
-  el.querySelector('.close')!.addEventListener('click', dismiss);
+  el.addEventListener('click', dismiss);
   host.prepend(el);
   while (host.children.length > MAX) host.lastElementChild!.remove();
   const ttl = level === 'error' ? 8000 : level === 'warning' ? 6000 : 3800;

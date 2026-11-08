@@ -110,7 +110,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       </div>
     </div>`;
 
-  const q = <T extends HTMLElement = HTMLElement>(sel: string) => el.querySelector<T>(sel)!;
+  const q = <T extends HTMLElement = HTMLElement>(sel: string) => (el.querySelector<T>(sel) ?? document.querySelector<T>(sel))!;
   const sub = q('.run-sub');
   const toggle = q<HTMLButtonElement>('.run-toggle');
   const toggleText = q('.run-toggle-text');
@@ -376,5 +376,6 @@ export const pane: PaneDef = {
   icon: 'run',
   order: 10,
   group: 'ship',
+  view: 'part',
   mount,
 };

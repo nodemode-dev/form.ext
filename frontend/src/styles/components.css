@@ -19,8 +19,8 @@
 .btn:active { background: var(--control-press); }
 .btn:disabled, .btn[aria-disabled="true"] { opacity: 0.45; cursor: default; pointer-events: none; }
 .btn svg { width: var(--icon-s); height: var(--icon-s); }
-.btn.primary { background: var(--accent-color); border-color: var(--accent-color); color: var(--text-on-accent); }
-.btn.primary:hover { background: var(--accent-color-hover); }
+.btn.primary { background: var(--pri-bg); border-color: var(--pri-bg); color: var(--pri-ink); }
+.btn.primary:hover { background: color-mix(in srgb, var(--pri-bg) 88%, var(--main)); }
 .btn.danger { background: var(--danger-fill); border-color: var(--danger-fill); color: #ffffff; }
 .btn.ghost { background: transparent; border-color: transparent; color: var(--ink-soft); }
 .btn.ghost:hover { background: var(--bg-hover); color: var(--ink); }

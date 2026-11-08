@@ -135,7 +135,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       </div>
     </div>`;
 
-  const q = <T extends HTMLElement = HTMLElement>(sel: string) => el.querySelector<T>(sel)!;
+  const q = <T extends HTMLElement = HTMLElement>(sel: string) => (el.querySelector<T>(sel) ?? document.querySelector<T>(sel))!;
   const sub = q('.pk-sub');
   const buildBtn = q<HTMLButtonElement>('.pk-build');
   const reproBtn = q<HTMLButtonElement>('.pk-repro');
@@ -601,5 +601,6 @@ export const pane: PaneDef = {
   icon: 'package',
   order: 20,
   group: 'ship',
+  view: 'part',
   mount,
 };

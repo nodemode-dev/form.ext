@@ -136,7 +136,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       </div>
     </div>`;
 
-  const q = <T extends HTMLElement>(sel: string) => el.querySelector(sel) as T;
+  const q = <T extends HTMLElement>(sel: string) => (el.querySelector(sel) ?? document.querySelector(sel)) as T;
   const ui = {
     sub: q('.pv-sub'),
     as: q<HTMLSelectElement>('.pv-as-select'),
@@ -215,18 +215,8 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     return { ...answer.record, permissions: answer.record.permissions.filter((p) => !off.includes(p)) };
   };
 
-  function selectTab(id: Tab) {
-    for (const b of el.querySelectorAll<HTMLElement>('.pv-tabs .tab')) b.setAttribute('aria-selected', String(b.dataset.tab === id));
-    for (const b of el.querySelectorAll<HTMLElement>('.pv-tabbody')) b.hidden = b.dataset.tab !== id;
-    storage.set(TAB_KEY, id);
-    if (id === 'document') renderDocument();
-    if (id === 'permissions') renderPermissions();
-  }
-  selectTab((storage.get(TAB_KEY) as Tab) || 'log');
-  q('.pv-tabs').addEventListener('click', (ev) => {
-    const b = (ev.target as HTMLElement).closest<HTMLElement>('.tab');
-    if (b) selectTab(b.dataset.tab as Tab);
-  });
+  renderDocument();
+  renderPermissions();
 
   function dialog<T>(build: (box: HTMLElement, done: (v: T) => void) => void): Promise<T> {
     return new Promise((resolve) => {
@@ -383,7 +373,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     ui.undo.title = last ? `Undo ${last.label}` : 'Nothing to undo';
     (ui.undo.querySelector('span') as HTMLElement).textContent = last ? `Undo ${last.label}` : 'Undo';
     ui.docSteps.textContent = `${host.steps.length} ${host.steps.length === 1 ? 'step' : 'steps'}`;
-    if (!(el.querySelector('.pv-tabbody[data-tab="document"]') as HTMLElement).hidden) renderDocument();
+    if (q('.pv-tabbody[data-tab="document"]').offsetParent) renderDocument();
   }
 
   let readSeq = 0;
@@ -807,4 +797,4 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
   };
 }
 
-export const pane: PaneDef = { id: 'preview', title: 'Preview', icon: 'preview', order: 30, group: 'make', mount };
+export const pane: PaneDef = { id: 'preview', title: 'Preview', icon: 'preview', order: 30, group: 'make', view: 'part', mount };

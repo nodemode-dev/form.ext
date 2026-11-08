@@ -1,5 +1,5 @@
 import './library.css';
-import { icon, appIcon, productName, esc, setText, storage, errorMessage, chooseProject, ApiError } from '../../shell';
+import { icon, appIcon, productName, esc, setText, storage, errorMessage, chooseProject, ApiError, emit } from '../../shell';
 import type { PaneDef, ShellContext, ProjectRef } from '../../shell';
 
 type Tab = 'examples' | 'inspect' | 'compare';
@@ -167,7 +167,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       </div>
     </div>`;
 
-  const q = <T extends Element = HTMLElement>(sel: string) => el.querySelector<T>(sel)!;
+  const q = <T extends Element = HTMLElement>(sel: string) => (el.querySelector<T>(sel) ?? document.querySelector<T>(sel))!;
   const tabBtns = [...el.querySelectorAll<HTMLButtonElement>('.lib-tabs .tab')];
   const panels = [...el.querySelectorAll<HTMLElement>('.lib-panel')];
   const fileInput = q<HTMLInputElement>('.lib-file');
@@ -228,6 +228,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       }
       examples = r.extensions;
       examplesLoaded = true;
+      emit('library.count', examples.length);
       exNone.classList.toggle('hidden', examples.length > 0);
       exGrid.classList.toggle('hidden', examples.length === 0);
       setText(q('.lib-none-title'), 'No extensions in the registry index');
@@ -388,7 +389,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       examplesLoaded = false;
       if (tab === 'examples') loadExamples();
       await ctx.project.open(r.project.id);
-      ctx.openPane('edit', { path: 'package/manifest.json', from: 'library' });
+      ctx.openPane('studio', { path: 'package/manifest.json', from: 'library' });
     } catch (err) {
       const detail = err instanceof ApiError ? (err.detail as { report?: Report } | null) : null;
       if (detail?.report && detail.report.kit_refuses && detail.report.can_import && !anyway) {
@@ -566,15 +567,16 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     const path = pathInput.value.trim();
     if (path) inspect({ kind: 'path', path });
   });
-  el.addEventListener('dragover', (ev) => {
+  const root = q('.library-pane');
+  root.addEventListener('dragover', (ev) => {
     if (!ev.dataTransfer?.types.includes('Files')) return;
     ev.preventDefault();
     drop.classList.add('over');
   });
-  el.addEventListener('dragleave', (ev) => {
-    if (!el.contains(ev.relatedTarget as Node)) drop.classList.remove('over');
+  root.addEventListener('dragleave', (ev) => {
+    if (!root.contains(ev.relatedTarget as Node)) drop.classList.remove('over');
   });
-  el.addEventListener('drop', (ev) => {
+  root.addEventListener('drop', (ev) => {
     if (!ev.dataTransfer?.files.length) return;
     ev.preventDefault();
     drop.classList.remove('over');
@@ -617,7 +619,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     else if (t.closest('[data-ex-import]')) runImport({ kind: 'registry', id }, false);
     else {
       const open = t.closest<HTMLElement>('[data-ex-open]');
-      if (open) ctx.project.open(open.dataset.exOpen!).then(() => ctx.openPane('edit')).catch((err) => ctx.notify(errorMessage(err), 'error'));
+      if (open) ctx.project.open(open.dataset.exOpen!).then(() => ctx.openPane('studio')).catch((err) => ctx.notify(errorMessage(err), 'error'));
     }
   });
   q('.lib-reg-refresh').addEventListener('click', () => void loadExamples(true));
@@ -672,4 +674,4 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
   };
 }
 
-export const pane: PaneDef = { id: 'library', title: 'Library', icon: 'library', order: 50, group: 'make', mount };
+export const pane: PaneDef = { id: 'library', title: 'Library', icon: 'library', order: 50, group: 'make', view: 'part', mount };

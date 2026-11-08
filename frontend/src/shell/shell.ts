@@ -3,7 +3,7 @@ import { emit, on, connect, isLive, reconnect, events } from './events';
 import { project, restore as restoreProject, close as closeProject, toProjectRef } from './project';
 import { notify, mountToasts } from './toast';
 import { dialog, mountDialogs, isDialogOpen } from './dialog';
-import { commands, bindKeys, register } from './commands';
+import { commands, bindKeys, register, run as commandRun } from './commands';
 import { mountPalette, openPalette, pick, isPaletteOpen } from './palette';
 import { toggleTheme, themeMode } from './theme';
 import { icon, brandMark } from './icons';
@@ -13,24 +13,55 @@ import { storage } from './storage';
 import { VERSION } from './version';
 import type { PaneDef, ShellContext, ProjectRef } from './types';
 
-const GROUPS: { id: NonNullable<PaneDef['group']>; title: string }[] = [
-  { id: 'make', title: 'Make' },
-  { id: 'ship', title: 'Ship' },
-  { id: 'learn', title: 'Learn' },
+interface NavItem {
+  key: string;
+  icon: string;
+  label: string;
+  pane: string;
+  args?: unknown;
+  count?: boolean;
+  group?: string;
+}
+
+const START_NAV: NavItem[] = [
+  { key: 'home', icon: 'home', label: 'Home', pane: 'home' },
+  { key: 'recent', icon: 'folder-open', label: 'Recent', pane: 'home', args: { section: 'recent' }, count: true },
+  { key: 'registry', icon: 'library', label: 'Registry', pane: 'library', args: { action: 'examples', from: 'start' }, count: true },
+  { key: 'docs', icon: 'docs', label: 'Docs', pane: 'docs', group: 'Learn' },
 ];
 const LAST_PANE = 'formext.pane';
+const RAIL_KEY = 'formext.rail';
 
 interface Slot {
   def: PaneDef;
   el: HTMLElement;
-  nav: HTMLButtonElement;
   mounted: boolean;
   cleanup?: () => void;
 }
 
 const slots = new Map<string, Slot>();
 const args = new Map<string, unknown>();
+const navs = new Map<string, HTMLButtonElement>();
 let activeId = '';
+
+export function setNavCount(key: string, n: number): void {
+  setText(navs.get(key)?.querySelector('.cnt') ?? null, String(n));
+}
+
+export function setStatus(key: string, text: string): void {
+  setText(document.querySelector(`[data-status="${key}"]`), text);
+}
+
+export function partRoot(id: string): HTMLElement | null {
+  const slot = slots.get(id);
+  if (!slot) return null;
+  mount(slot);
+  return slot.el;
+}
+
+export function layoutOf(id: string): 'start' | 'studio' {
+  return slots.get(id)?.def.view === 'start' ? 'start' : 'studio';
+}
 
 export const ctx: ShellContext = {
   api,
@@ -69,40 +100,58 @@ function discover(): PaneDef[] {
     }
     found.push(def);
   }
-  const rank = (g: PaneDef['group']) => GROUPS.findIndex((x) => x.id === (g ?? 'make'));
-  return found.sort((a, b) => rank(a.group) - rank(b.group) || a.order - b.order || a.title.localeCompare(b.title));
+  return found.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
+}
+
+function navButton(item: NavItem): HTMLButtonElement {
+  const nav = document.createElement('button');
+  nav.type = 'button';
+  nav.className = 'fx-nav';
+  nav.dataset.nav = item.key;
+  nav.title = item.label;
+  nav.innerHTML = `${icon(item.icon)}<span class="label">${esc(item.label)}</span>${item.count ? '<span class="cnt">0</span>' : ''}`;
+  if (item.pane) nav.addEventListener('click', () => openPane(item.pane, item.args));
+  navs.set(item.key, nav);
+  return nav;
 }
 
 function buildLayout(defs: PaneDef[]): void {
-  const side = qs(document, '.fx-sidebar');
   const main = qs(document, '.fx-main');
-  for (const g of GROUPS) {
-    const inGroup = defs.filter((d) => (d.group ?? 'make') === g.id);
-    if (!inGroup.length) continue;
-    const group = document.createElement('nav');
-    group.className = 'fx-group';
-    group.setAttribute('aria-label', g.title);
-    group.innerHTML = `<div class="fx-group-title">${g.title}</div>`;
-    for (const def of inGroup) {
-      const nav = document.createElement('button');
-      nav.type = 'button';
-      nav.className = 'fx-nav';
-      nav.dataset.pane = def.id;
-      nav.innerHTML = `${icon(def.icon)}<span class="ellipsis">${esc(def.title)}</span>`;
-      nav.addEventListener('click', () => openPane(def.id));
-      group.append(nav);
-      const el = document.createElement('section');
-      el.className = 'fx-pane';
-      el.dataset.pane = def.id;
-      el.setAttribute('aria-label', def.title);
-      main.append(el);
-      slots.set(def.id, { def, el, nav, mounted: false });
-    }
-    side.append(group);
+  for (const def of defs) {
+    const el = document.createElement('section');
+    el.className = def.view === 'part' ? 'fx-pane part' : 'fx-pane';
+    el.dataset.pane = def.id;
+    el.setAttribute('aria-label', def.title);
+    main.append(el);
+    slots.set(def.id, { def, el, mounted: false });
   }
   if (!defs.length) {
     main.innerHTML = `<div class="empty" style="height:100%">${icon('puzzle')}<h3>No panes yet</h3><p>Panes live in frontend/src/panes/&lt;name&gt;/index.ts and export a pane.</p></div>`;
   }
+  qs(document, '.fx-side-brand').innerHTML = `${brandMark}<div><b>form.ext</b><small>by nodemode.ai</small></div>`;
+  const nav = qs(document, '.fx-side-nav');
+  let group = '';
+  for (const item of START_NAV) {
+    if (item.group && item.group !== group) {
+      group = item.group;
+      nav.insertAdjacentHTML('beforeend', `<div class="fx-group-title">${esc(group)}</div>`);
+    }
+    nav.append(navButton(item));
+  }
+  const foot = qs(document, '.fx-side-foot');
+  foot.append(
+    navButton({ key: 'prefs', icon: 'settings', label: 'Preferences', pane: '' }),
+    navButton({ key: 'help', icon: 'help', label: 'Help', pane: '' }),
+  );
+  navs.get('prefs')!.onclick = () => void commandRun('settings');
+  navs.get('help')!.onclick = () => openPane('docs', { doc: 'manual' });
+  const edge = qs(document, '.fx-edge');
+  edge.addEventListener('click', () => {
+    const rail = document.documentElement.dataset.rail !== '1';
+    if (rail) document.documentElement.dataset.rail = '1';
+    else document.documentElement.removeAttribute('data-rail');
+    storage.set(RAIL_KEY, rail ? '1' : '0');
+  });
 }
 
 function mount(slot: Slot): void {
@@ -124,45 +173,49 @@ export function openPane(id: string, a?: unknown): void {
     return;
   }
   if (a !== undefined) args.set(id, a);
+  if (slot.def.view === 'part') {
+    openPane('studio');
+    mount(slot);
+    emit('pane.open', { id, args: a });
+    emit('studio.part', { id, args: a });
+    return;
+  }
   if (activeId !== id) {
     const prev = slots.get(activeId);
-    if (prev) {
-      prev.el.classList.remove('active');
-      prev.nav.removeAttribute('aria-current');
-    }
+    if (prev) prev.el.classList.remove('active');
     mount(slot);
     slot.el.classList.add('active');
-    slot.nav.setAttribute('aria-current', 'page');
     activeId = id;
+    document.documentElement.dataset.layout = layoutOf(id);
     storage.set(LAST_PANE, id);
     const hash = `#/${id}`;
     if (location.hash !== hash) history.replaceState(null, '', hash);
     document.title = `${slot.def.title} - form.ext`;
+    const key = id === 'new' ? 'home' : id;
+    for (const [k, nav] of navs) {
+      if (k === key && !(k === 'recent')) nav.setAttribute('aria-current', 'page');
+      else nav.removeAttribute('aria-current');
+    }
   }
   emit('pane.open', { id, args: a });
 }
 
 function initialPane(defs: PaneDef[]): string {
+  const usable = (id: string | null): id is string => !!id && slots.has(id) && slots.get(id)!.def.view !== 'part';
   const fromHash = location.hash.replace(/^#\/?/, '').split(/[/?]/)[0];
-  if (fromHash && slots.has(fromHash)) return fromHash;
+  if (usable(fromHash)) return fromHash;
   const last = storage.get(LAST_PANE);
-  if (last && slots.has(last)) return last;
+  if (usable(last)) return last;
   if (slots.has('home')) return 'home';
   return defs[0]?.id ?? '';
 }
 
 function renderProject(p: ProjectRef | null): void {
-  const chip = qs(document, '.fx-project');
-  chip.dataset.empty = String(!p);
-  setText(chip.querySelector('.name'), p ? p.name : 'No project open');
-  const prod = chip.querySelector<HTMLElement>('.chip')!;
-  prod.classList.toggle('hidden', !p || !p.product);
-  if (p && p.product) {
-    prod.dataset.product = p.product;
-    setText(prod, productName(p.product));
-  }
-  chip.title = p ? `${p.name}${p.dir ? `\n${p.dir}` : ''}` : 'Open a project';
-  setText(document.querySelector('[data-status="project"] span'), p ? p.dir || p.id : 'No project');
+  const doc = qs(document, '.fx-tb-doc');
+  doc.classList.toggle('on', !!p);
+  const html = p ? `<i class="dotf"></i>${esc(p.name)}${p.product ? `<em>${esc(productName(p.product))}</em>` : ''}` : '';
+  if (doc.innerHTML !== html) doc.innerHTML = html;
+  setText(document.querySelector('[data-status="project"] span'), p ? p.name : 'No project');
 }
 
 function renderEngine(state: 'up' | 'down' | 'wait', label: string): void {
@@ -177,6 +230,11 @@ function renderTheme(): void {
   btn.innerHTML = icon(dark ? 'sun' : 'moon');
   btn.title = dark ? 'Light theme' : 'Dark theme';
   btn.setAttribute('aria-label', btn.title);
+}
+
+function paintTitleButtons(): void {
+  qs(document, '[data-action="palette"]').innerHTML = icon('search');
+  qs(document, '[data-action="settings"]').innerHTML = icon('settings');
 }
 
 export async function chooseProject(): Promise<void> {
@@ -220,7 +278,7 @@ function registerBuiltins(defs: PaneDef[]): void {
   register({ id: 'shell.palette', title: 'Command Palette', keys: 'Mod+K', icon: 'command', run: openPalette });
   register({ id: 'shell.palette-alt', title: 'Command Palette', keys: 'Mod+Shift+P', icon: 'command', run: openPalette });
   register({ id: 'shell.project', title: 'Open Project', keys: 'Mod+O', icon: 'folder-open', run: chooseProject });
-  register({ id: 'shell.close-project', title: 'Close Project', icon: 'close', run: closeProject });
+  register({ id: 'shell.close-project', title: 'Close Project', icon: 'close', run: () => { closeProject(); openPane('home'); } });
   register({ id: 'shell.theme', title: 'Toggle Light and Dark Theme', keys: 'Mod+Shift+L', icon: 'sun', run: toggleTheme });
   register({ id: 'shell.reconnect', title: 'Reconnect to the Engine', icon: 'refresh', run: () => { reconnect(); void checkEngine(); } });
   defs.forEach((d, i) => {
@@ -239,9 +297,9 @@ function revealed(): void {
 }
 
 export function boot(): void {
-  qs(document, '.fx-brand').insertAdjacentHTML('afterbegin', brandMark);
-  setText(document.querySelector('[data-status="version"]'), `form.ext ${VERSION}`);
+  setText(document.querySelector('[data-status="version"]'), `v${VERSION}`);
   document.querySelectorAll<HTMLElement>('[data-keys]').forEach((el) => setText(el, keyLabel(el.dataset.keys!).join(isMac ? '' : ' ')));
+  paintTitleButtons();
   mountToasts(qs(document, '.fx-toasts'));
   mountDialogs(qs(document, '.fx-scrim'), qs<HTMLFormElement>(document, '.fx-dialog'));
   mountPalette(qs(document, '.fx-palette'));
@@ -261,7 +319,7 @@ export function boot(): void {
     else renderEngine('down', 'Engine offline');
   });
 
-  qs(document, '.fx-project').addEventListener('click', () => void chooseProject());
+  qs(document, '[data-action="settings"]').addEventListener('click', () => void commandRun('settings'));
   qs(document, '[data-action="palette"]').addEventListener('click', () => void openPalette());
   qs(document, '[data-action="theme"]').addEventListener('click', toggleTheme);
   qs(document, '[data-status="engine"]').addEventListener('click', () => {
@@ -275,6 +333,7 @@ export function boot(): void {
     if (id && slots.has(id) && id !== activeId) openPane(id);
   });
 
+  for (const slot of slots.values()) mount(slot);
   const first = initialPane(defs);
   if (first) openPane(first);
 

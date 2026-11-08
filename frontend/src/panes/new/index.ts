@@ -222,7 +222,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       nameTouched = false;
       descInput.value = '';
       setText(q('.new-msg'), ' ');
-      ctx.openPane('edit', { path: `package/ui/app.js`, from: 'new' });
+      ctx.openPane('studio', { path: `package/ui/app.js`, from: 'new' });
     } catch (err) {
       setText(q('.new-msg'), errorMessage(err));
       ctx.notify(errorMessage(err), 'error');
@@ -262,4 +262,4 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
   return off;
 }
 
-export const pane: PaneDef = { id: 'new', title: 'New', icon: 'new', order: 10, group: 'make', mount };
+export const pane: PaneDef = { id: 'new', title: 'New', icon: 'new', order: 10, group: 'make', view: 'start', mount };

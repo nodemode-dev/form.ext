@@ -1,5 +1,5 @@
 import './check.css';
-import { icon, esc, setText, storage, productName, keyLabel, chooseProject, errorMessage } from '../../shell';
+import { icon, esc, setText, storage, productName, keyLabel, chooseProject, errorMessage, emit } from '../../shell';
 import type { PaneDef, ShellContext, ProjectRef } from '../../shell';
 
 type Severity = 'error' | 'warning' | 'info';
@@ -154,9 +154,9 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       row.dataset.key = key;
       const where = p.line ? `${p.line}${p.column ? `:${p.column}` : ''}` : '';
       row.title = p.line ? `Open ${p.file} at line ${p.line}` : `Open ${p.file}`;
-      row.innerHTML = `<span class="check-sev">${icon(p.severity, 14)}</span><span class="check-text"><span class="check-msg">${esc(p.message)}</span><span class="check-fix">${esc(p.fix)}</span></span><span class="check-where">${where ? `<span class="check-line">${esc(where)}</span>` : ''}<span class="chip check-rule">${esc(p.rule)}</span></span>`;
+      row.innerHTML = `<span class="check-sev">${icon(p.severity, 14)}</span><span class="check-text"><span class="check-msg">${esc(p.message)}</span><span class="check-fix">${esc(p.fix)}</span></span><span class="check-where">${where ? `<span class="check-line">${esc(where)}</span>` : ''}<span class="check-rule">${esc(p.rule)}</span><span class="btn sm check-open-line">Open line</span></span>`;
       row.querySelector<HTMLElement>('.check-fix')!.classList.toggle('hidden', !p.fix);
-      row.addEventListener('click', () => ctx.openPane('edit', { path: p.file, line: p.line || 1, column: p.column || 1, from: 'check', rule: p.rule }));
+      row.addEventListener('click', () => ctx.openPane('studio', { path: p.file, line: p.line || 1, column: p.column || 1, from: 'check', rule: p.rule }));
       rows.set(key, row);
     }
     return row;
@@ -271,6 +271,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       if (ctx.project.current()?.id === project.id) result = out;
       running = false;
       render();
+      emit('check.result', result);
     } catch (err) {
       running = false;
       renderHead();
@@ -336,7 +337,10 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
 
   const offs = [
     ctx.project.onChange((p: ProjectRef | null) => {
-      if (result && (!p || result.project !== p.id)) result = null;
+      if (result && (!p || result.project !== p.id)) {
+        result = null;
+        emit('check.result', null);
+      }
       render();
       if (p) void run();
     }),
@@ -368,5 +372,6 @@ export const pane: PaneDef = {
   icon: 'checklist',
   order: 40,
   group: 'make',
+  view: 'part',
   mount,
 };

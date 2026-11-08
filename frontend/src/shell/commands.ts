@@ -12,6 +12,10 @@ export function register(c: Command): void {
   registry.set(c.id, c);
 }
 
+export function get(id: string): Command | undefined {
+  return registry.get(id);
+}
+
 export function list(): Command[] {
   return order.map((id) => registry.get(id)!).filter(Boolean);
 }

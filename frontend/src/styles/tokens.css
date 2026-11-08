@@ -261,9 +261,17 @@
   --family-gradient: linear-gradient(90deg, #3A7BFF, #9A5CFF 30%, #FF4F7A 62%, #FFAE2B);
   --font-code: "JetBrains Mono", var(--font-mono);
 
-  --topbar-h: 44px;
+  --title-h: 38px;
+  --traffic-w: 78px;
   --statusbar-h: 26px;
-  --sidebar-w: 212px;
+  --sidebar-w: 232px;
+  --sidebar-rail-w: 49px;
+  --main: #050505;
+  --bar: #0c0c0c;
+  --raise: #191919;
+  --pri-bg: #ffffff;
+  --pri-ink: #111111;
+  --panel-gap: 8px;
   --row: 30px;
   --dialog-w: 440px;
   --palette-w: 560px;
@@ -285,6 +293,11 @@
 }
 
 :root[data-theme="light"] {
+  --main: #e2e0d8;
+  --bar: #e7e5de;
+  --raise: #f9f8f4;
+  --pri-bg: #26241d;
+  --pri-ink: #f7f6f1;
   --hue-ext: #2f47d6;
   --success: #15803d;
   --warning: #a16207;

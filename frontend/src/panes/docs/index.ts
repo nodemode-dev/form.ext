@@ -380,4 +380,4 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
   };
 }
 
-export const pane: PaneDef = { id: 'docs', title: 'Docs', icon: 'docs', order: 10, group: 'learn', mount };
+export const pane: PaneDef = { id: 'docs', title: 'Docs', icon: 'docs', order: 10, group: 'learn', view: 'start', mount };

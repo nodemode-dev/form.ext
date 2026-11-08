@@ -149,7 +149,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       </div>
     </div>`;
 
-  const q = <T extends HTMLElement = HTMLElement>(sel: string) => el.querySelector<T>(sel)!;
+  const q = <T extends HTMLElement = HTMLElement>(sel: string) => (el.querySelector<T>(sel) ?? document.querySelector<T>(sel))!;
   const sub = q('.publish-sub');
   const prepareBtn = q<HTMLButtonElement>('.publish-prepare');
   const none = q('.publish-none');
@@ -477,5 +477,6 @@ export const pane: PaneDef = {
   icon: 'publish',
   order: 30,
   group: 'ship',
+  view: 'part',
   mount,
 };

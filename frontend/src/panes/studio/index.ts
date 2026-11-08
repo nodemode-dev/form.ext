@@ -1,5 +1,6 @@
-import './edit.css';
-import { icon, esc, setText, storage, productName, keyLabel, chooseProject, errorMessage, apiUrl, ApiError, activePane } from '../../shell';
+import './studio.css';
+import { icon, appIcon, esc, setText, storage, productName, chooseProject, errorMessage, apiUrl, ApiError, activePane } from '../../shell';
+import { mountZones } from './zones';
 import type { PaneDef, ShellContext, ProjectRef } from '../../shell';
 import { Text, makeState, createView, minimalChange, goTo, languageName } from './editor';
 import type { EditorState } from './editor';
@@ -47,7 +48,24 @@ interface OpenArgs {
 const SAVE_KEYS = 'Mod+S';
 const SAVE_ALL_KEYS = 'Mod+Alt+S';
 const IMAGE = /\.(png|webp|jpe?g|gif|svg)$/i;
-const PANEL_KEY = 'formext.edit.manifest';
+const TOOLS = [
+  { id: 'check', label: 'Check', icon: 'checklist', hint: 'Check reads the manifest and the code against the Extension Contract, as a host would.' },
+  { id: 'preview', label: 'Preview', icon: 'preview', hint: 'Preview runs the extension in a simulated app and logs every call it makes to the host.' },
+  { id: 'run', label: 'Run in App', icon: 'rocket', hint: 'Run in App writes dev.json so the installed Form app loads this extension from its folder.' },
+  { id: 'package', label: 'Package', icon: 'package', hint: 'Package builds the .formpkg after Check, the same bytes every time.' },
+];
+const BOTTOM = [
+  { id: 'problems', label: 'Problems', count: true, hidden: false },
+  { id: 'calls', label: 'Host calls', count: true, hidden: false },
+  { id: 'output', label: 'Output', count: false, hidden: false },
+  { id: 'events', label: 'Events', count: false, hidden: true },
+  { id: 'document', label: 'Document', count: false, hidden: true },
+];
+const FOLD_KEY = 'formext.studio.fold';
+const LEFT_KEY = 'formext.studio.left';
+const RIGHT_KEY = 'formext.studio.right';
+const BOTTOM_KEY = 'formext.studio.bottom';
+const SPLIT_KEY = 'formext.studio.split';
 
 function enc(path: string): string {
   return path.split('/').map(encodeURIComponent).join('/');
@@ -69,50 +87,69 @@ function plural(n: number, one: string, many = `${one}s`): string {
 
 function mount(el: HTMLElement, ctx: ShellContext): () => void {
   el.innerHTML = `
-    <div class="pane-fill edit-pane">
-      <header class="pane-head">
-        <span class="edit-mark">${icon('edit', 18)}</span>
-        <div class="edit-title">
-          <h1>Edit</h1>
-          <div class="sub edit-sub">&nbsp;</div>
-        </div>
-        <div class="actions">
-          <span class="chip warning edit-unsaved hidden" title="Files with changes that are not saved yet">${icon('save', 12)}<span>0 unsaved</span></span>
-          <button class="btn ghost sm edit-check" type="button" title="Check the project against the contract">${icon('checklist')}<span>Check</span></button>
-          <button class="btn ghost sm edit-toggle-manifest" type="button" aria-pressed="true" title="Show or hide the manifest form">${icon('panel')}<span>Manifest</span></button>
-          <button class="btn sm edit-save-all" type="button" disabled title="Save every changed file (${keyLabel(SAVE_ALL_KEYS).join('+')})">${icon('save')}<span>Save All</span></button>
-          <button class="btn primary sm edit-save" type="button" disabled>${icon('save')}<span>Save</span><kbd>${keyLabel(SAVE_KEYS).join('+')}</kbd></button>
-        </div>
-      </header>
-      <div class="edit-grid">
-        <div class="edit-side"></div>
-        <div class="edit-main">
-          <div class="edit-tabs" role="tablist" aria-label="Open files"></div>
-          <div class="notice warning edit-conflict hidden" role="alert">${icon('warning')}<span class="edit-conflict-text">&nbsp;</span><span class="edit-conflict-acts"><button class="btn sm edit-conflict-load" type="button">Load Disk Version</button><button class="btn ghost sm edit-conflict-keep" type="button">Keep Mine</button></span></div>
-          <div class="edit-stage">
-            <div class="edit-host"></div>
-            <div class="edit-binary hidden"><div class="edit-binary-view"></div><p class="edit-binary-text">&nbsp;</p></div>
-            <div class="empty edit-none hidden">${icon('folder')}<h3>No project open</h3><p>Open a project to edit its files and its manifest.</p><div class="btn-group"><button class="btn edit-open" type="button">${icon('folder-open')}<span>Open Project</span></button><button class="btn ghost edit-new" type="button">${icon('new')}<span>New Extension</span></button></div></div>
-            <div class="empty edit-nofile hidden">${icon('file')}<h3>No file open</h3><p>Choose a file in the tree, or edit the manifest with the form.</p></div>
+    <div class="st-pane edit-pane">
+      <div class="st-tools">
+        <button class="st-proj" type="button" title="Open a project">${icon('puzzle', 16)}<b class="st-proj-name ellipsis">No project open</b><span class="st-pf hidden"></span>${icon('chevron-down', 14)}</button>
+        <span class="st-vsep"></span>
+        ${TOOLS.map((t) => `<button class="st-tbtn" type="button" data-tool="${t.id}" aria-pressed="false">${icon(t.icon, 16)}<span>${t.label}</span></button>`).join('')}
+        <span class="st-hint ellipsis">&nbsp;</span>
+        <button class="btn primary st-publish" type="button">${icon('upload', 16)}<span>Publish</span></button>
+      </div>
+      <div class="st-stage">
+        <div class="st-top">
+          <section class="st-panel st-left" aria-label="Project">
+            <div class="st-ph"><div class="st-ptabs" role="tablist">
+              <button type="button" role="tab" data-ltab="files" aria-selected="true">Files</button>
+              <button type="button" role="tab" data-ltab="library" aria-selected="false">Library<em class="st-lib-count">0</em></button>
+            </div></div>
+            <div class="st-lbody" data-lbody="files">
+              <div class="st-projcard"><span class="st-projicon"></span><div><b class="st-projcard-name ellipsis">&nbsp;</b><small class="st-projcard-a ellipsis">&nbsp;</small><small class="st-projcard-b ellipsis">&nbsp;</small></div></div>
+              <label class="st-search">${icon('search', 14)}<input type="search" placeholder="Search files" aria-label="Search files" autocomplete="off" spellcheck="false" /></label>
+              <div class="st-colh"><span>Name</span><span>Type</span></div>
+              <div class="edit-side"></div>
+              <div class="st-pfoot"><span class="st-fa"><button type="button" data-fa="new" title="New File" aria-label="New File">${icon('new', 14)}</button><button type="button" data-fa="import" title="Import .formpkg" aria-label="Import .formpkg">${icon('download', 14)}</button><button type="button" data-fa="refresh" title="Refresh" aria-label="Refresh">${icon('refresh', 14)}</button><button type="button" data-fa="delete" title="Delete the open file" aria-label="Delete the open file">${icon('trash', 14)}</button></span><span class="st-count">0 items</span></div>
+            </div>
+            <div class="st-lbody hidden" data-lbody="library"></div>
+          </section>
+          <div class="st-ctr">
+            <section class="st-panel st-code edit-main" aria-label="Editor">
+              <div class="st-tabs-ed"><div class="edit-tabs" role="tablist" aria-label="Open files"></div><span class="st-te-r"><button class="st-tg" type="button" data-tool="split" aria-pressed="false">${icon('split', 12)}<span>Split</span></button></span></div>
+              <div class="notice warning edit-conflict hidden" role="alert">${icon('warning')}<span class="edit-conflict-text">&nbsp;</span><span class="edit-conflict-acts"><button class="btn sm edit-conflict-load" type="button">Load Disk Version</button><button class="btn ghost sm edit-conflict-keep" type="button">Keep Mine</button></span></div>
+              <div class="edit-stage">
+                <div class="edit-host"></div>
+                <div class="edit-binary hidden"><div class="edit-binary-view"></div><p class="edit-binary-text">&nbsp;</p></div>
+                <div class="empty edit-none hidden">${icon('folder')}<h3>No project open</h3><p>Open a project to edit its files and its manifest.</p><div class="btn-group"><button class="btn edit-open" type="button">${icon('folder-open')}<span>Open Project</span></button><button class="btn ghost edit-new" type="button">${icon('new')}<span>New Extension</span></button></div></div>
+                <div class="empty edit-nofile hidden">${icon('file')}<h3>No file open</h3><p>Choose a file in the tree, or edit the manifest in the inspector.</p></div>
+              </div>
+            </section>
+            <section class="st-panel st-prev" aria-label="Preview" hidden>
+              <div class="st-ph"><div class="st-ptabs"><button type="button" aria-selected="true">Preview</button></div><span class="st-prev-as"></span></div>
+              <div class="st-prev-body"></div>
+              <div class="st-prev-bar"></div>
+            </section>
           </div>
-          <footer class="edit-status">
-            <span class="edit-st-path ellipsis">&nbsp;</span>
-            <span class="edit-st-lang">&nbsp;</span>
-            <span class="edit-st-pos">&nbsp;</span>
-            <span class="edit-st-state">&nbsp;</span>
-          </footer>
+          <section class="st-panel st-right" aria-label="Inspector">
+            <div class="st-ph"><div class="st-ptabs" role="tablist">
+              <button type="button" role="tab" data-rtab="manifest" aria-selected="true">Manifest</button>
+              <button type="button" role="tab" data-rtab="permissions" aria-selected="false">Permissions<em class="st-perm-count"></em></button>
+              <button type="button" role="tab" data-rtab="check" aria-selected="false">Check<em class="st-check-count"></em></button>
+            </div></div>
+            <div class="st-rbody" data-rbody="manifest"></div>
+            <div class="st-rbody hidden" data-rbody="permissions"></div>
+            <div class="st-rbody hidden" data-rbody="check"></div>
+          </section>
         </div>
+        <section class="st-panel st-bottom" aria-label="Problems, host calls and output">
+          <div class="st-ph"><div class="st-ptabs" role="tablist">
+            ${BOTTOM.map((t, i) => `<button type="button" role="tab" data-btab="${t.id}" aria-selected="${i === 0}" ${t.hidden ? 'hidden' : ''}>${t.label}${t.count ? '<em>0</em>' : ''}</button>`).join('')}
+          </div><button class="st-fold" type="button" aria-label="Show or hide the panel" aria-expanded="false">${icon('chevron-down', 14)}</button></div>
+          ${BOTTOM.map((t, i) => `<div class="st-bbody${i === 0 ? '' : ' hidden'}" data-bbody="${t.id}"></div>`).join('')}
+        </section>
       </div>
     </div>`;
 
   const q = <T extends HTMLElement = HTMLElement>(s: string) => el.querySelector<T>(s)!;
   const pane = q('.edit-pane');
-  const sub = q('.edit-sub');
-  const unsavedChip = q('.edit-unsaved');
-  const saveBtn = q<HTMLButtonElement>('.edit-save');
-  const saveAllBtn = q<HTMLButtonElement>('.edit-save-all');
-  const toggleBtn = q<HTMLButtonElement>('.edit-toggle-manifest');
-  const grid = q('.edit-grid');
   const tabsEl = q('.edit-tabs');
   const conflictEl = q('.edit-conflict');
   const conflictText = q('.edit-conflict-text');
@@ -122,10 +159,11 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
   const binaryText = q('.edit-binary-text');
   const noneEl = q('.edit-none');
   const noFileEl = q('.edit-nofile');
-  const stPath = q('.edit-st-path');
-  const stLang = q('.edit-st-lang');
-  const stPos = q('.edit-st-pos');
-  const stState = q('.edit-st-state');
+  const sv = (key: string) => document.querySelector<HTMLElement>(`[data-status="${key}"]`)!;
+  const stPath = sv('path');
+  const stLang = sv('lang');
+  const stPos = sv('pos');
+  const stState = sv('state');
 
   const view = createView(host);
   const sessions = new Map<string, Session>();
@@ -155,14 +193,21 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     entryFiles: () => (s ? s.files.filter((f) => f.package && /\.html?$/i.test(f.path)).map((f) => pkgRel(f.path)) : []),
     manifestPath: () => manifestPath(),
   });
-  grid.append(form.el);
+  q('[data-rbody="manifest"]').append(form.el);
+  const zones = mountZones(el, ctx);
 
   function setPanel(on: boolean): void {
-    grid.classList.toggle('no-manifest', !on);
-    toggleBtn.setAttribute('aria-pressed', String(on));
-    storage.set(PANEL_KEY, on ? '1' : '0');
+    if (on) zones.setRight('manifest');
   }
-  setPanel(storage.get(PANEL_KEY) !== '0');
+
+  q<HTMLInputElement>('.st-search input').addEventListener('input', (ev) => tree.setFilter((ev.target as HTMLInputElement).value));
+  q('.st-fa').addEventListener('click', (ev) => {
+    const act = (ev.target as HTMLElement).closest<HTMLElement>('[data-fa]')?.dataset.fa;
+    if (act === 'new') void newFile(s?.prefix ?? '');
+    else if (act === 'import') ctx.openPane('library', { action: 'import', from: 'studio' });
+    else if (act === 'refresh') void refreshFiles();
+    else if (act === 'delete' && shownPath) void remove(shownPath, false);
+  });
 
   function manifestPath(): string {
     if (!s) return 'package/manifest.json';
@@ -224,20 +269,12 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
   }
 
   function renderDirty(): void {
-    if (!s) {
-      saveBtn.disabled = true;
-      saveAllBtn.disabled = allDirty() === 0;
-    } else {
+    if (s) {
       const dirty = new Set(dirtyIn(s).map((b) => b.path));
       tree.setDirty(dirty);
       for (const [p, t] of tabEls) t.classList.toggle('dirty', dirty.has(p));
-      const cur = s.buffers.get(shownPath);
-      saveBtn.disabled = !cur || !dirty.has(shownPath);
-      saveAllBtn.disabled = dirty.size === 0;
     }
-    const n = allDirty();
-    unsavedChip.classList.toggle('hidden', n === 0);
-    setText(unsavedChip.querySelector('span'), `${n} unsaved`);
+    document.querySelector('.fx-tb-doc .dotf')?.classList.toggle('dirty', allDirty() > 0);
     renderStatus();
   }
 
@@ -423,7 +460,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     renderAll();
     if (b.state) {
       if (at) goTo(view, at.line, at.column);
-      else if (activePane() === 'edit') view.focus();
+      else if (activePane() === 'studio') view.focus();
     }
   }
 
@@ -547,6 +584,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       sess.prefix = r.package_prefix ?? 'package';
       tree.setFiles(sess.files, sess.prefix);
       tree.setActive(shownPath);
+      setText(q('.st-count'), plural(tree.count(), 'item'));
       renderDirty();
       syncForm();
     } catch (err) {
@@ -704,8 +742,29 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     }
   }
 
+  function projectBar(p: ProjectRef | null): void {
+    const app = p ? productName(p.product) || 'no app chosen' : '';
+    const chip = q('.st-pf');
+    chip.classList.toggle('hidden', !p || !p.product);
+    chip.dataset.product = p?.product ?? '';
+    setText(chip, app);
+    const mf = (p?.manifest ?? {}) as { version?: unknown; kind?: unknown; permissions?: unknown };
+    const perms = Array.isArray(mf.permissions) ? mf.permissions.length : 0;
+    setText(q('.st-projcard-name'), p ? p.name : ' ');
+    setText(q('.st-projcard-a'), p ? `${app} · ${p.id}${mf.version ? ` · ${String(mf.version)}` : ''}` : ' ');
+    setText(q('.st-projcard-b'), p ? `${mf.kind ? `${String(mf.kind)} · ` : ''}${plural(perms, 'permission')}` : ' ');
+    setText(q('.st-perm-count'), perms ? String(perms) : '');
+    const mark = q('.st-projicon');
+    const html = p ? appIcon(p.product) : '';
+    if (mark.innerHTML !== html) mark.innerHTML = html;
+    setText(sv('project'), p ? p.name : 'No project');
+    q<HTMLButtonElement>('.st-publish').disabled = !p;
+    for (const b of el.querySelectorAll<HTMLButtonElement>('.st-tbtn')) b.disabled = !p;
+  }
+
   function renderHead(p: ProjectRef | null): void {
-    setText(sub, p ? `${p.name} · ${productName(p.product) || 'no app chosen'}` : restoring ? ' ' : 'No project open');
+    projectBar(p);
+    setText(q('.st-proj-name'), p ? p.name : restoring ? ' ' : 'No project open');
     pane.classList.toggle('no-project', !p);
   }
 
@@ -760,10 +819,6 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
 
   q('.edit-open').addEventListener('click', () => void chooseProject());
   q('.edit-new').addEventListener('click', () => ctx.openPane('new'));
-  q('.edit-check').addEventListener('click', () => ctx.openPane('check'));
-  toggleBtn.addEventListener('click', () => setPanel(grid.classList.contains('no-manifest')));
-  saveBtn.addEventListener('click', () => void save(shownPath));
-  saveAllBtn.addEventListener('click', () => void saveAll());
   q('.edit-conflict-load').addEventListener('click', () => {
     const b = s?.buffers.get(shownPath);
     if (b?.conflict?.kind === 'changed') replaceFromDisk(b, b.conflict.text);
@@ -781,10 +836,10 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     renderAll();
   });
 
-  ctx.commands.register({ id: 'edit.save', title: 'Save File', keys: SAVE_KEYS, run: () => { if (activePane() === 'edit' && shownPath) return save(shownPath); } });
+  ctx.commands.register({ id: 'edit.save', title: 'Save File', keys: SAVE_KEYS, run: () => { if (activePane() === 'studio' && shownPath) return save(shownPath); } });
   ctx.commands.register({ id: 'edit.save-all', title: 'Save All Files', keys: SAVE_ALL_KEYS, run: () => saveAll() });
-  ctx.commands.register({ id: 'edit.manifest', title: 'Edit Manifest', run: () => { ctx.openPane('edit'); setPanel(true); } });
-  ctx.commands.register({ id: 'edit.new-file', title: 'New File in Project', run: () => { ctx.openPane('edit'); return newFile(s?.prefix ?? ''); } });
+  ctx.commands.register({ id: 'edit.manifest', title: 'Edit Manifest', run: () => { ctx.openPane('studio'); setPanel(true); } });
+  ctx.commands.register({ id: 'edit.new-file', title: 'New File in Project', run: () => { ctx.openPane('studio'); return newFile(s?.prefix ?? ''); } });
   ctx.commands.register({ id: 'edit.close-file', title: 'Close File', run: () => (shownPath ? closeTab(shownPath) : undefined) });
 
   const offs = [
@@ -794,7 +849,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       ready = load(p);
     }),
     ctx.events.on('pane.open', (d: { id: string; args?: OpenArgs }) => {
-      if (d?.id !== 'edit') return;
+      if (d?.id !== 'studio') return;
       view.requestMeasure();
       const a = d.args;
       if (!a || typeof a.path !== 'string' || !a.path) return;
@@ -819,6 +874,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
 
   return () => {
     for (const off of offs) off();
+    zones.dispose();
     window.removeEventListener('beforeunload', guard);
     clearTimeout(formTimer);
     clearTimeout(changeTimer);
@@ -827,10 +883,11 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
 }
 
 export const pane: PaneDef = {
-  id: 'edit',
-  title: 'Edit',
+  id: 'studio',
+  title: 'Studio',
   icon: 'edit',
   order: 20,
   group: 'make',
+  view: 'studio',
   mount,
 };

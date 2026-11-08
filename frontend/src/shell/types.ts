@@ -4,6 +4,7 @@ export interface PaneDef {
   icon: string;
   order: number;
   group?: 'make' | 'ship' | 'learn';
+  view?: 'start' | 'studio' | 'part';
   mount(el: HTMLElement, ctx: ShellContext): void | (() => void);
 }
 

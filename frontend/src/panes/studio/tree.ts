@@ -36,6 +36,13 @@ function fileIcon(name: string): string {
   return 'file';
 }
 
+const TYPES: Record<string, string> = { js: 'JavaScript', mjs: 'JavaScript', ts: 'TypeScript', css: 'CSS', html: 'HTML', htm: 'HTML', json: 'JSON', md: 'Markdown', svg: 'SVG', png: 'PNG', webp: 'WebP', jpg: 'JPEG', jpeg: 'JPEG', gif: 'GIF', txt: 'Text', wav: 'WAV', ogg: 'Ogg', mp3: 'MP3', webm: 'WebM', mp4: 'MP4', wasm: 'WASM', woff2: 'Font' };
+
+function typeName(name: string): string {
+  const ext = name.toLowerCase().split('.').pop() ?? '';
+  return TYPES[ext] ?? (name.includes('.') ? ext.toUpperCase() : '');
+}
+
 export function packable(path: string): boolean {
   return PACKED.has(path.toLowerCase().split('.').pop() ?? '');
 }
@@ -54,6 +61,7 @@ export class FileTree {
   private active = '';
   private dirty = new Set<string>();
   private focusKey = '';
+  private filter = '';
 
   constructor(opts: TreeOptions) {
     this.opts = opts;
@@ -182,7 +190,7 @@ export class FileTree {
     row.className = `edit-node${n.folder ? ' folder' : ''}`;
     row.setAttribute('role', 'treeitem');
     row.dataset.key = n.key;
-    row.innerHTML = `<span class="edit-node-caret">${n.folder ? icon('chevron-down', 12) : ''}</span><span class="edit-node-icon">${icon(n.folder ? 'folder' : fileIcon(n.name), 14)}</span><span class="edit-node-name ellipsis">${esc(n.name)}</span><span class="edit-node-flag"></span><span class="edit-node-dot" aria-hidden="true"></span><span class="edit-node-acts"><button class="btn ghost icon sm" type="button" data-act="rename" title="Rename" aria-label="Rename" tabindex="-1">${icon('pen', 12)}</button><button class="btn ghost icon sm" type="button" data-act="delete" title="Delete" aria-label="Delete" tabindex="-1">${icon('trash', 12)}</button></span>`;
+    row.innerHTML = `<span class="edit-node-caret">${n.folder ? icon('chevron-down', 12) : ''}</span><span class="edit-node-icon">${icon(n.folder ? 'folder' : fileIcon(n.name), 14)}</span><span class="edit-node-name ellipsis">${esc(n.name)}</span><span class="edit-node-type">${n.folder ? '' : esc(typeName(n.name))}</span><span class="edit-node-flag"></span><span class="edit-node-dot" aria-hidden="true"></span><span class="edit-node-acts"><button class="btn ghost icon sm" type="button" data-act="rename" title="Rename" aria-label="Rename" tabindex="-1">${icon('pen', 12)}</button><button class="btn ghost icon sm" type="button" data-act="delete" title="Delete" aria-label="Delete" tabindex="-1">${icon('trash', 12)}</button></span>`;
     const path = n.path;
     const folder = n.folder;
     row.addEventListener('click', (ev) => {
@@ -208,8 +216,29 @@ export class FileTree {
     this.render();
   }
 
+  setFilter(text: string): void {
+    this.filter = text.trim().toLowerCase();
+    this.render();
+  }
+
+  count(): number {
+    return this.files.length;
+  }
+
+  private visible(nodes: Node[]): Node[] {
+    if (!this.filter) return nodes;
+    const hit = new Set<string>();
+    for (const n of nodes) {
+      if (n.folder || !n.path.toLowerCase().includes(this.filter)) continue;
+      hit.add(n.path);
+      const parts = n.path.split('/');
+      for (let i = 1; i < parts.length; i++) hit.add(parts.slice(0, i).join('/'));
+    }
+    return nodes.filter((n) => hit.has(n.path));
+  }
+
   private render(): void {
-    this.nodes = this.build();
+    this.nodes = this.visible(this.build());
     const keep = new Set(this.nodes.map((n) => n.key));
     for (const [k, row] of this.rows) {
       if (!keep.has(k)) {
