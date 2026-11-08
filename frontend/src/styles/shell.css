@@ -114,6 +114,13 @@
 }
 .fx-status .item { display: inline-flex; align-items: center; gap: var(--sp-1); min-width: 0; }
 .fx-status [data-status="engine"] { min-width: 120px; justify-content: flex-start; }
+.fx-status [data-status="project"] { min-width: 14ch; }
+.fx-status [data-status="path"] { min-width: 28ch; }
+.fx-status [data-status="pos"] { min-width: 14ch; }
+.fx-status [data-status="lang"] { min-width: 10ch; }
+.fx-status [data-status="state"] { min-width: 8ch; }
+.fx-status [data-status="host"] { min-width: 28ch; justify-content: flex-end; }
+.fx-status [data-status="problems"] { min-width: 12ch; justify-content: flex-end; }
 .fx-status .led { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-faint); }
 .fx-status [data-state="up"] .led { background: var(--success); }
 .fx-status [data-state="down"] .led { background: var(--error); }

@@ -164,9 +164,10 @@
 .st-right .edit-msec[data-sec="contributes"] { padding: 0 var(--sp-3) var(--sp-3); gap: var(--sp-2); }
 .st-right .edit-fgt { padding: 0; }
 .st-right .edit-msec[data-sec="details"] { gap: 0; }
-.st-right .edit-api .edit-flag-text { flex-direction: row; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.st-right .edit-api .edit-flag-text .label { white-space: nowrap; flex: none; }
+.st-right .edit-api .edit-flag-text { height: 20px; flex-direction: row; align-items: center; justify-content: space-between; gap: var(--sp-2); }
 .st-right .edit-api .edit-flag-text .label { font-size: var(--fs-13); font-weight: 400; }
-.st-right .edit-api .edit-flag-text .hint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+.st-right .edit-api .edit-flag-text .hint { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
 .st-right .edit-fgh:hover { color: var(--ink); background: var(--bg-hover); }
 .st-left .edit-tree-head { display: none; }
 
