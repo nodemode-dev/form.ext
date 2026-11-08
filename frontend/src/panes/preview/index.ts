@@ -17,7 +17,6 @@ interface Answer {
 
 type Tab = 'log' | 'events' | 'document' | 'permissions';
 
-const TAB_KEY = 'formext.preview.tab';
 const AUTO_KEY = 'formext.preview.auto';
 const MODE_KEY = 'formext.preview.mode';
 const OFF_KEY = 'formext.preview.off';

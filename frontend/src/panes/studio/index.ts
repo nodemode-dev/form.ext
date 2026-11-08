@@ -61,11 +61,6 @@ const BOTTOM = [
   { id: 'events', label: 'Events', count: false, hidden: true },
   { id: 'document', label: 'Document', count: false, hidden: true },
 ];
-const FOLD_KEY = 'formext.studio.fold';
-const LEFT_KEY = 'formext.studio.left';
-const RIGHT_KEY = 'formext.studio.right';
-const BOTTOM_KEY = 'formext.studio.bottom';
-const SPLIT_KEY = 'formext.studio.split';
 
 function enc(path: string): string {
   return path.split('/').map(encodeURIComponent).join('/');
