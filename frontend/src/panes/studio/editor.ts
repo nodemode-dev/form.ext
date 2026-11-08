@@ -32,7 +32,7 @@ const highlight = HighlightStyle.define([
 ]);
 
 const theme = EditorView.theme({
-  '&': { height: '100%', color: 'var(--ink)', backgroundColor: 'var(--ground)', fontSize: 'var(--fs-13)' },
+  '&': { height: '100%', color: 'var(--ink)', backgroundColor: 'var(--main)', fontSize: 'var(--edit-font, var(--fs-13))' },
   '&.cm-focused': { outline: 'none' },
   '.cm-scroller': { fontFamily: 'var(--font-code)', lineHeight: '1.6' },
   '.cm-content': { caretColor: 'var(--accent-color)', padding: 'var(--sp-2) 0' },
@@ -103,6 +103,8 @@ export interface StateHooks {
   onUpdate: (u: ViewUpdate) => void;
 }
 
+export const editorPrefs = { tab: 2, wrap: false };
+
 export function makeState(path: string, text: string, hooks: StateHooks): EditorState {
   return EditorState.create({
     doc: text,
@@ -117,7 +119,8 @@ export function makeState(path: string, text: string, hooks: StateHooks): Editor
       EditorState.allowMultipleSelections.of(true),
       indentOnInput(),
       indentUnit.of(detectIndent(text)),
-      EditorState.tabSize.of(2),
+      EditorState.tabSize.of(editorPrefs.tab),
+      ...(editorPrefs.wrap ? [EditorView.lineWrapping] : []),
       syntaxHighlighting(highlight),
       bracketMatching(),
       closeBrackets(),

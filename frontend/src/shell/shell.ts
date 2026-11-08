@@ -11,6 +11,9 @@ import { esc, qs, setText, keyLabel, isMac } from './dom';
 import { productName } from './products';
 import { storage } from './storage';
 import { VERSION } from './version';
+import { openSettings, settingsOpen, loadSettings } from './settings';
+import { mountMenubar } from './menubar';
+import { buildNativeMenus, wantsNativeMenus } from './native-menu';
 import type { PaneDef, ShellContext, ProjectRef } from './types';
 
 interface NavItem {
@@ -281,6 +284,13 @@ function registerBuiltins(defs: PaneDef[]): void {
   register({ id: 'shell.close-project', title: 'Close Project', icon: 'close', run: () => { closeProject(); openPane('home'); } });
   register({ id: 'shell.theme', title: 'Toggle Light and Dark Theme', keys: 'Mod+Shift+L', icon: 'sun', run: toggleTheme });
   register({ id: 'shell.reconnect', title: 'Reconnect to the Engine', icon: 'refresh', run: () => { reconnect(); void checkEngine(); } });
+  register({ id: 'settings', title: 'Preferences...', keys: 'Mod+,', icon: 'settings', run: () => openSettings() });
+  register({
+    id: 'shell.about',
+    title: 'About form.ext',
+    icon: 'info',
+    run: () => void dialog.form('About form.ext', `<p>form.ext ${esc(VERSION)} makes, previews, checks, packages, signs and publishes extensions for every Form app.</p><p class="hint">Apache-2.0. nodemode.ai</p><span data-ok="Done" hidden></span>`),
+  });
   defs.forEach((d, i) => {
     register({ id: `pane.${d.id}`, title: `Go to ${d.title}`, keys: i < 9 ? `Mod+${i + 1}` : undefined, icon: d.icon, run: () => openPane(d.id) });
   });
@@ -307,7 +317,9 @@ export function boot(): void {
   const defs = discover();
   buildLayout(defs);
   registerBuiltins(defs);
-  bindKeys(() => isDialogOpen() || isPaletteOpen());
+  bindKeys(() => isDialogOpen() || isPaletteOpen() || settingsOpen());
+  mountMenubar(qs(document, '.fx-menubar'));
+  void loadSettings();
 
   renderTheme();
   renderProject(null);
@@ -336,6 +348,7 @@ export function boot(): void {
   for (const slot of slots.values()) mount(slot);
   const first = initialPane(defs);
   if (first) openPane(first);
+  if (wantsNativeMenus()) void buildNativeMenus().catch(() => document.documentElement.classList.remove('has-native-menus'));
 
   connect();
   void checkEngine();

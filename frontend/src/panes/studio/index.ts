@@ -2,7 +2,7 @@ import './studio.css';
 import { icon, appIcon, esc, setText, storage, productName, chooseProject, errorMessage, apiUrl, ApiError, activePane } from '../../shell';
 import { mountZones } from './zones';
 import type { PaneDef, ShellContext, ProjectRef } from '../../shell';
-import { Text, makeState, createView, minimalChange, goTo, languageName } from './editor';
+import { Text, makeState, createView, minimalChange, goTo, languageName, editorPrefs } from './editor';
 import type { EditorState } from './editor';
 import { Transaction } from '@codemirror/state';
 import { FileTree } from './tree';
@@ -847,6 +847,10 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       restoring = false;
       clearTimeout(restoreTimer);
       ready = load(p);
+    }),
+    ctx.events.on('settings.changed', (d: { editor?: { tab_size?: number; wrap?: boolean } }) => {
+      editorPrefs.tab = Number(d?.editor?.tab_size) || 2;
+      editorPrefs.wrap = !!d?.editor?.wrap;
     }),
     ctx.events.on('pane.open', (d: { id: string; args?: OpenArgs }) => {
       if (d?.id !== 'studio') return;

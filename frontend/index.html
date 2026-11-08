@@ -28,6 +28,9 @@
   var root = document.documentElement;
   root.setAttribute('data-theme', mode);
   root.style.colorScheme = mode;
+  if (window.__TAURI_INTERNALS__ && /Mac/.test(navigator.platform)) {
+    root.classList.add('has-native-menus', 'has-overlay-titlebar');
+  }
   try {
     var pane = (location.hash || '').replace(/^#\/?/, '').split(/[/?]/)[0] || localStorage.getItem('formext.pane') || 'home';
     var start = { home: 1, new: 1, docs: 1, recent: 1 };

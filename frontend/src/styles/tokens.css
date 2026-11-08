@@ -127,6 +127,9 @@
   --dur: 240ms;
 
   --black: #000000;
+  --swatch-dark: #111111;
+  --swatch-light: #f4f3ee;
+  --swatch-light-edge: #c4bfb1;
   --footage-ink: #ffffff;
   --footage-soft: rgb(255 255 255 / 0.78);
   --footage-faint: rgb(255 255 255 / 0.5);
