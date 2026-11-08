@@ -2,10 +2,11 @@
 
 mod packaged;
 mod reveal;
+mod traffic_lights;
 
 use std::sync::Mutex;
 
-use tauri::{Manager, RunEvent, WebviewUrl, WebviewWindowBuilder};
+use tauri::{Manager, RunEvent, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
@@ -79,10 +80,21 @@ fn open_main(handle: &tauri::AppHandle, url: &str) {
         .inner_size(width, height)
         .min_inner_size(MIN_SIZE.0, MIN_SIZE.1)
         .center()
-        .disable_drag_drop_handler()
+        .disable_drag_drop_handler();
+    #[cfg(target_os = "macos")]
+    let built = built.title_bar_style(tauri::TitleBarStyle::Overlay).hidden_title(true);
+    let built = built
+        .on_page_load(|window, payload| {
+            if matches!(payload.event(), tauri::webview::PageLoadEvent::Finished) {
+                traffic_lights::place(&window.as_ref().window());
+            }
+        })
         .build();
     match built {
-        Ok(window) => reveal::conceal(&window),
+        Ok(window) => {
+            reveal::conceal(&window);
+            traffic_lights::place(&window.as_ref().window());
+        }
         Err(_) => reveal::close_splash(handle),
     }
 }
@@ -160,7 +172,14 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .manage(Backend(Mutex::new(None)))
         .manage(Engine(Mutex::new(String::new())))
-        .invoke_handler(tauri::generate_handler![reveal::app_ready, engine_url])
+        .on_window_event(|window, event| {
+            if window.label() == "main"
+                && matches!(event, WindowEvent::Resized(_) | WindowEvent::Focused(_) | WindowEvent::ThemeChanged(_) | WindowEvent::ScaleFactorChanged { .. })
+            {
+                traffic_lights::place(window);
+            }
+        })
+        .invoke_handler(tauri::generate_handler![reveal::app_ready, engine_url, traffic_lights::set_window_title])
         .setup(|app| {
             let handle = app.handle().clone();
             reveal::round_splash(&handle);

@@ -5,7 +5,7 @@ use std::time::{Duration, Instant};
 use tauri::{Manager, Runtime, WebviewWindow};
 
 pub const SPLASH_MIN: Duration = Duration::from_millis(2600);
-pub const BACKGROUND: tauri::window::Color = tauri::window::Color(17, 17, 17, 255);
+pub const BACKGROUND: tauri::window::Color = tauri::window::Color(10, 10, 10, 255);
 const BAR_FINISH: Duration = Duration::from_millis(220);
 const FALLBACK: Duration = Duration::from_secs(20);
 

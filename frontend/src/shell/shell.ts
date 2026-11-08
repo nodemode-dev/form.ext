@@ -219,6 +219,11 @@ function renderProject(p: ProjectRef | null): void {
   const html = p ? `<i class="dotf"></i>${esc(p.name)}${p.product ? `<em>${esc(productName(p.product))}</em>` : ''}` : '';
   if (doc.innerHTML !== html) doc.innerHTML = html;
   setText(document.querySelector('[data-status="project"] span'), p ? p.name : 'No project');
+  const title = p ? `${p.name} - form.ext` : 'form.ext';
+  document.title = title;
+  if ('__TAURI_INTERNALS__' in window) {
+    void import('@tauri-apps/api/core').then((m) => m.invoke('set_window_title', { title })).catch(() => undefined);
+  }
 }
 
 function renderEngine(state: 'up' | 'down' | 'wait', label: string): void {
