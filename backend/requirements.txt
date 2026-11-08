@@ -2,3 +2,5 @@ fastapi==0.141.1
 uvicorn[standard]==0.53.0
 python-multipart==0.0.32
 cryptography==50.0.2
+ptyprocess==0.7.0; sys_platform != "win32"
+pywinpty==3.0.5; sys_platform == "win32"

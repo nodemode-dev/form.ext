@@ -23,6 +23,8 @@ form.ext is licensed under the GNU General Public License v3.0 (`LICENSE`, SPDX 
 | pydantic 2.14.3, pydantic-core 2.50.4, annotated-types 0.8.0, annotated-doc 0.0.5, typing-inspection 0.4.5, typing-extensions 4.16.0 | request models for FastAPI | MIT (typing-extensions PSF-2.0) |
 | anyio 4.16.0, idna 3.20 | async I/O (also the command line's in-process calls), host names | MIT, BSD-3-Clause |
 | cryptography 50.0.2, with the OpenSSL its wheels link statically, cffi 2.1.1 and pycparser 3.12 | Ed25519 publisher keys and package signatures (package module) | Apache-2.0 OR BSD-3-Clause (cryptography); Apache-2.0 (OpenSSL 3); MIT-0 (cffi); BSD-3-Clause (pycparser) |
+| ptyprocess 0.7.0 (macOS and Linux) | the Studio's Terminal tab: engine-owned pseudo-terminals for shells and Claude Code | ISC |
+| pywinpty 3.0.5 (Windows) | the same Terminal tab on Windows (ConPTY) | MIT |
 | CPython 3.12, embedded by PyInstaller in the one-file engine sidecar | runs the engine | PSF-2.0 |
 
 The Python rows were read from the `*.dist-info/METADATA` of `backend/venv` (Python 3.12). What PyInstaller freezes is what the engine imports; the build tools below are not frozen.
