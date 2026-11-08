@@ -137,6 +137,7 @@
 .st-sheet-x:hover { background: var(--bg-hover); color: var(--ink); }
 
 .st-left .library-pane .pane-head, .st-left .library-pane .tabs { display: none; }
+.st-left .library-pane .lib-examples { grid-template-columns: minmax(0, 1fr); }
 .st-right .edit-manifest { border-left: 0; background: transparent; }
 .st-right .edit-manifest-head, .st-right .edit-manifest-tabs { display: none; }
 .st-right .edit-fields { grid-template-columns: 1fr; gap: var(--sp-2); }
