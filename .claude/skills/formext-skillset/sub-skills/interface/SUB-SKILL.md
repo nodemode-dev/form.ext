@@ -1,13 +1,13 @@
 ---
 name: interface
-description: "form.ext's vanilla TypeScript and Vite interface: the shell (sidebar, top bar, status bar, palette, dialogs, toasts, theme boot), ShellContext and the pane contract, the panes Home, New, Edit (CodeMirror 6), Preview with the simulated hosts in src/sim, Check, Library, Run in App, Package, Publish and Docs, the tokens and component classes, and the zero-flash rules. Use when adding or changing a pane, a shell feature, styles, or fixing a flash, flicker or layout jump."
+description: "form.ext's vanilla TypeScript and Vite interface: the shell (38 px title row, native and in-window menus, start sidebar, status bar, palette, dialogs, Preferences, toasts, theme boot), ShellContext and the pane contract, the panes Home, New, Studio (CodeMirror 6 and the zones compositor), Preview with the simulated hosts in src/sim, Check, Library, Run in App, Package, Publish and Docs, the tokens and component classes, and the zero-flash rules. Use when adding or changing a pane, a shell feature, styles, or fixing a flash, flicker or layout jump."
 ---
 
 # interface
 
 ## The pane contract
 
-A pane is `frontend/src/panes/[name]/index.ts` exporting `export const pane: PaneDef` (`id`, `title`, `icon`, `order`, `group` make, ship or learn, `mount(el, ctx)` returning an optional cleanup) and importing its own `[name].css`. The shell finds panes with `import.meta.glob`, builds the sidebar and one `section.fx-pane` per pane before the window shows, and mounts a pane on first open. Orders: home 0, new 10, edit 20, preview 30, check 40, library 50; run 10, package 20, publish 30; docs 10.
+A pane is `frontend/src/panes/[name]/index.ts` exporting `export const pane: PaneDef` (`id`, `title`, `icon`, `order`, `group` make, ship or learn, `mount(el, ctx)` returning an optional cleanup) and importing its own `[name].css`. `view` is `start` (a page beside the start sidebar: home, new, docs), `studio` (the full-window editor, id `studio`) or `part` (library, check, preview, package, publish, run: mounted hidden, their DOM pieces moved into the Studio's left, centre, right, bottom and sheet zones by `panes/studio/zones.ts`). The shell finds panes with `import.meta.glob`, builds one `section.fx-pane` per pane before the window shows, and mounts a pane on first open. The layout is `data-layout` and `data-rail` on the root, set pre-paint by the boot script in `index.html`. A part's `q()` falls back to `document.querySelector` because its pieces leave its root. Menus are listed in `shell/menus.ts`; `native-menu.ts` builds them as the macOS menu bar, `menubar.ts` in the window elsewhere; Preferences is `shell/settings.ts` with `styles/settings.css`.
 
 ## ShellContext
 

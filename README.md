@@ -60,7 +60,7 @@
       Twelve apps, three starters each. The project already works: it reads the open document and runs a command, with the SDK beside it.
     </td>
     <td width="50%" valign="top">
-      <img src="assets/formext-edit.png" alt="The Edit pane: the file tree, manifest.json in the code editor and the manifest form with name, id, app, version and description fields" width="100%">
+      <img src="assets/formext-edit.png" alt="The Studio: the file tree, manifest.json in the code editor and the manifest inspector with name, id, app, version and description fields" width="100%">
       <br><sub>The manifest form and the JSON stay in sync, both ways.</sub>
       <h3>Edit with the manifest in view</h3>
       A file tree, a CodeMirror editor, and a manifest form with the contract's plain words for each permission, panels and commands editors, and an unsaved-change guard.
@@ -100,7 +100,7 @@
 
 <table>
   <tr>
-    <td width="33%" valign="top"><h4>In the window</h4>Home · New · Edit · Preview · Check · Library · Run in App · Package · Publish · Docs</td>
+    <td width="33%" valign="top"><h4>In the window</h4>Start page · Studio (files, code, manifest, Check, Preview, Library) · Run in App · Package · Publish · Docs · Preferences</td>
     <td width="33%" valign="top"><h4>27 MCP tools</h4>status · docs · templates · new · read · write · manifest · validate · preview · package · sign · verify · run_in_app · publish · submit and the rest</td>
     <td width="33%" valign="top"><h4>Twelve hosts</h4>FormVis · FormCut · FormWav · FormPDF · FormDeck · FormLit · form.md · FormEncoder · FormVFX · FormMCP · FormTray · FormSkills</td>
   </tr>

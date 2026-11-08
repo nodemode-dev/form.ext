@@ -2,8 +2,8 @@
 
 ```text
 interface (vanilla TypeScript, Vite, port 5640)
-  shell: window, sidebar, palette, dialogs, theme boot, /api/live client
-  panes: home, new, edit, preview, check, library, run, package, publish, docs (each frontend/src/panes/<name>/)
+  shell: 38 px title row, menus (native on macOS), start sidebar, palette, dialogs, Preferences, theme boot, /api/live client
+  panes: home, new, docs (start pages), studio (the compositor), and the parts library, check, preview, package, publish, run (each frontend/src/panes/<name>/)
   sim: per-app simulated hosts over contract/host/host-bridge.ts
     -> HTTP /api/* and WebSocket /api/live
 engine (Python 3.12, FastAPI, 127.0.0.1:8640)
@@ -18,7 +18,7 @@ desktop shell (Tauri 2) -> frozen engine sidecar formext-engine
 
 ## The interface
 
-The shell discovers panes with `import.meta.glob('../panes/*/index.ts')` and builds the sidebar and every pane container before the first paint; a pane mounts on first open and fills its own final layout in place. Panes talk through the shell's context (`api`, `events`, `project`, `openPane`, `commands`, `dialog`, `notify`) and never import each other. The Docs pane bundles `contract/CONTRACT.md`, `sdk/README.md`, `docs/MANUAL.md` and `docs/apps/*.md` at build time and renders them with its own small Markdown renderer, so Docs works offline and in the demo.
+The shell discovers panes with `import.meta.glob('../panes/*/index.ts')` and builds the start sidebar and every pane container before the first paint; the layout (`data-layout` start or studio, `data-rail`) is set on the root by the inline boot script. A pane declares `view`: `start` (own page with the sidebar), `studio` (the full-window editor) or `part`. Part panes mount hidden and the Studio's zones compositor moves their pieces into the left, centre, right, bottom and sheet zones. A pane mounts on first open and fills its own final layout in place. Panes talk through the shell's context (`api`, `events`, `project`, `openPane`, `commands`, `dialog`, `notify`) and never import each other. The Docs pane bundles `contract/CONTRACT.md`, `sdk/README.md`, `docs/MANUAL.md` and `docs/apps/*.md` at build time and renders them with its own small Markdown renderer, so Docs works offline and in the demo.
 
 ## The engine
 

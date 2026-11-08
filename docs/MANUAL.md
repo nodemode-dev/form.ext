@@ -46,8 +46,10 @@ The first five minutes:
 
 ## The window
 
-- **Sidebar**: Make (Home, New, Edit, Preview, Check, Library), Ship (Run in App, Package, Publish), Learn (Docs). Mod+1 to Mod+9 go to the panes in that order. The pane you were on comes back after a reload.
-- **Top bar**: the open project (click to switch, Mod+O), its app, and the theme toggle (Mod+Shift+L). Studio Dark is the default; the light theme is one click away and is remembered.
+- **Start page and Studio**: the window has two layouts. The start page (Home, New, Registry, Docs) carries the family sidebar: Home, Recent, Registry, a Learn group with Docs, and Preferences and Help at the foot. Its edge handle folds the sidebar to a 49 px icon rail, and the choice is remembered. Opening a project switches to the Studio, a full-window editor with no sidebar: the tool strip, the Files and Library panel, the tabbed code editor, the Manifest, Permissions and Check inspector, and a bottom panel of Problems, Host calls and Output.
+- **Menus**: on macOS the menus are the system menu bar (form.ext, File, Edit, View, Project, Package, Publish, Help). On Windows, Linux and in a browser the same menus sit in the title row. Every item is a command, so the palette lists the same names and keys.
+- **Title row**: 38 px high. The open project is on the left (on macOS), the app name in the centre, and three buttons at the right: Commands, the theme toggle (Mod+Shift+L) and Preferences. Studio Dark is the default; the light theme is remembered.
+- **Preferences**: Mod+, or the gear opens a dialog with eight sections (General, Interface, Editor, Preview, Publishing, Registry, FormPortal, Developer). A change is saved to settings.json as you make it.
 - **Command palette**: Mod+K (or Mod+Shift+P) lists every command of every pane with its keys.
 - **Status bar**: the engine's state, the open project, the version.
 
@@ -98,7 +100,7 @@ Files outside `package/` are yours (notes, sources, a build step) and are never 
 
 ## Edit
 
-Three columns: the file tree, the code editor, and the manifest form.
+The Studio's three columns: the file tree (Files, with a Library tab beside it), the code editor, and the manifest form in the inspector. Check, Preview, Run in App, Package and Publish are buttons in the tool strip: Check fills the Problems list below and the Check tab at the right, Preview opens beside the code (Split), Run in App, Package and Publish open as sheets over the Studio.
 
 - **File tree**: every file of the project. Files outside the package are in italics (not packed); a file whose type the `.formpkg` refuses carries a warning mark. New File in Project, rename and delete from the row.
 - **Code editor**: CodeMirror 6 with JavaScript, TypeScript, JSON, CSS, HTML and Markdown, search and replace (Mod+F), completion, folding, and JSON linting. Each file keeps its own undo history and cursor. Tabs come back after a reload. Images open as a picture; other binary files show their size.
@@ -244,6 +246,7 @@ form.ext keeps its projects and everything it makes in its data folder: `FORMEXT
 | Keys | Does |
 |---|---|
 | Mod+K, Mod+Shift+P | command palette |
+| Mod+, | Preferences |
 | Mod+1 to Mod+9 | go to a pane |
 | Mod+O | open a project |
 | Mod+N | New |
