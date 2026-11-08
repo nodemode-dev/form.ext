@@ -36,6 +36,9 @@
 .st-proj { display: inline-flex; align-items: center; gap: var(--sp-2); height: var(--ctl-lg); padding: 0 var(--sp-3); border: 1px solid var(--edge); border-radius: var(--radius-lg); background: var(--bar); color: var(--ink); font: inherit; font-size: var(--fs-14); cursor: pointer; min-width: 0; max-width: 280px; }
 .st-proj:hover { background: var(--raise); }
 .st-proj-name { font-weight: 600; }
+.st-pi { display: inline-grid; place-items: center; width: 24px; height: 24px; flex: none; }
+.st-pi .app-icon { width: 24px; height: 24px; border-radius: var(--radius); }
+.st-projicon .app-icon { width: 40px; height: 40px; border-radius: var(--radius-lg); }
 .st-pf { padding: 1px var(--sp-2); border: 1px solid var(--edge-strong); border-radius: var(--radius-pill); color: var(--ink-soft); font-size: var(--fs-11); letter-spacing: 0.06em; text-transform: uppercase; }
 .st-vsep { width: 1px; height: 20px; background: var(--edge); margin: 0 var(--sp-2); flex: none; }
 .st-tbtn { display: inline-flex; align-items: center; gap: var(--sp-2); height: var(--ctl-lg); padding: 0 var(--sp-3); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--ink-soft); font: inherit; font-size: var(--fs-14); cursor: pointer; white-space: nowrap; }
@@ -63,7 +66,7 @@
 
 .st-lbody, .st-rbody { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: auto; }
 .st-projcard { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-4) var(--sp-3); border-bottom: 1px solid var(--edge); flex: none; }
-.st-projicon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--radius-lg); background: var(--raise); flex: none; color: var(--ink-soft); }
+.st-projicon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--radius-lg); background: transparent; flex: none; color: var(--ink-soft); }
 .st-projcard > div { display: flex; flex-direction: column; min-width: 0; }
 .st-projcard-name { font-size: var(--fs-14); font-weight: 600; }
 .st-projcard small { color: var(--ink-soft); font-size: var(--fs-12); }
@@ -97,6 +100,12 @@
 .st-fold svg { transform: rotate(-90deg); transition: transform var(--dur-fast) var(--ease-out); }
 .st-bottom:not(.folded) .st-fold svg { transform: none; }
 .st-bbody { flex: 1 1 auto; min-height: 0; overflow: auto; position: relative; }
+.st-bbody[data-bbody="problems"] { display: flex; flex-direction: column; }
+.st-bbody[data-bbody="problems"] .check-body { flex: 1 1 auto; min-height: 0; padding: 0; }
+.st-bbody[data-bbody="problems"] .check-status { display: none; }
+.st-bbody[data-bbody="problems"] .empty { flex: 1 1 auto; padding: var(--sp-3); }
+.st-bbody[data-bbody="problems"] .empty svg { width: 24px; height: 24px; }
+.st-bbody[data-bbody="problems"] .empty.hidden { display: none; }
 
 .st-sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-2); padding: 0 var(--sp-3); }
 .st-sum > div { display: flex; flex-direction: column; padding: var(--sp-2) var(--sp-3); border: 1px solid var(--edge); border-radius: var(--radius-lg); background: var(--main); }
@@ -130,13 +139,35 @@
 .st-left .library-pane .pane-head, .st-left .library-pane .tabs { display: none; }
 .st-right .edit-manifest { border-left: 0; background: transparent; }
 .st-right .edit-manifest-head, .st-right .edit-manifest-tabs { display: none; }
-.st-right .edit-manifest-body { padding: var(--sp-2) var(--sp-3); }
 .st-right .edit-fields { grid-template-columns: 1fr; gap: var(--sp-2); }
 .st-right .edit-field { display: grid; grid-template-columns: 38% minmax(0, 1fr); align-items: center; gap: var(--sp-2); }
-.st-right .edit-field.wide { display: flex; flex-direction: column; align-items: stretch; }
+.st-right .edit-fields { display: block; }
+.st-right .edit-field label { color: var(--ink-soft); font-size: var(--fs-13); font-weight: 400; }
+.st-right .edit-field .edit-opt { display: none; }
+.st-right [data-g="description"] .edit-field { display: flex; flex-direction: column; align-items: stretch; }
+.st-right [data-g="description"] .edit-field label { display: none; }
+.st-right [data-g="description"] .edit-field .hint { display: block; }
 .st-right .edit-field .hint:not(.error) { display: none; }
 .st-right .edit-field .hint { min-height: 0; grid-column: 2; }
-.st-right .edit-field.wide .hint:not(.error) { display: block; }
+.st-right .edit-field .input, .st-right .edit-field .select { height: var(--ctl-md); }
+.st-right .edit-manifest-body { padding: 0; gap: 0; }
+.edit-fg { border-bottom: 1px solid var(--edge); }
+.edit-fgh, .edit-fgt { display: flex; align-items: center; gap: var(--sp-2); width: 100%; height: 36px; padding: 0 var(--sp-3); border: 0; background: transparent; color: var(--ink); font: inherit; font-size: var(--fs-13); font-weight: 600; text-align: left; cursor: pointer; }
+.edit-fgt { justify-content: space-between; cursor: default; }
+.edit-fgh svg { color: var(--ink-faint); transition: rotate var(--dur-fast) var(--ease-out); }
+.edit-fg.is-folded .edit-fgh svg { rotate: -90deg; }
+.edit-fg.is-folded .edit-fgb { display: none; }
+.edit-fgb { display: flex; flex-direction: column; gap: var(--sp-1); padding: 0 var(--sp-3) var(--sp-2); }
+.edit-fgb .edit-flags { border-top: 0; padding-top: 0; }
+.st-right .edit-msec[data-sec="details"], .st-right .edit-msec[data-sec="contributes"] { display: flex !important; }
+.st-right .edit-msec[data-sec="permissions"] { display: none !important; }
+.st-right .edit-msec[data-sec="contributes"] { padding: 0 var(--sp-3) var(--sp-3); gap: var(--sp-2); }
+.st-right .edit-fgt { padding: 0; }
+.st-right .edit-msec[data-sec="details"] { gap: 0; }
+.st-right .edit-api .edit-flag-text { flex-direction: row; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.st-right .edit-api .edit-flag-text .label { font-size: var(--fs-13); font-weight: 400; }
+.st-right .edit-api .edit-flag-text .hint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+.st-right .edit-fgh:hover { color: var(--ink); background: var(--bg-hover); }
 .st-left .edit-tree-head { display: none; }
 
 .edit-pane .edit-side { min-height: 0; flex: 1 1 auto; background: transparent; display: flex; flex-direction: column; }

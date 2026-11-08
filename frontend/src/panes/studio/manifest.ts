@@ -120,6 +120,13 @@ const FIELDS: FieldDef[] = [
   { key: 'support', label: 'Support', hint: 'An https:// address where people get help.', kind: 'text', optional: true, wide: true, placeholder: 'https://', check: (v) => (!v || v.startsWith('https://') ? '' : 'Use an https:// address.') },
 ];
 
+const FIELD_GROUPS: { id: string; label: string; keys: string[] }[] = [
+  { id: 'package', label: 'Package', keys: ['name', 'id', 'product', 'kind', 'version', 'author', 'licence'] },
+  { id: 'compat', label: 'Compatibility', keys: ['minimum_app'] },
+  { id: 'description', label: 'Description', keys: ['description'] },
+  { id: 'entry', label: 'Entry', keys: ['entry.ui', 'homepage', 'support'] },
+];
+
 function getField(m: Manifest, key: string): string {
   if (key === 'entry.ui') return str(obj(m.entry).ui);
   return str(m[key]);
@@ -187,6 +194,7 @@ export class ManifestForm {
             <div class="edit-perms"></div>
           </section>
           <section class="edit-msec hidden" data-sec="contributes" role="tabpanel">
+            <div class="edit-fgt"><span>Panels and Commands</span><span class="edit-count" data-count="contributes">0</span></div>
             <div class="edit-group">
               <div class="edit-group-head"><span class="section-title">Panels</span><button class="btn ghost sm edit-add-panel" type="button">${icon('plus', 14)}<span>Add Panel</span></button></div>
               <p class="edit-msec-lead">A dock panel opens where the app keeps its panels; a dialog panel opens as one of the app’s dialogs.</p>
@@ -222,6 +230,7 @@ export class ManifestForm {
     el.querySelector('.edit-manifest-json')!.addEventListener('click', () => opts.openJson());
     for (const t of this.tabs) t.addEventListener('click', () => this.showTab(t.dataset.tab!));
     this.buildFields(el.querySelector('.edit-fields')!);
+    el.querySelector('[data-g="compat"] .edit-fgb')!.append(el.querySelector('.edit-flags')!);
     this.buildPerms(el.querySelector('.edit-perms')!);
 
     el.querySelector('.edit-api-fix')!.addEventListener('click', () => opts.change((m) => setKey(m, 'api', '1')));
@@ -241,6 +250,19 @@ export class ManifestForm {
   }
 
   private buildFields(host: HTMLElement): void {
+    const groups = new Map<string, HTMLElement>();
+    for (const g of FIELD_GROUPS) {
+      const sec = document.createElement('section');
+      sec.className = 'edit-fg';
+      sec.dataset.g = g.id;
+      sec.innerHTML = `<button class="edit-fgh" type="button" aria-expanded="true">${icon('chevron-down', 12)}<span>${g.label}</span></button><div class="edit-fgb"></div>`;
+      sec.querySelector('.edit-fgh')!.addEventListener('click', () => {
+        const folded = sec.classList.toggle('is-folded');
+        sec.querySelector('.edit-fgh')!.setAttribute('aria-expanded', String(!folded));
+      });
+      host.append(sec);
+      groups.set(g.id, sec);
+    }
     for (const def of FIELDS) {
       const wrap = document.createElement('div');
       wrap.className = `field edit-field${def.wide ? ' wide' : ''}`;
@@ -250,7 +272,8 @@ export class ManifestForm {
       else if (def.kind === 'textarea') control = `<textarea class="textarea" id="${fid}" rows="3" maxlength="600"></textarea>`;
       else control = `<input class="input${def.kind === 'entry' || def.key === 'id' || def.key === 'version' || def.key === 'minimum_app' ? ' code' : ''}" id="${fid}" type="text" spellcheck="false" autocomplete="off"${def.placeholder ? ` placeholder="${esc(def.placeholder)}"` : ''} />`;
       wrap.innerHTML = `<label for="${fid}">${esc(def.label)}${def.required ? '' : ' <span class="edit-opt">optional</span>'}</label>${control}<span class="hint">${esc(def.hint)}</span>`;
-      host.append(wrap);
+      const home = FIELD_GROUPS.find((g) => g.keys.includes(def.key))!;
+      groups.get(home.id)!.querySelector('.edit-fgb')!.append(wrap);
       const input = wrap.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea')!;
       if (def.kind === 'entry') input.setAttribute('list', this.entryList.id);
       const hint = wrap.querySelector<HTMLElement>('.hint')!;

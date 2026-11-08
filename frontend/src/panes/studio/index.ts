@@ -84,7 +84,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
   el.innerHTML = `
     <div class="st-pane edit-pane">
       <div class="st-tools">
-        <button class="st-proj" type="button" title="Open a project">${icon('puzzle', 16)}<b class="st-proj-name ellipsis">No project open</b><span class="st-pf hidden"></span>${icon('chevron-down', 14)}</button>
+        <button class="st-proj" type="button" title="Open a project"><span class="st-pi">${icon('puzzle', 16)}</span><b class="st-proj-name ellipsis">No project open</b><span class="st-pf hidden"></span>${icon('chevron-down', 14)}</button>
         <span class="st-vsep"></span>
         ${TOOLS.map((t) => `<button class="st-tbtn" type="button" data-tool="${t.id}" aria-pressed="false">${icon(t.icon, 16)}<span>${t.label}</span></button>`).join('')}
         <span class="st-hint ellipsis">&nbsp;</span>
@@ -752,6 +752,9 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     const mark = q('.st-projicon');
     const html = p ? appIcon(p.product) : '';
     if (mark.innerHTML !== html) mark.innerHTML = html;
+    const pi = q('.st-pi');
+    const small = p && p.product ? appIcon(p.product) : icon('puzzle', 16);
+    if (pi.innerHTML !== small) pi.innerHTML = small;
     setText(sv('project'), p ? p.name : 'No project');
     q<HTMLButtonElement>('.st-publish').disabled = !p;
     for (const b of el.querySelectorAll<HTMLButtonElement>('.st-tbtn')) b.disabled = !p;

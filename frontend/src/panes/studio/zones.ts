@@ -71,20 +71,29 @@ export function mountZones(el: HTMLElement, ctx: ShellContext): Zones {
     q('.st-left').dataset.view = id;
   }
 
+  function markTools(): void {
+    const right = q('[data-rtab][aria-selected="true"]').dataset.rtab;
+    const problems = q('[data-btab][aria-selected="true"]').dataset.btab === 'problems' && !bottom.classList.contains('folded');
+    q('[data-tool="check"]').setAttribute('aria-pressed', String(right === 'check' || problems));
+  }
+
   function setRight(id: 'manifest' | 'permissions' | 'check'): void {
     pick('rtab', 'rbody', id, RIGHT_KEY);
+    markTools();
   }
 
   function setBottom(id: string, expand = true): void {
     pick('btab', 'bbody', id, BOTTOM_KEY);
     q('.st-bacts').classList.toggle('hidden', id !== 'problems');
     if (expand) fold(false);
+    markTools();
   }
 
   function fold(on: boolean): void {
     bottom.classList.toggle('folded', on);
     q('.st-fold').setAttribute('aria-expanded', String(!on));
     storage.set(FOLD_KEY, on ? '1' : '0');
+    markTools();
   }
 
   function setSplit(on: boolean): void {
