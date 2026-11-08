@@ -8,7 +8,7 @@ import { mountPalette, openPalette, pick, isPaletteOpen } from './palette';
 import { toggleTheme, themeMode } from './theme';
 import { icon, brandMark } from './icons';
 import { esc, qs, setText, keyLabel, isMac } from './dom';
-import { productName } from './products';
+import { productName, appArt } from './products';
 import { storage } from './storage';
 import { VERSION } from './version';
 import { openSettings, settingsOpen, loadSettings } from './settings';
@@ -131,7 +131,7 @@ function buildLayout(defs: PaneDef[]): void {
   if (!defs.length) {
     main.innerHTML = `<div class="empty" style="height:100%">${icon('puzzle')}<h3>No panes yet</h3><p>Panes live in frontend/src/panes/&lt;name&gt;/index.ts and export a pane.</p></div>`;
   }
-  qs(document, '.fx-side-brand').innerHTML = `${brandMark}<div><b>form.ext</b><small>by nodemode.ai</small></div>`;
+  qs(document, '.fx-side-brand').innerHTML = `<span class="fx-brandart">${appArt('formext') || brandMark}</span><div><b>form.ext</b><small>by nodemode.ai</small></div>`;
   const nav = qs(document, '.fx-side-nav');
   let group = '';
   for (const item of START_NAV) {

@@ -1,7 +1,7 @@
 export type { PaneDef, ShellContext, ProjectRef, Level, Command } from './types';
 export { api, apiUrl, request, ApiError, errorMessage } from './api';
 export { icon, hasIcon, iconNames, brandMark } from './icons';
-export { PRODUCTS, HOSTS, product, productName, appIcon } from './products';
+export { PRODUCTS, HOSTS, product, productName, appIcon, appArt } from './products';
 export type { Product } from './products';
 export { esc, h, qs, setText, keyLabel, isMac } from './dom';
 export { theme, themeMode, themeTokens } from './theme';

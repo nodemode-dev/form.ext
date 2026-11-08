@@ -28,7 +28,17 @@ export function productName(id: string): string {
   return product(id)?.name ?? id;
 }
 
+const ART = import.meta.glob<string>('../assets/icons/*.webp', { eager: true, query: '?url', import: 'default' });
+
+export function appArt(id: string): string {
+  const dark = ART[`../assets/icons/${id}.webp`];
+  const light = ART[`../assets/icons/${id}-light.webp`];
+  if (!dark || !light) return '';
+  return `<img class="art art-dark" src="${dark}" alt="" width="128" height="128" draggable="false" /><img class="art art-light" src="${light}" alt="" width="128" height="128" draggable="false" />`;
+}
+
 export function appIcon(id: string, large = false): string {
   const p = product(id);
-  return `<span class="app-icon${large ? ' lg' : ''}" data-product="${id}" title="${p?.name ?? id}">${icon(p?.glyph ?? 'puzzle')}</span>`;
+  const art = appArt(id);
+  return `<span class="app-icon${large ? ' lg' : ''}${art ? ' has-art' : ''}" data-product="${id}" title="${p?.name ?? id}">${art || icon(p?.glyph ?? 'puzzle')}</span>`;
 }
