@@ -2,8 +2,16 @@
 
 Living log for `frontend/src/panes/studio/` (formerly `edit/`), the Studio module (FX5). Source files stay comment-free; what they would have said lives here.
 
-Current build version: v0.1.0
-Last updated: 2026-11-07 · v0.1.0 edit
+Current build version: v0.2.0
+
+## Terminal dock {#terminal}
+
+- refers-to: terminal.ts · chat.ts · terminal.css · zones.ts · index.ts · ../../shell/icons.ts · ../../shell/menus.ts
+- kind: decision
+- logged: v0.2.0 · 2026-11-08
+
+The Terminal tab sits after Output in the bottom panel (`[data-bbody="terminal"]` exists in the final layout, hidden until chosen). `TerminalDock` owns a tab strip for shells, Claude Code and Chat, each backed by an engine session over a WebSocket (text frames for output, a binary frame carrying JSON for the exit). xterm and the fit addon load on first use, so the Studio's chunk does not grow; the theme is read from `--bar`, `--ink` and the accent tokens with a 4.5 contrast floor. The panel grows to 340 px only when the Terminal tab is active and unfolded, set from `bottom.dataset.active` before the tab paints, so switching tabs moves nothing else. Shortcuts: Mod+J toggles, and the commands (new, Claude Code, Chat) are in View. xterm and the ask input would swallow the window shortcuts, so the terminal passes Mod combos up and the ask input stops propagation only for keys it uses. Icons are the family's `agent`, `agentChat` and `terminal`; the sparkle is not used. The chat tab shows the project folder and whether formMCP was found in its first line.
+Last updated: 2026-11-08 · v0.2.0 studio
 
 ---
 

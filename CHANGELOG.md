@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.2.0 · 2026-11-08
+
+form.ext takes the Form family's look: one window with a start page and a full-window Studio.
+
+- **Start page:** the family sidebar (Home, Recent, Registry, Docs, Preferences, Help) with a 49 px icon rail, a greeting, a Make an extension card, Recent cards and a tile for each of the twelve apps. The sidebar is on this page only.
+- **Studio:** the Edit pane is now a full-window editor: tool strip (project, Check, Preview, Run in App, Package, Publish), Files and Library, tabbed code, a Manifest, Permissions and Check inspector, and a bottom panel of Problems, Host calls and Output. Preview opens beside the code; Package, Run in App and Publish open as sheets.
+- **Menus:** the macOS system menu bar (File, Edit, View, Project, Package, Publish, Help) built with `@tauri-apps/api/menu`; the same menus in the title row on Windows, Linux and in a browser.
+- **Preferences:** Mod+, opens FormVis's Preferences dialog with eight sections wired to the engine's settings.
+- **Desktop:** an overlay title bar with the traffic lights in the 38 px title row, the window title follows the open project, and the ground is #0a0a0a.
+- **Icons:** the new form.ext app icon (the bundle icons, the README in light and dark) and in-app mark (sidebar, favicon, the splash at 72 px with its bar re-sampled from the mark), and every Form app's own icon art on Start, Recent, the project card and the switcher.
+- **Terminal:** a Terminal tab in the Studio's bottom panel (View, Terminal, Mod+J) with real shells, a Claude Code tab and a Chat tab on `claude -p`, started in the open project's folder with formext and formMCP and the skills available. The engine owns the sessions over local-only, session-guarded routes; xterm, ptyprocess and pywinpty are in NOTICE.md.
+- **Home:** a Home button and the app name in the title row, and File, Home (Mod+Shift+H) in both the macOS menu bar and the in-window menus, with no layout shift.
+- **Scripts:** `formext_oc_install` (renamed from `oc_install`), `build_app` and Windows twins `formext.bat`, `formext_oc_install.bat` and `build_app.bat`.
+- **Agents:** `./formext agents install|status|sync` (`--check` for CI) and `./formext claude`; the formMCP hub beside formext in `.mcp.json`, `.codex/config.toml` and `.cursor/mcp.json`; the `formext-hosts` skill and the host apps' own skills copied unchanged, with sources in `.claude/skills/HOSTS.md`.
+- **Studio details:** the Manifest inspector in grouped property rows, the Check tool pressed while its results show, Library cards that fit the left panel, no scrollbars anywhere, and zero layout shift as the Studio loads.
+
 ## v0.1.1 · 2026-11-07
 
 form.ext reads and submits to form.ext-registry (`nodemode-dev/form.ext-registry`), the single source of official Form extensions.
