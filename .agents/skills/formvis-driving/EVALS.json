@@ -1,0 +1,25 @@
+{
+  "skill": "formvis-driving",
+  "purpose": "Using a running formvis through its MCP tools to edit pictures. Not changing formvis's source code.",
+  "should_trigger": [
+    { "prompt": "Blur this photo a little in formvis and export it as a JPEG on my Desktop.", "route": "adjustments-and-filters" },
+    { "prompt": "Remove the background from the product shot that is open in formvis.", "route": "layers-and-masks" },
+    { "prompt": "Remove the person on the left of this picture.", "route": "generation-and-ai" },
+    { "prompt": "Make a 1280 by 720 thumbnail with a dark blue background and the title Launch day in big white bold text.", "route": "type-and-shapes" },
+    { "prompt": "Make this photo warmer and a bit brighter, but keep it editable.", "route": "adjustments-and-filters" },
+    { "prompt": "Extend the picture 300 pixels to the right so it fits a wider banner.", "route": "generation-and-ai" },
+    { "prompt": "Remove the lamp post in formvis, but make the fill use the grass on the left, not the road.", "route": "steering-selection-aware-fill" },
+    { "prompt": "Create a 5 second video in formvis where the title fades in over the photo, and render it to an mp4.", "route": "timeline-and-video" },
+    { "prompt": "formvis says the person did not allow outside agents. What do I do next?", "route": "SKILL.md failure table" }
+  ],
+  "should_not_trigger": [
+    { "prompt": "Add a new Halftone filter to formvis's source code.", "better_fit": "formvis-harness" },
+    { "prompt": "Fix the flicker in the layers panel of formvis.", "better_fit": "formvis-harness" },
+    { "prompt": "Which rendering intent should I use to convert an sRGB image to FOGRA39 for print?", "better_fit": "formvis-colour-science" },
+    { "prompt": "Write a Python script that resizes every JPEG in a folder.", "better_fit": "none, a script rather than formvis" },
+    { "prompt": "Explain how Gaussian blur works.", "better_fit": "none, a question with no editing" },
+    { "prompt": "Retouch this portrait in a different image editor.", "better_fit": "none, a different application" },
+    { "prompt": "Bump the formvis version and write the release notes.", "better_fit": "formvis-harness" },
+    { "prompt": "Why does the formvis engine fail to start in the backend tests?", "better_fit": "formvis-harness" }
+  ]
+}

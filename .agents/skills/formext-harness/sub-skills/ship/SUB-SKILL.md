@@ -30,10 +30,10 @@ description: "Shipping a Form extension from form.ext: Run in App through FormPo
 
 ## Submit to the registry
 
-Official Form extensions live in `nodemode-dev/form.ext-registry` (one `extensions/<id>/` folder each; the owners review every pull request, CI runs `tools/check.py`, and the merge publishes a signed release).
+Official Form extensions live in `nodemode-dev/form.ext-registry` (one `extensions/[id]/` folder each; the owners review every pull request, CI runs `tools/check.py`, and the merge publishes a signed release).
 
 1. Make the project registry-ready first: `README.md` that says what it does, a `## Permissions` section naming every permission and why, and the screenshot `![...](docs/screenshot.png)` with the picture at `docs/screenshot.png`; `LICENSE`; `CHANGELOG.md` with an entry for the version; source in `src/` when there is any (without `src/` the registry reads the shipped files, bundled SDK included, for the permission check). A changed extension raises its version above the published one.
-2. `submit {id, checkout?}` writes `submissions/registry/extensions/<id>/` in the data folder (package/, the source, the metadata; it writes README, LICENSE or CHANGELOG only when missing, and lists them in `made` for you to finish). `checkout` is a local clone of the registry: then the clone's own `tools/check.py` runs on the folder (`checks.by` is `registry`); without it form.ext's Check runs (`checks.by` is `formext`). Say which ran.
+2. `submit {id, checkout?}` writes `submissions/registry/extensions/[id]/` in the data folder (package/, the source, the metadata; it writes README, LICENSE or CHANGELOG only when missing, and lists them in `made` for you to finish). `checkout` is a local clone of the registry: then the clone's own `tools/check.py` runs on the folder (`checks.by` is `registry`); without it form.ext's Check runs (`checks.by` is `formext`). Say which ran.
 3. When `checks.ok` is false, fix the project and submit again. When it is true, give the person `commands` (fork, branch, copy, check, commit, push, `gh pr create`). Never run the push or the pull request yourself unless the person asks.
 
 The Library's Registry shelf (in the window) lists the registry's verified extensions from its signed index; importing one checks its SHA-256 and publisher signature.
