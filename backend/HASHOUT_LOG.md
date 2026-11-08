@@ -2,6 +2,12 @@
 
 The living log of the form.ext engine. Read it before editing `backend/`. Core files belong to the engine module; module routers and services (`routers/<module>.py`, `services/<module>.py`) keep their own notes in their own HASHOUT logs.
 
+## 0.2.2 cryptography on Intel Macs
+
+- refers-to: backend/requirements.txt; NOTICE.md
+- The 0.2.1 macos-x64 build's frozen engine failed its self check: `library`, `package`, `publish` and `runapp` did not import, with `Symbol not found: _SSL_get0_group_name` in the bundled `libssl.3.dylib`. cryptography 49 and later publish macOS wheels for Apple silicon only, so on the Intel runner pip built 50.0.2 from source against Homebrew's OpenSSL (dynamically linked, PyInstaller's hook says so), and the frozen engine carried an older `libssl.3.dylib` under the same name, which lacks a function that OpenSSL 3.2 added.
+- Intel Macs now get cryptography 48.0.1, the newest with a wheel for them (universal2, OpenSSL linked statically, as on every other platform); everywhere else stays on 50.0.2. The two lines carry environment markers, so each platform installs exactly one. The engine's self check passes on 48.0.1 with all thirteen routers; the Ed25519 calls it uses are the same in both.
+
 ## 0.1.0 engine core
 
 ### Running
