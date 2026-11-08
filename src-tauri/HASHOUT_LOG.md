@@ -56,3 +56,12 @@ The main window keeps the system title bar (no overlay), 85% of the primary scre
 - logged: v0.1.0 · 2026-11-07
 
 The build machine for this round has no WebKitGTK development files, so `cargo check` stops in the GTK system crates before reaching this crate. The sources were checked with rustfmt's parser, the crate graph resolves (`cargo metadata`), and the APIs used are the ones formvis's shell compiles against with the same lock. The first desktop build on the owner's Mac is the compile check.
+
+---
+
+## Overlay title bar and traffic lights {#title-bar}
+- refers-to: src/main.rs · src/traffic_lights.rs · src/reveal.rs · build.rs · capabilities/default.json
+- kind: decision
+- logged: v0.2.0 · 2026-11-08
+
+The main window on macOS uses `TitleBarStyle::Overlay` with a hidden title, so the page's 38 px title row is the title bar. `traffic_lights.rs` is FormVis's: it centres the three lights in that row after every moment AppKit lays the title bar out again (page load, resize, focus, theme, scale) and once more 120 ms later; `set_window_title` sets the title and places them again. The page calls it when the project changes. The menus are built by the page with `@tauri-apps/api/menu`, covered by `core:default`, so no Rust is needed for them. The window and splash ground is #0a0a0a (`reveal::BACKGROUND`) to match the page's critical background. This round's machine has the GTK libraries: `cargo check` passes for the Linux target; the macOS-only code is checked on the owner's Mac. `rustfmt` at the default width reports differences in code that was already there (the crate is written at 120 columns); the new file is clean at 120.
