@@ -2,7 +2,7 @@
 
 Living log of the offline browser demo. Source files stay comment-free; what they would have said lives here.
 
-Current build version: v0.2.2
+Current build version: v0.2.3
 Last updated: 2026-11-08 · v0.2.1 the version only (the page reports 0.2.1). Before: v0.2.0 the redesigned interface
 
 ---

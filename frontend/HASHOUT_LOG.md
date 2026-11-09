@@ -2,7 +2,7 @@
 
 Living log for the interface: the shell, the shared styles and the build files. Source files stay comment-free; what they would have said lives here. Each pane keeps its own `src/panes/<name>/HASHOUT_LOG.md`.
 
-Current build version: v0.2.2
+Current build version: v0.2.3
 Last updated: 2026-11-08 · v0.2.1 the README's screenshots and the community files (no interface change). Before: v0.2.0 family redesign
 
 ---
