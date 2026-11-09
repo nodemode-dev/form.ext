@@ -38,6 +38,19 @@
 .home-empty { grid-column: 1 / -1; border: 1px solid var(--edge); border-radius: 14px; background: var(--pane); }
 .home-skel { height: 220px; border-radius: 14px; background: var(--pane); border: 1px solid var(--edge); }
 
+.home-demo-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
+.home-demo { display: grid; grid-template-columns: 240px minmax(0, 1fr); overflow: hidden; border: 1px solid var(--edge); border-radius: 14px; background: var(--pane); }
+.home-demo-art { display: grid; place-items: center; padding: var(--sp-4); background: linear-gradient(180deg, color-mix(in srgb, var(--hue-ext) 18%, var(--bg-primary)), color-mix(in srgb, var(--hue-ext) 5%, var(--bg-primary))); color: var(--hue-ext); }
+.home-demo-art svg { width: 100%; height: auto; }
+.home-demo-body { display: flex; flex-direction: column; justify-content: center; gap: var(--sp-2); padding: var(--sp-4) var(--sp-5); }
+.home-demo-body b { font-size: var(--fs-14); font-weight: 600; }
+.home-demo-body p { margin: 0; color: var(--ink-soft); max-width: 72ch; }
+.home-demo-act { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-2); }
+.home-demos-in { display: none; }
+:root[data-demo="studio"] .home-demos-in { display: inline-flex; }
+:root[data-demo="studio"] .home-demos-out { display: none; }
+:root[data-demo="page"] .home-demos { display: none; }
+
 .home-apps { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--sp-3); }
 .home-app { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3); border: 1px solid var(--edge); border-radius: var(--radius-lg); background: var(--pane); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
 .home-app:hover { border-color: var(--edge-strong); }

@@ -31,7 +31,10 @@
     root.classList.add('has-native-menus', 'has-overlay-titlebar');
   }
   try {
-    var pane = (location.hash || '').replace(/^#\/?/, '').split(/[/?]/)[0] || localStorage.getItem('formext.pane') || 'home';
+    if (!root.hasAttribute('data-demo') && sessionStorage.getItem('formext.demo') === 'studio') root.setAttribute('data-demo', 'studio');
+  } catch (e) {}
+  try {
+    var pane = (location.hash || '').replace(/^#\/?/, '').split(/[/?]/)[0] || localStorage.getItem(root.getAttribute('data-demo') === 'studio' ? 'formext.demo.pane' : 'formext.pane') || 'home';
     var start = { home: 1, new: 1, docs: 1, recent: 1 };
     root.setAttribute('data-layout', start[pane] ? 'start' : 'studio');
     if (localStorage.getItem('formext.rail') === '1') root.setAttribute('data-rail', '1');
@@ -48,6 +51,7 @@
       <div class="fx-tb-doc ellipsis" data-tauri-drag-region></div>
       <button class="fx-tb-app" type="button" data-action="home-name" aria-label="Home" title="Home">form.ext</button>
       <div class="fx-tb-r">
+        <button class="fx-tb-demo" type="button" data-action="demo-leave" title="Leave the demo: its sample projects go away and your own projects come back"><b>Demo</b><span>Sample projects, not yours</span><em>Leave</em></button>
         <button class="fx-tb-btn" type="button" data-action="home" aria-label="Home" title="Home"></button>
         <button class="fx-tb-btn" type="button" data-action="palette" aria-label="Commands" title="Commands"></button>
         <button class="fx-tb-btn" type="button" data-action="theme" aria-label="Theme"></button>

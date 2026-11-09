@@ -1,9 +1,9 @@
-import { emit } from '../../../frontend/src/shell/events';
+import { emit } from '../../shell/events';
 import { ext as suffix, now, pyRepr, strictText, text as decode } from './bytes';
 import * as kit from './kit';
 import type { Folder, Json } from './kit';
 import { deflate } from './zip';
-import packageSchema from '../../../contract/schema/package.schema.json';
+import packageSchema from '../../../../contract/schema/package.schema.json';
 
 const SEVERITIES = ['error', 'warning', 'info'];
 const LINT_TYPES = new Set(['.html', '.js', '.mjs', '.css']);

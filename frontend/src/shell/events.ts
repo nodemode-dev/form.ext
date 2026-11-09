@@ -45,7 +45,7 @@ function setConnected(value: boolean): void {
 }
 
 export function connect(): void {
-  if (location.protocol === 'file:' || socket) return;
+  if (location.protocol === 'file:' || socket || document.documentElement.dataset.demo === 'studio') return;
   clearTimeout(timer);
   let ws: WebSocket;
   try {

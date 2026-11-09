@@ -1,4 +1,4 @@
-import { emit } from '../../../frontend/src/shell/events';
+import { emit } from '../../shell/events';
 import { now, strictText, text, utf8 } from './bytes';
 import { bad, conflict, notFound } from './errors';
 import type { Folder, Json } from './kit';

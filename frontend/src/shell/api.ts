@@ -9,7 +9,19 @@ export class ApiError extends Error {
   }
 }
 
+export interface Transport {
+  request(method: string, p: string, body?: unknown): Promise<unknown>;
+  url(p: string): string;
+}
+
+let transport: Transport | null = null;
+
+export function useTransport(t: Transport): void {
+  transport = t;
+}
+
 export function apiUrl(p: string): string {
+  if (transport) return transport.url(p);
   if (/^https?:\/\//.test(p)) return p;
   if (p.startsWith('/api/') || p === '/api') return p;
   if (p.startsWith('/')) return `/api${p}`;
@@ -54,6 +66,7 @@ export async function readBody(res: Response): Promise<unknown> {
 }
 
 export async function request<T>(method: string, p: string, body?: unknown, init: RequestInit = {}): Promise<T> {
+  if (transport) return transport.request(method, p, body) as Promise<T>;
   const { body: payload, type } = encodeBody(body);
   const headers = new Headers(init.headers);
   if (type && !headers.has('content-type')) headers.set('content-type', type);

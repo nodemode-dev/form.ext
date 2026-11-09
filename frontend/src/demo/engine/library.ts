@@ -1,4 +1,4 @@
-import { emit } from '../../../frontend/src/shell/events';
+import { emit } from '../../shell/events';
 import { basename, ext as suffix, fromB64, now, plural, shaHex, strictText, utf8 } from './bytes';
 import { grouped, lineCounts, splitLines } from './diff';
 import { HttpError, bad, notFound, refused } from './errors';

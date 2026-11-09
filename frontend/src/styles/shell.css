@@ -42,6 +42,12 @@
 .fx-tb-r { grid-column: 3; display: flex; align-items: center; gap: var(--sp-2); }
 .fx-tb-btn { display: inline-grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 1px solid var(--edge-strong); border-radius: 7px; background: var(--raise); color: var(--ink-soft); cursor: pointer; }
 .fx-tb-btn:hover { color: var(--ink); }
+.fx-tb-demo { display: none; align-items: center; gap: var(--sp-2); height: var(--ctl-md); padding: 0 var(--sp-1) 0 var(--sp-1); border: 1px solid color-mix(in srgb, var(--accent-color) 45%, var(--edge)); border-radius: 7px; background: color-mix(in srgb, var(--accent-color) 12%, var(--raise)); color: var(--ink-soft); font: inherit; font-size: var(--fs-12); white-space: nowrap; cursor: pointer; }
+:root[data-demo="studio"] .fx-tb-demo { display: inline-flex; }
+.fx-tb-demo b { padding: 0 var(--sp-2); border-radius: var(--radius-sm); background: var(--accent-color); color: var(--text-on-accent); font-weight: 600; line-height: 18px; }
+.fx-tb-demo em { padding: 0 var(--sp-2); border-left: 1px solid var(--edge-strong); color: var(--ink); font-style: normal; font-weight: 500; }
+.fx-tb-demo:hover em { color: var(--accent-color); }
+@media (max-width: 1099px) { .fx-tb-demo span { display: none; } }
 .fx-tb-btn svg { width: 16px; height: 16px; }
 @media (max-width: 1259px) { .fx-tb-doc, .fx-tb-app { display: none !important; } }
 @media (max-width: 1419px) { :root:not(.has-native-menus) .fx-tb-app { display: none; } }

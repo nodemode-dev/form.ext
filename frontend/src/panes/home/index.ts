@@ -1,6 +1,10 @@
 import './home.css';
 import { icon, appIcon, HOSTS, productName, esc, errorMessage, chooseProject, setNavCount } from '../../shell';
 import type { PaneDef, ShellContext } from '../../shell';
+import { DEMOS } from '../../demo/mode';
+import { openDemo, closeDemo } from '../../demo/commands';
+
+const DEMO_ART = `<svg viewBox="0 0 240 120" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="228" height="108" rx="8"/><path d="M6 22h228"/><circle cx="16" cy="14" r="2"/><circle cx="24" cy="14" r="2"/><circle cx="32" cy="14" r="2"/><path d="M62 22v92M168 22v92"/><path d="M14 32h38M20 42h28M20 52h24M20 62h30M14 76h36M20 86h26" opacity=".7"/><path d="M72 34h52M72 44h70M80 54h56M80 64h40M72 74h60M80 84h48M72 94h30" opacity=".85"/><rect x="176" y="32" width="50" height="40" rx="4"/><circle cx="201" cy="58" r="8"/><path d="M181 64c8-10 32-10 40 0"/><path d="M176 82h50M176 92h34M176 102h42" opacity=".7"/></svg>`;
 
 interface Project {
   id: string;
@@ -68,6 +72,24 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
             <button class="btn lg" type="button" data-act="folder">${icon('folder-open')}<span>Open Folder</span></button>
             <button class="btn lg" type="button" data-act="import">${icon('import')}<span>Import .formpkg</span></button>
             <a class="home-start-link" href="#/docs" data-act="contract">Read the Extension Contract ${icon('arrow', 14)}</a>
+          </div>
+        </section>
+
+        <section class="home-demos" aria-label="Demos">
+          <div class="home-section-head"><h3>Demos</h3><span class="home-note home-demos-out">Opens in this window, apart from your projects</span><span class="home-note home-demos-in">You are in the demo: these projects are samples</span></div>
+          <div class="home-demo-list">
+            ${DEMOS.map((d) => `<article class="home-demo" data-demo-id="${esc(d.id)}">
+              <div class="home-demo-art" aria-hidden="true">${DEMO_ART}</div>
+              <div class="home-demo-body">
+                <b>${esc(d.title)}</b>
+                <p>${esc(d.line)}</p>
+                <div class="home-demo-act">
+                  <button class="btn primary home-demos-out" type="button" data-demo-open="${esc(d.id)}">${icon('play')}<span>Open Demo</span></button>
+                  <button class="btn home-demos-in" type="button" data-demo-open="${esc(d.id)}">${icon('refresh')}<span>Start Over</span></button>
+                  <button class="btn primary home-demos-in" type="button" data-demo-leave>${icon('close')}<span>Leave Demo</span></button>
+                </div>
+              </div>
+            </article>`).join('')}
           </div>
         </section>
 
@@ -165,6 +187,9 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
 
   el.addEventListener('click', async (ev) => {
     const t = ev.target as HTMLElement;
+    const demo = t.closest<HTMLElement>('[data-demo-open]');
+    if (demo) return openDemo(demo.dataset.demoOpen!);
+    if (t.closest('[data-demo-leave]')) return closeDemo();
     const a = t.closest<HTMLElement>('[data-act]');
     if (a) {
       ev.preventDefault();

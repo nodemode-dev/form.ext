@@ -1,4 +1,4 @@
-import { emit } from '../../../frontend/src/shell/events';
+import { emit } from '../../shell/events';
 import { now, shaHex } from './bytes';
 import { bad, notFound, refused } from './errors';
 import * as kit from './kit';

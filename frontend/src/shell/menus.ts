@@ -25,5 +25,5 @@ export const MENUS: MenuDef[] = [
   { label: 'Project', items: ['check.run', 'run.toggle', 'run.reload', SEP, 'preview.reload', 'preview.undo', SEP, 'library.examples', 'library.compare', 'library.import'] },
   { label: 'Package', items: ['package.build', 'package.reproduce', 'package.sign', 'package.new-key'] },
   { label: 'Publish', items: ['publish.prepare', 'publish.registry'] },
-  { label: 'Help', items: ['docs.manual', 'docs.contract', 'docs.sdk', SEP, 'docs.search'] },
+  { label: 'Help', items: ['docs.manual', 'docs.contract', 'docs.sdk', SEP, 'docs.search', SEP, 'demo.studio', 'demo.leave'] },
 ];

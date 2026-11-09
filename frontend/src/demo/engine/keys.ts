@@ -1,4 +1,4 @@
-import { emit } from '../../../frontend/src/shell/events';
+import { emit } from '../../shell/events';
 import { arrayBuffer, fromB64, hex, isB64, now, sha256, toB64, utf8 } from './bytes';
 import { bad, conflict, HttpError, locked, notFound, refused } from './errors';
 import type { Json } from './kit';
