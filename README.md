@@ -177,6 +177,8 @@ The Studio's bottom panel has a Terminal tab (View, Terminal, or Mod+J) next to 
 
 [`demo/index.html`](demo/index.html) runs the real interface offline in any browser, by double-click or from any static server, with an engine written for the page: Golden Hour open, Mail Merge and Rating Desk beside it, every pane usable, the first-party extensions previewed live, real deterministic packages and Ed25519 signatures in the browser. See [`demo/README.md`](demo/README.md).
 
+The app opens the same demo in its own window: Home, Demos, or Help, Demo: The Studio with Sample Projects. It runs on the page engine and its own sample disk, never on your projects folder, keys or FormPortal folder, and the Demo button in the title bar leaves it.
+
 ## Run it from source
 
 **Requires:** Node 20.19 or newer, Python 3.12, git. Rust stable and the Tauri prerequisites only for the desktop window.

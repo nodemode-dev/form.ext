@@ -19,7 +19,7 @@ demo/
     ├── boot.ts          starts the page engine, first-visit project, /api/ link downloads, reveal, Start Over command
     ├── api.ts           the shell's api module for the page (same exports as frontend/src/shell/api.ts)
     ├── tauri.ts         stub for @tauri-apps/api/core
-    └── engine/
+    └── engine/          now frontend/src/demo/engine/ (v0.3.0), shared with the in-app demo
         ├── router.ts    every engine route the panes call, as (method, pattern) to handler
         ├── vfs.ts       the virtual disk (absolute posix paths, saved in local storage)
         ├── workspace.ts services/workspace.py

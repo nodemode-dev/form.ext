@@ -49,6 +49,6 @@ The skills in `.claude/skills` and `.agents/skills` named in `.claude/skills/HOS
 
 ## Demo and media
 
-The browser demo (`demo/`) bundles only what the interface bundles (the rows above) and the first-party extension packages from their own Apache-2.0 repositories (`nodemode-dev/formext-<product>-<id>`, linked from the Library). The screenshots in `assets/` are of form.ext itself. There are no photographs or third-party media (`demo/CREDITS.md`).
+The browser demo (`demo/`) bundles only what the interface bundles (the rows above) and the first-party extension packages from their own Apache-2.0 repositories (`nodemode-dev/formext-<product>-<id>`, linked from the Library). The screenshots in `assets/` are of form.ext itself. There are no photographs or third-party media (`demo/CREDITS.md`). The app ships the same first-party packages for its in-app demo in `frontend/public/demos/studio/packages/` (Apache-2.0, nodemode, each package's manifest).
 
 Trademarks: Form app names belong to nodemode. Other product names mentioned in the docs belong to their owners.
