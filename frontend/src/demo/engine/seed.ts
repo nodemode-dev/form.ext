@@ -4,6 +4,7 @@ import { importRegistry } from './library';
 import { packages } from './package';
 import { PORTAL_ROOT } from './portal';
 import { settings } from './settings';
+import { storage } from '../../shell/storage';
 import * as templates from './templates';
 import * as fs from './vfs';
 import { DATA, workspace, writeJson } from './workspace';
@@ -56,11 +57,7 @@ export async function seed(): Promise<void> {
   await keys.create('demo-publisher', 'Demo Publisher', '', '');
   if (workspace.exists(SAMPLE)) workspace.touch(SAMPLE);
   writeJson(SEED, { version: SEED_VERSION, at: now() });
-  try {
-    localStorage.setItem('formext.project', SAMPLE);
-  } catch {
-    return;
-  }
+  storage.set('formext.project', SAMPLE);
 }
 
 export function resetDemo(): void {

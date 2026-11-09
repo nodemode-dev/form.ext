@@ -4,9 +4,9 @@ import type { Json } from './kit';
 import { settings } from './settings';
 import { slug, workspace } from './workspace';
 
-const RAW = import.meta.glob<string>('../../../templates/**/*', { query: '?raw', import: 'default', eager: true });
-const EXAMPLES = import.meta.glob<string>('../../../contract/examples/**/*', { query: '?raw', import: 'default', eager: true });
-const DOCS = import.meta.glob<string>('../../../docs/apps/*.md', { query: '?raw', import: 'default', eager: true });
+const RAW = import.meta.glob<string>('../../../../templates/**/*', { query: '?raw', import: 'default', eager: true });
+const EXAMPLES = import.meta.glob<string>('../../../../contract/examples/**/*', { query: '?raw', import: 'default', eager: true });
+const DOCS = import.meta.glob<string>('../../../../docs/apps/*.md', { query: '?raw', import: 'default', eager: true });
 
 const HOSTS: [string, string, string][] = [
   ['formvis', 'FormVis', 'formvis'],

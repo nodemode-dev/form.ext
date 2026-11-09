@@ -14,6 +14,7 @@ import { VERSION } from './version';
 import { openSettings, settingsOpen, loadSettings } from './settings';
 import { mountMenubar } from './menubar';
 import { buildNativeMenus, wantsNativeMenus } from './native-menu';
+import { registerDemos, closeDemo } from '../demo/commands';
 import type { PaneDef, ShellContext, ProjectRef } from './types';
 
 interface NavItem {
@@ -305,6 +306,7 @@ function registerBuiltins(defs: PaneDef[]): void {
     icon: 'info',
     run: () => void dialog.form('About form.ext', `<p>form.ext ${esc(VERSION)} makes, previews, checks, packages, signs and publishes extensions for every Form app.</p><p class="hint">Apache-2.0. nodemode.ai</p><span data-ok="Done" hidden></span>`),
   });
+  registerDemos();
   defs.forEach((d, i) => {
     register({ id: `pane.${d.id}`, title: `Go to ${d.title}`, keys: i < 9 ? `Mod+${i + 1}` : undefined, icon: d.icon, run: () => openPane(d.id) });
   });
@@ -350,6 +352,7 @@ export function boot(): void {
   qs(document, '[data-action="home-name"]').addEventListener('click', goHome);
   qs(document, '[data-action="palette"]').addEventListener('click', () => void openPalette());
   qs(document, '[data-action="theme"]').addEventListener('click', toggleTheme);
+  qs(document, '[data-action="demo-leave"]').addEventListener('click', () => void closeDemo());
   qs(document, '[data-status="engine"]').addEventListener('click', () => {
     if (!isLive()) {
       reconnect();

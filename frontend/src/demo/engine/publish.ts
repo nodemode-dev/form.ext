@@ -1,4 +1,4 @@
-import { emit } from '../../../frontend/src/shell/events';
+import { emit } from '../../shell/events';
 import { now, utf8 } from './bytes';
 import { bad, notFound } from './errors';
 import { PLAIN } from './kit';
@@ -12,8 +12,8 @@ import { schemaErrors, validateFolder } from './validate';
 import * as fs from './vfs';
 import { dataDir, folderAt, readJson, workspace, writeJson } from './workspace';
 import { writeZip } from './zip';
-import packageSchema from '../../../contract/schema/package.schema.json';
-import extensionsSchema from '../../../contract/schema/extensions.schema.json';
+import packageSchema from '../../../../contract/schema/package.schema.json';
+import extensionsSchema from '../../../../contract/schema/extensions.schema.json';
 
 const SITE = 'https://formai.studio/extensions/';
 const EXT_PREFIX = 'package.schema.json#/$defs/';

@@ -1,4 +1,4 @@
-import { emit } from '../../../frontend/src/shell/events';
+import { emit } from '../../shell/events';
 import { basename, iso, now } from './bytes';
 import { HttpError, notFound } from './errors';
 import * as kit from './kit';

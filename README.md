@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <img alt="version 0.2.3" src="https://img.shields.io/badge/version-0.2.3-4f6bff?style=flat-square">
+  <img alt="version 0.3.0" src="https://img.shields.io/badge/version-0.3.0-4f6bff?style=flat-square">
   <img alt="Python FastAPI engine" src="https://img.shields.io/badge/Python-FastAPI%20engine-3776ab?style=flat-square&logo=python&logoColor=white">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-interface-3178c6?style=flat-square">
   <img alt="Tauri 2" src="https://img.shields.io/badge/Tauri-2-24C8DB?style=flat-square">
@@ -176,6 +176,8 @@ The Studio's bottom panel has a Terminal tab (View, Terminal, or Mod+J) next to 
 ## Demo
 
 [`demo/index.html`](demo/index.html) runs the real interface offline in any browser, by double-click or from any static server, with an engine written for the page: Golden Hour open, Mail Merge and Rating Desk beside it, every pane usable, the first-party extensions previewed live, real deterministic packages and Ed25519 signatures in the browser. See [`demo/README.md`](demo/README.md).
+
+The app opens the same demo in its own window: Home, Demos, or Help, Demo: The Studio with Sample Projects. It runs on the page engine and its own sample disk, never on your projects folder, keys or FormPortal folder, and the Demo button in the title bar leaves it.
 
 ## Run it from source
 

@@ -1,4 +1,4 @@
-import { emit } from '../../../frontend/src/shell/events';
+import { emit } from '../../shell/events';
 import { text, utf8 } from './bytes';
 import * as fs from './vfs';
 

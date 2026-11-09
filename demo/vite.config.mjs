@@ -28,6 +28,7 @@ function demo() {
       order: 'pre',
       handler(html) {
         return html
+          .replace('<html lang="en" data-theme="dark">', '<html lang="en" data-theme="dark" data-demo="page">')
           .replace('src="/src/main.ts"', 'src="../demo/src/entry.ts"')
           .replace('body.app-ready #app { visibility: visible; }', 'body.app-ready.demo-ready #app { visibility: visible; }')
           .replace(/\s*<link rel="preload"[^>]*>/g, '');
