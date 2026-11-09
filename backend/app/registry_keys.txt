@@ -2,3 +2,4 @@
 # They verify extensions.json.sig and blocklist.json.sig from nodemode-dev/form.ext-registry's index release.
 # The key pair comes from the registry's tools/new_signing_key.py: the private key goes only into the repo secret
 # REGISTRY_SIGNING_KEY, and the public key goes on a line below. FORMEXT_REGISTRY_PUBKEY (comma-separated) adds keys for testing.
+nZZlZeUG04DgMZtqxkZXvZArdOUHpkfRR3rDPtnQ9pA=
