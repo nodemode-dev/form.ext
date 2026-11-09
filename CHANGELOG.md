@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.3.0 · 2026-11-09
+
+The browser demo opens inside the app.
+
+- **Demos:** Home has a Demos section with the studio demo (Golden Hour, Mail Merge and Rating Desk in a sample workspace), and Help has Demo: The Studio with Sample Projects (the palette command `demo.studio`; on macOS in the system menu bar too). Opening it asks first, offers Save All when files are unsaved, and reloads the window on the demo's own engine and sample disk: nothing reaches the projects folder, publisher keys, settings or FormPortal's folder, no engine request is made, and the window's remembered project, pane and tabs stay yours. A Demo button in the title bar, Help, Leave the Demo, and Home's Leave Demo end it and remove what the demo made; quitting the app ends it too.
+- **Demo:** the page engine moved from `demo/src/engine/` to `frontend/src/demo/engine/` and is shared by the browser demo and the app; the thirteen registry packages the demo shows ship in the app as files (`frontend/public/demos/studio/`, written by `scripts/demo-media.mjs`).
+- Fixed: with the sidebar collapsed, the form.ext icon at the top left sat right of the icons below it and was clipped by the edge; it now centres over them.
+- Not covered: Preview's grants and extension storage are kept by the contract kit's host bridge under its own keys, which a demo preview shares with a real preview of an extension with the same id.
+
 ## v0.2.3 · 2026-11-09
 
 - The Library's registry shelf reads form.ext-registry: this build trusts the registry's index key (`backend/app/registry_keys.txt`), so the signed index and block list are read instead of refused with "this build trusts no registry key yet".
