@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.2 · 2026-11-08
+
+- Fixed: the Intel Mac (macos-x64) desktop build's engine could not load package signing, so Library, Package, Publish and Run in App failed to start ("Symbol not found: _SSL_get0_group_name"). cryptography 49 and later ship no Intel Mac wheel, so it was compiled against another OpenSSL than the one the app carried. Intel Macs now install cryptography 48.0.1, whose wheel includes its own OpenSSL; every other platform keeps 50.0.2.
+- Checked here: the engine's self check with cryptography 48.0.1, all thirteen routers. Not verified yet: the macos-x64 build, which FormCompiler runs.
+
 ## v0.2.1 · 2026-11-08
 
 The README shows the new window, and the repository has the community files every Form repository has.
