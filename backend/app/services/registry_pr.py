@@ -5,6 +5,7 @@ sign-in: nothing here reads or stores a token. It runs only when the person asks
 
 import json
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -17,6 +18,8 @@ STUBS = {
     "LICENSE": ("Replace this file with the full text", "LICENSE is still the placeholder form.ext wrote: put the full text of the licence in it"),
     "README.md": ("Why: say here what the extension does with it.", "README.md still has form.ext's placeholder under Permissions: say why the extension needs each permission"),
 }
+ID_RE = re.compile(r"[a-z0-9][a-z0-9-]{1,63}")
+VERSION_RE = re.compile(r"\d+\.\d+\.\d+")
 GH_INSTALL = "https://cli.github.com"
 GH_SYSTEM = ("/opt/homebrew/bin/gh", "/usr/local/bin/gh", "/usr/bin/gh")
 TIMEOUT = 300
@@ -33,7 +36,7 @@ class Needs(WorkspaceError):
 def gh() -> str | None:
     found = os.environ.get("FORMEXT_GH_BIN") or shutil.which("gh")
     if found:
-        return found
+        return None if any(c in found for c in '"$`') else found
     for p in GH_SYSTEM:
         if os.path.isfile(p) and os.access(p, os.X_OK):
             return p
@@ -45,7 +48,7 @@ def work_dir() -> Path:
 
 
 def _env() -> dict:
-    return dict(os.environ, GIT_TERMINAL_PROMPT="0", GH_PROMPT_DISABLED="1", GH_NO_UPDATE_NOTIFIER="1", GCM_INTERACTIVE="never", GIT_LFS_SKIP_SMUDGE="1")
+    return dict(os.environ, GIT_TERMINAL_PROMPT="0", GH_PROMPT_DISABLED="1", GH_NO_UPDATE_NOTIFIER="1", GCM_INTERACTIVE="never", GIT_LFS_SKIP_SMUDGE="1", GIT_CEILING_DIRECTORIES=str(work_dir().parent))
 
 
 def _run(args: list[str], cwd: Path | None = None, timeout: int = TIMEOUT) -> subprocess.CompletedProcess:
@@ -154,8 +157,12 @@ def open_pull_request(pid: str) -> dict:
         raise Needs("the checks passed, but some text is still left for you to write before the owners can review it", [{"what": "text", "say": s, "how": ""} for s in left])
     manifest = workspace.manifest(pid)
     eid = manifest["id"]
+    if not ID_RE.fullmatch(str(eid)) or not VERSION_RE.fullmatch(str(manifest.get("version"))):
+        raise WorkspaceError("the manifest's id or version is not in the registry's form (a lowercase id, a version such as 1.2.3)")
     program = gh()
     user = _user(program)
+    if not user:
+        raise Needs("GitHub's sign-in was lost; sign in again", [{"what": "sign-in", "say": "Sign in to GitHub again: run this in the Terminal tab and follow the browser.", "how": "gh auth login --web --git-protocol https"}])
     login = user["login"]
     branch, title, message, body = _texts(manifest, bool(record.get("update")))
     steps = []
@@ -163,10 +170,11 @@ def open_pull_request(pid: str) -> dict:
     steps.append(f"fork {login}/{registry.REPO.split('/', 1)[1]}")
     clone = work_dir()
     upstream = sources.url("registry") + ".git"
-    if not (clone / ".git").exists():
+    top = _run([sources.git(), "rev-parse", "--show-toplevel"], cwd=clone, timeout=20) if (clone / ".git").exists() else None
+    if top is None or top.returncode != 0 or Path(top.stdout.strip()).resolve() != clone.resolve():
         shutil.rmtree(clone, ignore_errors=True)
         clone.parent.mkdir(parents=True, exist_ok=True)
-        _git(["clone", "--no-tags", upstream, str(clone)], clone.parent, program, f"clone {registry.REPO}")
+        _git(["clone", "--no-tags", "--", upstream, str(clone)], clone.parent, program, f"clone {registry.REPO}")
         steps.append("working clone made")
     _git(["remote", "set-url", "origin", upstream], clone, program, "point the clone at the registry")
     remotes = _run([sources.git(), "remote"], cwd=clone, timeout=20).stdout.split()
@@ -176,8 +184,11 @@ def open_pull_request(pid: str) -> dict:
     _git(["clean", "-fdq"], clone, program, "tidy the working clone")
     _git(["checkout", "-q", "-B", branch, "FETCH_HEAD"], clone, program, f"start the branch {branch}")
     target = clone / "extensions" / eid
-    shutil.rmtree(target, ignore_errors=True)
-    shutil.copytree(folder, target, ignore=shutil.ignore_patterns("node_modules", "dist", ".DS_Store", "Thumbs.db"))
+    try:
+        shutil.rmtree(target, ignore_errors=True)
+        shutil.copytree(folder, target, ignore=shutil.ignore_patterns("node_modules", "dist", ".DS_Store", "Thumbs.db"))
+    except OSError as exc:
+        raise WorkspaceError(f"the extension folder could not be copied into the working clone ({exc.strerror or exc})") from exc
     _git(["add", "-A", "--", f"extensions/{eid}"], clone, program, "stage the extension folder")
     same = _run([sources.git(), "diff", "--cached", "--quiet"], cwd=clone, timeout=60)
     if same.returncode == 0:

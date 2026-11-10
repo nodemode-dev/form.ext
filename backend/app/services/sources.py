@@ -4,6 +4,7 @@ or downloaded as an archive when git is not installed, and is read-only here: li
 The same store keeps the family's other repositories an extension author needs: FormPortal and the Form Extension Registry."""
 
 import fnmatch
+import http.client
 import json
 import os
 import re
@@ -46,6 +47,9 @@ DOCS = ("CLAUDE.md", "AGENTS.md", "README.md", "docs/EXTENSIONS.md", ".docs/wiki
 HOST_NAMES = {"host-bridge.ts", "formext_host.py", "formext.go", "extensions.rs", "extensions.ts", "extensions.go", "extensions.py", "docops.ts"}
 HOST_SKIP = {"demo", "demos", "docs", ".docs", "assets", "examples", "contract"}
 MAX_ARCHIVE = 600 * 1024 * 1024
+MAX_UNPACKED = 4 * 1024 * 1024 * 1024
+MAX_PATTERN = 200
+MAX_LINE = 2000
 MAX_READ = 2 * 1024 * 1024
 MAX_SEARCH_FILE = 1536 * 1024
 SEARCH_SECONDS = 20
@@ -87,8 +91,10 @@ def resolve(key: str) -> str:
 
 
 def url(key: str) -> str:
-    base = os.environ.get("FORMEXT_SOURCES_BASE") or settings.value("sources.base") or BASE
-    return f"{str(base).rstrip('/')}/{BY_KEY[key][2]}"
+    base = str(os.environ.get("FORMEXT_SOURCES_BASE") or settings.value("sources.base") or BASE).strip()
+    if not base.startswith(("https://", "http://", "file://")):
+        raise WorkspaceError("the setting sources.base must be an https://, http:// or file:// address")
+    return f"{base.rstrip('/')}/{BY_KEY[key][2]}"
 
 
 def _local(key: str) -> Path | None:
@@ -268,7 +274,7 @@ def catalogue() -> dict:
 
 def _clone(key: str, staging: Path) -> dict:
     exe = git()
-    out = _run([exe, "clone", "--depth", "1", "--no-tags", url(key) + ".git", str(staging)])
+    out = _run([exe, "clone", "--depth", "1", "--no-tags", "--", url(key) + ".git", str(staging)])
     if out.returncode != 0:
         raise SourceError(f"git could not clone {url(key)} ({_tail(out.stderr) or 'no message'}); check the internet connection and try again")
     return {"method": "git", **_head(staging)}
@@ -290,7 +296,12 @@ def _download(key: str, staging: Path) -> dict:
                     if got > MAX_ARCHIVE:
                         raise SourceError(f"the archive of {url(key)} is larger than {MAX_ARCHIVE // (1024 * 1024)} MB; install git to clone it instead")
                     tmp.write(chunk)
-        except (urllib.error.URLError, OSError, TimeoutError) as exc:
+        except SourceError:
+            tmp.close()
+            archive.unlink(missing_ok=True)
+            raise
+        except (urllib.error.URLError, http.client.HTTPException, OSError, TimeoutError) as exc:
+            tmp.close()
             archive.unlink(missing_ok=True)
             raise SourceError(f"{address} could not be downloaded ({exc}); check the internet connection, or install git") from exc
     unpack = staging.with_name(staging.name + "-x")
@@ -298,6 +309,8 @@ def _download(key: str, staging: Path) -> dict:
     try:
         with tarfile.open(archive, "r:gz") as tar:
             commit = str(tar.pax_headers.get("comment") or "")
+            if sum(m.size for m in tar.getmembers()) > MAX_UNPACKED:
+                raise SourceError(f"the archive of {url(key)} unpacks to more than {MAX_UNPACKED // (1024 * 1024)} MB; install git to clone it instead")
             tar.extractall(unpack, filter="data")
         tops = [p for p in unpack.iterdir() if p.is_dir()]
         if len(tops) != 1:
@@ -326,8 +339,14 @@ def _refresh(key: str, target: Path) -> dict | None:
 
 def _sweep() -> None:
     for item in root().iterdir():
-        if item.name.startswith(".new-") and time.time() - item.stat().st_mtime > 3600:
+        try:
+            stale = time.time() - item.stat().st_mtime > 3600
+        except OSError:
+            continue
+        if stale and item.name.startswith(".new-"):
             shutil.rmtree(item, ignore_errors=True)
+        elif stale and item.name.startswith("formext-src-"):
+            item.unlink(missing_ok=True)
 
 
 def pull(key: str, update: bool = False) -> dict:
@@ -352,7 +371,12 @@ def pull(key: str, update: bool = False) -> dict:
                 shutil.rmtree(old, ignore_errors=True)
                 if target.exists():
                     os.replace(target, old)
-                os.replace(staging, target)
+                try:
+                    os.replace(staging, target)
+                except OSError:
+                    if old.exists() and not target.exists():
+                        os.replace(old, target)
+                    raise
                 _drop(old)
             info.update({"key": key, "url": url(key), "pulled_at": time.time(), "landmarks": _landmarks(target)})
             tmp = _meta_file(key).with_suffix(".json.tmp")
@@ -386,7 +410,7 @@ def _drop(target: Path) -> None:
 def pull_async(key: str, update: bool = False) -> dict:
     key = resolve(key)
     live = _state.get(key) or {}
-    if live.get("state") == "pulling":
+    if live.get("state") == "pulling" or _local(key) is not None or (present(key) and not update):
         return status(key)
 
     def run() -> None:
@@ -394,6 +418,9 @@ def pull_async(key: str, update: bool = False) -> dict:
             pull(key, update)
         except WorkspaceError:
             pass
+        finally:
+            if (_state.get(key) or {}).get("state") == "pulling":
+                _state.pop(key, None)
 
     _state[key] = {"state": "pulling", "at": time.time()}
     threading.Thread(target=run, name=f"formext-source-{key}", daemon=True).start()
@@ -433,7 +460,7 @@ def _ready(key: str) -> tuple[str, Path]:
 def _inside(target: Path, rel: str) -> Path:
     text = str(rel or "").replace("\\", "/").strip("/")
     pure = PurePosixPath(text)
-    if not text or pure.is_absolute() or ".." in pure.parts or "\x00" in text or re.match(r"^[A-Za-z]:", text):
+    if not text or pure.is_absolute() or ".." in pure.parts or ".git" in pure.parts or "\x00" in text or re.match(r"^[A-Za-z]:", text):
         raise WorkspaceError(f"{rel!r} is not a path inside the source")
     base = target.resolve()
     found = (base / text).resolve()
@@ -474,7 +501,10 @@ def read(key: str, path: str, start: int = 1, lines: int = 400) -> dict:
     rel = found.relative_to(target.resolve()).as_posix()
     if size > MAX_READ:
         raise WorkspaceError(f"{rel} is {size} bytes, more than this reads at once; search it with source_search instead")
-    raw = found.read_bytes()
+    try:
+        raw = found.read_bytes()
+    except OSError as exc:
+        raise WorkspaceError(f"{rel} could not be read ({exc.strerror or exc})") from exc
     if b"\x00" in raw[:8192]:
         return {"source": key, "path": rel, "abs": str(found), "size": size, "binary": True}
     rows = raw.decode("utf-8", errors="replace").splitlines()
@@ -488,6 +518,10 @@ def search(key: str, query: str, glob: str = "", regex: bool = False, case: bool
     key, target = _ready(key)
     if not str(query or "").strip():
         raise WorkspaceError("give the words to search for")
+    if regex and len(query) > MAX_PATTERN:
+        raise WorkspaceError(f"the pattern is longer than {MAX_PATTERN} characters; search for a shorter one")
+    if regex and re.search(r"\)[+*]|[+*]\)[+*{]", query):
+        raise WorkspaceError("the pattern repeats a group that itself repeats, which can take forever; write it without the nested repeat")
     try:
         pattern = re.compile(query if regex else re.escape(query), 0 if case else re.IGNORECASE)
     except re.error as exc:
@@ -515,7 +549,7 @@ def search(key: str, query: str, glob: str = "", regex: bool = False, case: bool
             continue
         scanned += 1
         for number, line in enumerate(raw.decode("utf-8", errors="replace").splitlines(), 1):
-            if pattern.search(line):
+            if pattern.search(line[:MAX_LINE]):
                 hits.append({"path": rel, "line": number, "text": line.strip()[:240]})
                 if len(hits) >= cap:
                     stopped = "limit"
