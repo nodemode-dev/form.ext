@@ -18,6 +18,7 @@ An extension is a small web page with a `manifest.json`. It runs in a sandboxed 
 - [Package and Sign](#package-and-sign)
 - [Publish](#publish)
 - [Docs](#docs)
+- [Host sources](#host-sources)
 - [The command line](#the-command-line)
 - [The MCP server](#the-mcp-server)
 - [Settings and the data folder](#settings-and-the-data-folder)
@@ -195,7 +196,13 @@ Publish turns a build into what the catalogue needs.
 - **The index entry**: the package's row for formai.studio's extensions index (`formai-extensions`, format 1): id, name, product, version, description, permissions, the package address (by default `https://formai.studio/extensions/packages/<id>-<version>.formpkg`), SHA-256, size, and the signature when signed. It is checked against the contract's `extensions.schema.json` before anything is written.
 - **Prepare Submission** builds the package if needed, signs it with your publisher key (Settings chooses the default key), and writes a submission folder in the data folder (`submissions/<id>-<version>/`): the `.formpkg`, `entry.json`, a one-package `extensions.json` with your publisher entry, a `README.md` for the reviewer, and `submission.json`. Reveal opens the folder.
 - **Send to FormPortal** installs the package through FormPortal's command line (`formportal cli extension-install --path <package>`) when it is found, otherwise opens the package with FormPortal or with the system's handler for `.formpkg`. FormPortal applies its own checks and signature policy, and its answer is shown.
-- **Submit to Registry** is how an extension becomes official. It writes the project into a folder in form.ext-registry's layout, `submissions/registry/extensions/<id>/` in the data folder: `package/` (exactly what goes in the `.formpkg`), the source beside it (`src/`, `package.json` and its lock file when the project has them, `docs/`), and `README.md`, `LICENSE` and `CHANGELOG.md` (form.ext writes the ones the project lacks, for you to finish). The screenshot slot is `docs/screenshot.png`, shown in the README. Then it runs the registry's checks on the folder: with **Registry checkout** set to a local clone of the registry (the setting `registry.checkout`), form.ext imports that clone's `tools/check.py` and runs exactly the checks CI runs on a pull request (contract, version and immutability against the published index, reproducible build, code bans, permissions declared and used, README, licence, changelog and screenshot, block list); without one it runs its own Check and the metadata checks, and says which ran. Last, it shows the `git` and `gh` commands that fork `nodemode-dev/form.ext-registry`, copy the folder in on a branch, run the checks, commit, push and open the pull request; Copy Commands puts them on the clipboard. form.ext never pushes anything itself. The owners review the pull request, and once it is merged the registry builds, signs and publishes the new version.
+- **Submit to Registry** is how an extension becomes official. It writes the project into a folder in form.ext-registry's layout, `submissions/registry/extensions/<id>/` in the data folder: `package/` (exactly what goes in the `.formpkg`), the source beside it (`src/`, `package.json` and its lock file when the project has them, `docs/`), and `README.md`, `LICENSE` and `CHANGELOG.md` (form.ext writes the ones the project lacks, for you to finish). The screenshot slot is `docs/screenshot.png`, shown in the README. Then it runs the registry's checks on the folder. There is no clone to set up: form.ext keeps its own copy of `nodemode-dev/form.ext-registry` (the `registry` host source, see [Host sources](#host-sources)), fetches it before each submit, and runs that copy's `tools/check.py`, exactly the checks CI runs on a pull request (contract, version and immutability against the published index, reproducible build, code bans, permissions declared and used, README, licence, changelog and screenshot, block list). If you set **Registry checkout** to your own clone of the registry (the setting `registry.checkout`), that clone is used instead. If the copy cannot be fetched, form.ext runs its own Check and the metadata checks, and says which ran.
+
+A new project's README already has a `## Permissions` section, one line per permission ending in the placeholder "Why: say here what the extension does with it.", and a `## Screenshot` section for `docs/screenshot.png`. Write the reasons, save the screenshot, and the project is ready. A missing LICENSE is written with the full text when the manifest's licence is Apache-2.0 or MIT.
+
+The one-step pull request is the **Open pull request** button under Submit to Registry (enabled once the checks pass; the line beside it says whether this computer is ready and what is still needed), or `./formext cli submit [id] --pull-request`, or the `submit` tool with `pull_request: true`. It forks the registry into your GitHub account, puts the folder on a branch named `add-[id]-[version]` (`update-...` for a new version) in a working clone in the data folder (`registry-work/`), pushes the branch to your fork and opens the pull request, or updates it when one is already open. It needs `git` and GitHub's `gh` tool installed, and `gh` signed in once (`gh auth login --web`); `submit [id] --ready` reports what is missing. It refuses while the checks fail, or while the placeholder line is still in README.md or LICENSE. It posts publicly under your GitHub account, so form.ext, and any agent, asks first. The pull request's address is shown when it opens.
+
+Without `--pull-request`, nothing is pushed: form.ext shows the `git` and `gh` commands that fork the registry, copy the folder in on a branch, run the checks, commit, push and open the pull request, and Copy Commands puts them on the clipboard, for you to run by hand (the Publish pane shows these). Either way the owners review the pull request, and nothing is published until they merge it; then the registry builds, signs and publishes the new version.
 
 ## Docs
 
@@ -208,17 +215,49 @@ Docs is the reference, inside the app and offline:
 
 Search (top of the list) counts the matches in every page and marks them in the open one; Enter and Shift+Enter step through them, Escape clears. On this page lists the sections and follows your scroll. Links between pages open in Docs; links to the web open in your browser. The button in the head opens the API of the open project's app. Each page is also a palette command (Docs: FormCut API and so on).
 
+## Host sources
+
+A host source is the source code of the app you are making an extension for, brought onto your computer so you or your agent can read it. The app's API page says what an extension may do; the source shows how the app really does it: the command names, the fields of the document, the events. Read the files that implement the contract first. A source is reference only: form.ext reads it and never builds or runs it, and nothing in it can be changed from form.ext.
+
+**Where it lives.** In form.ext's data folder, in `sources/[repository name]/`, for example `sources/form.md/`. It is never put inside a project.
+
+**How it arrives.**
+
+- Automatically, in the background, when you make or open a project in the window. Only that project's host app is pulled. The Studio's project card shows where it stands on its Source line (not here, fetching, the commit it is at, or failed; hover for the full sentence) with one button: Get, Update or Retry. Claude Code started from the Terminal or Chat then gets the source as an extra directory, so the app's own skills load too, and its first note says where the source is.
+- By the command line: `./formext cli source formmd` (the app's id, `formportal`, `registry`, or a project id for its host app).
+- By an agent: the `source` tool.
+
+The copy is a shallow `git clone` of `https://github.com/nodemode-dev/[repository]`. When git is not installed, form.ext downloads an archive instead. The answer lists the commit, the licence, the pages to read first (`CLAUDE.md`, `AGENTS.md`, `docs/EXTENSIONS.md`), the files that implement the Form Extension Contract in that app, and the app's own skills.
+
+**Look at what is there.** `./formext cli family` lists every Form app an extension can be made for, with its repository and whether its source is here, and whether formMCP, FormSkills and FormPortal are on this computer. `./formext cli source` with no app lists every source. `source [app] --action status` reports without using the network. An agent reads with `source_files`, `source_read` and `source_search`.
+
+**Update or remove.** `./formext cli source formmd --action update` fetches the newest commit. `--action remove` deletes the copy; it comes back the next time it is asked for. A source you pointed at your own checkout (see below) is never deleted by form.ext.
+
+**Settings.**
+
+| Setting | Does |
+|---|---|
+| `sources.auto` | Pull the host app's source in the background when a project is made or opened. On by default. |
+| `sources.base` | Another address than `https://github.com/nodemode-dev`, for a mirror. |
+| `sources.local.[key]` | Use your own checkout of an app in place, for example `sources.local.formmd`. form.ext never deletes it. |
+
+**Licence.** Reading an app's source to learn its API is always fine. Some apps are GPL-3.0 (formMCP, FormSkills, FormPortal): do not copy their code into an extension, because that would put the extension under the GPL. The `source` answer says so in its note. FormVis, FormCut, Form.md, FormTray and the registry are Apache-2.0; `source` states each app's licence.
+
+**Size.** An app's source is tens to hundreds of megabytes. Only the apps you work on are pulled, and the registry is pulled the first time you submit. Remove the ones you no longer need.
+
+**Skills.** `./formext cli skills [app]` lists the skills that teach an agent one app: the ones bundled with form.ext, the ones in the pulled source, and the released ones through FormSkills (`formskills-cli`) when it is installed. `--install` puts the released skills into Claude Code's skills folder (`--project [id]` for one project); an agent asks you first.
+
 ## The command line
 
 `./formext cli` is form.ext's command line over the same engine, for scripts, CI and agents. It talks to a running engine with the same data folder, or runs the engine's routes in-process when none is running (`--engine URL` and `--local` choose). The commands:
 
 | Step | Commands |
 |---|---|
-| Learn | `status`, `docs [topic]` (contract, sdk, schema, example, or an app id such as `formcut`), `templates [app]`, `rules` |
+| Learn | `status`, `docs [topic]` (contract, sdk, schema, example, or an app id such as `formcut`; answers from the app's pulled source when that is newer), `templates [app]`, `rules`, `family`, `source [app]` (`--action get`, `status`, `update`, `remove`, `list`), `skills [app]` (`--install`, `--project`, `--checkout`) |
 | Make | `new NAME --app formcut --starter panel` (or `--example hello`), `projects`, `project`, `import` (a folder or a `.formpkg`), `inspect`, `files`, `read`, `write`, `delete`, `move`, `manifest` |
 | Check and try | `validate`, `preview` (a snapshot: the host check, the frame address and its headers) |
 | Package | `package` (`--anyway` builds past code-lint errors), `builds`, `keys`, `sign`, `verify`, `entry` |
-| Ship | `apps`, `run-in-app` (`--remove`, `--status`, `--open`), `publish` (`--url`, `--publisher`, `--unsigned`, `--formportal`), `submit` (`--checkout` a local clone of the registry) |
+| Ship | `apps`, `run-in-app` (`--remove`, `--status`, `--open`), `publish` (`--url`, `--publisher`, `--unsigned`, `--formportal`), `submit` (`--ready`, `--pull-request`, `--checkout` your own clone of the registry) |
 
 `./formext cli --help` lists them and `./formext cli <command> --help` explains one. Answers are short text by default and JSON with `--json`; failures exit non-zero with the reason in the same words the window uses. Changes made from the command line appear in the open window at once.
 
@@ -226,11 +265,11 @@ The desktop app's frozen engine takes the same commands (`formext-engine cli ...
 
 ## The MCP server
 
-`./formext mcp` is form.ext's MCP server on standard input and output. The repository's `.mcp.json` registers it for Claude Code, `.codex/config.toml` for Codex and `.cursor/mcp.json` for Cursor, so an agent working in this repository makes extensions the way a person does. Its tools are the command line's commands under the same names (`status`, `docs`, `templates`, `new`, `write`, `manifest`, `validate`, `preview`, `package`, `sign`, `run_in_app`, `publish`, `submit` and the rest), with the same arguments, and its resources (`formext://docs/<topic>`) are the contract, the SDK source, the schema, the example and every app's API page. The tools answer what the panes show, and every change an agent makes appears in the open window at once (the engine's live events). The skill `formext-harness` teaches the loop: read the app's page, start from a starter, write, validate, preview, package, run in the app.
+`./formext mcp` is form.ext's MCP server on standard input and output. The repository's `.mcp.json` registers it for Claude Code, `.codex/config.toml` for Codex and `.cursor/mcp.json` for Cursor, so an agent working in this repository makes extensions the way a person does. Its tools are the command line's commands under the same names (`status`, `docs`, `templates`, `new`, `write`, `manifest`, `validate`, `preview`, `package`, `sign`, `run_in_app`, `publish`, `submit` and the rest), with the same arguments, plus the host source tools: `family`, `source`, `source_files`, `source_read`, `source_search` and `skills`. Its resources (`formext://docs/<topic>`) are the contract, the SDK source, the schema, the example and every app's API page. The tools answer what the panes show, and every change an agent makes appears in the open window at once (the engine's live events). The skill `formext-harness` teaches the loop: read the app's page, start from a starter, write, validate, preview, package, run in the app.
 
 ## Settings and the data folder
 
-Settings (`settings.json` in the data folder, read and changed through the engine's `/api/settings`) hold the theme, your author name, the default publisher key, the default licence, the default app for New, FormPortal's folder, the editor's font size, tab size and wrapping, the Preview's theme and consent defaults, and the registry: `registry.url` (the index address), `registry.checkout` (a local clone for Submit to Registry's checks) and `registry.developer` (read an index without a trusted key; for development only).
+Settings (`settings.json` in the data folder, read and changed through the engine's `/api/settings`) hold the theme, your author name, the default publisher key, the default licence, the default app for New, FormPortal's folder, the editor's font size, tab size and wrapping, the Preview's theme and consent defaults, and the registry: `registry.url` (the index address), `registry.checkout` (a local clone for Submit to Registry's checks) and `registry.developer` (read an index without a trusted key; for development only). The host source settings (`sources.auto`, `sources.base`, `sources.local.[key]`) are described under [Host sources](#host-sources).
 
 form.ext keeps its projects and everything it makes in its data folder: `FORMEXT_HOME` when set, otherwise the OS app-data folder `ai.nodemode.formext` (macOS Application Support, Windows `%APPDATA%`, Linux `~/.local/share`).
 
@@ -243,6 +282,8 @@ form.ext keeps its projects and everything it makes in its data folder: `FORMEXT
 | `keys/` | publisher keys |
 | `submissions/` | prepared submissions; `submissions/registry/extensions/<id>/` for the registry |
 | `registry/` | the last verified registry index and its signature, and the registry packages already downloaded (by SHA-256) |
+| `sources/[repository]/` | host sources: the apps' source code, read-only reference (`sources/form.md/`, `sources/form.ext-registry/`) |
+| `registry-work/` | the working clone and fork used to open a registry pull request |
 | `trash/` | removed projects |
 
 ## Keys

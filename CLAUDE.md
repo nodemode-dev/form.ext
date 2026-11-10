@@ -10,6 +10,7 @@ form.ext is the Form family's extension studio: it makes, previews, checks, pack
 - Ports: the interface on http://localhost:5640 (Vite, `server.host` false), the engine on http://127.0.0.1:8640.
 - Scripts are named as the family's: `formext` (boot), `formext_oc_install`, `build_app`, each with a `.bat` twin; `./formext agents install|status|sync` (`setup/agents.py`) and `./formext claude` connect Claude Code, Codex and Cursor. `.claude/skills` holds the formext skills and the host skills copied unchanged from the Form apps (`.claude/skills/HOSTS.md`); never edit those here.
 - The Studio's Terminal tab is owned by the engine (`services/terminal.py`, `services/claude_code.py`, `routers/terminal.py`, `routers/claude.py`): local-only routes, PTY sessions, a Chat tab on `claude -p`. Read the HASHOUT logs before editing.
+- The sources service (`services/sources.py`, `family.py`, `registry_pr.py`, with `routers/sources.py` and `routers/publish.py`) pulls the host apps' source into the data folder's `sources/` as read-only reference. It is never kept in this tree.
 - Planning documents (DEV_PLAN, BUILD_NOTES, TEST_PLAN, the root HASHOUT_LOG) ship in the planning sidecar zip, not in this tree. The living logs `frontend/HASHOUT_LOG.md` and `backend/HASHOUT_LOG.md` are in the tree: read them before editing.
 
 ## Rules
