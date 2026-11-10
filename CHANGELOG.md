@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.3.1 · 2026-11-10
+
+- Fixed: the contract kit's id, panel and command id and version patterns ended in `$`, which also matches before a trailing newline, so a manifest with such an id or version passed the check and the package file was named with a newline; they now end in `\Z` in the kit (`formpkg.py`, `formext_host.py`) and in the engine's own id patterns (`portal.py`, `workspace.py`, `keys.py`, `package.py`).
+- Fixed: the kit's check accepted an `entry.ui` that the package would never contain (a hidden file or a `../` path); it now requires the entry to be one of the files that get packed.
+- Fixed: `formext.bat cli`, `mcp` and `agents` passed the subcommand word twice and dropped the last argument; they now pass the arguments after it.
+- Fixed: the kit's `entry.ui` check compares the normalised path, so `./ui/index.html` and `ui//index.html` pass as before, and `SHA_RE` in `package.py` and `library.py` now ends in `\Z` too.
+- The tracked demo bundle `demo/assets/formext.js` was not rebuilt: its two version strings (`version:` in the health answer and `hy`) were edited by hand to 0.3.1.
+- Fixed: a registry index entry whose `sha256` is not exactly 64 lowercase hex characters is refused before it is used in the package cache path.
+
 ## v0.3.0 · 2026-11-09
 
 The browser demo opens inside the app.

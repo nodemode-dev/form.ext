@@ -2,8 +2,8 @@
 
 Living log for the interface: the shell, the shared styles and the build files. Source files stay comment-free; what they would have said lives here. Each pane keeps its own `src/panes/<name>/HASHOUT_LOG.md`.
 
-Current build version: v0.3.0
-Last updated: 2026-11-09 · v0.3.0 the demo opens in the app (#in-app-demo). Before: v0.2.1 the README's screenshots and the community files
+Current build version: v0.3.1
+Last updated: 2026-11-10 · v0.3.1 the version only. Before: v0.3.0 the demo opens in the app (#in-app-demo). Before: v0.2.1 the README's screenshots and the community files
 
 ---
 
