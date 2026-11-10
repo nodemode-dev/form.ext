@@ -63,6 +63,7 @@ next     package, then run_in_app after the person agrees
 - The manifest's permissions are exactly what the code calls, and its description is the one sentence from intake.
 - When packaged: the SHA-256 and size are reported, and `reproduce` agreed.
 - The reply says which commit of the host source the code was written against.
+- When it is headed for the registry: `docs/screenshot.png` exists (a picture of the extension running in the app, which the person takes) and every Permissions line in README.md gives the real reason; `submit` fails check 6 until both are there.
 - The reply lists the project id and folder, what was checked and how, what was not (for example not run in the real app), and the package path when there is one.
 
 ## When to load the others

@@ -17,7 +17,7 @@ Fix in the order errors, then warnings. Apply the `fix` text; re-run `validate` 
 
 ## preview
 
-`preview {id}` is the preview snapshot, what a host does before the person sees anything:
+`preview {id}` is the preview snapshot, what a host does before the person sees anything. The fields below are the tool's answer (`--json` on the command line); the command line's plain output prints the same as lines (`frame ... headers ok`, one `asset` line per file with its status) and names a missing file or an inline script only when there is one:
 
 | Field | Good |
 | --- | --- |

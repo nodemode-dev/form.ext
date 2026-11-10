@@ -15,7 +15,9 @@ The answer has `state` (absent, pulling, ready, failed), `dir`, `commit`, `licen
 
 1. The `docs` list: `CLAUDE.md`, `AGENTS.md`, `docs/EXTENSIONS.md` (`source_read {app, path}`).
 2. The `extension_host` files: the ops, the snapshot builder, the event emitters.
-3. `source_search {app, query}` for the exact command id or field, then `source_read {app, path, start, lines}` around the match. `source_files {app, under?, glob?}` lists what is there.
+3. `source_search {app, query}` for the exact command id or field, then `source_read {app, path, start, lines}` around the match. `source_files {app, under?, glob?}` lists what is there. A source also holds docs, logs and skills that mention the same words, so narrow a search to the code with `glob`, for example `glob: "web/src/extensions/*"` or `glob: "*.ts"`.
+
+On the command line the same calls are `./formext cli source-search formmd "doc.select" --glob "*.ts"` and `./formext cli source-read formmd docs/EXTENSIONS.md --start 60 --lines 40`.
 
 ## To find ... search for ...
 
@@ -30,7 +32,7 @@ The answer has `state` (absent, pulling, ready, failed), `dir`, `commit`, `licen
 
 ## Worked example: Form.md
 
-`source {app: "formmd"}`. Read `docs/EXTENSIONS.md`, then `internal/formext/formext.go` and `module.go`, then `web/src/extensions/formext/docops.ts`: it holds the `doc.*` ops and the snapshot builder. `document.apply` accepts only the nine `doc.*` ops, so `source_search {app: "formmd", query: "doc.replaceBlock"}` shows its args. For `app.run`, `source_search {app: "formmd", query: "id: \""}` in `web/src/engine/commands.ts` lists the command registry; ids starting `extensions.` or `ext.` and risky commands are not runnable from an extension.
+`source {app: "formmd"}`. Read `docs/EXTENSIONS.md`, then `internal/formext/formext.go` and `module.go`, then `web/src/extensions/formext/docops.ts`: it holds the `doc.*` ops (the `DOC_OPS` list) and the snapshot builder (the function `readDocument`; `outline` there lists only the page's top-level headings). `document.apply` accepts only the nine `doc.*` ops, so `source_search {app: "formmd", query: "doc.replaceBlock"}` shows its args. For `app.run`, `source_search {app: "formmd", query: "id: \""}` in `web/src/engine/commands.ts` lists the command registry; ids starting `extensions.` or `ext.` and risky commands are not runnable from an extension.
 
 ## The same pattern elsewhere
 
