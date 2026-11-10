@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <img alt="version 0.3.0" src="https://img.shields.io/badge/version-0.3.0-4f6bff?style=flat-square">
+  <img alt="version 0.4.0" src="https://img.shields.io/badge/version-0.4.0-4f6bff?style=flat-square">
   <img alt="Python FastAPI engine" src="https://img.shields.io/badge/Python-FastAPI%20engine-3776ab?style=flat-square&logo=python&logoColor=white">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-interface-3178c6?style=flat-square">
   <img alt="Tauri 2" src="https://img.shields.io/badge/Tauri-2-24C8DB?style=flat-square">
@@ -122,7 +122,13 @@
     </td>
     <td width="50%" valign="top">
       <h3>Library and publishing</h3>
-      Import or inspect any `.formpkg`, compare two builds, and start from form.ext-registry's verified extensions, read from its signed index. Publish writes the extensions index entry and a submission folder, sends the package to FormPortal, or submits the project to the registry: its layout, its own checks, and the commands for the pull request.
+      Import or inspect any `.formpkg`, compare two builds, and start from form.ext-registry's verified extensions, read from its signed index. Publish writes the extensions index entry and a submission folder, sends the package to FormPortal, or submits the project to the registry: its layout, the registry's own checks run from form.ext's copy, and the pull request opened in one step through `gh` (or the commands to run by hand).
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top">
+      <h3>The app's real source</h3>
+      The source code of the app you make an extension for is pulled into form.ext's data folder (<code>sources/</code>), read-only, when you make or open a project: a shallow git clone, or an archive when git is missing. You and your agent read the commands, document fields and events as the app really has them. <code>family</code> lists the apps, <code>source</code> pulls one, and the app's own skills are found with <code>skills</code>. GPL apps are for reading, not copying.
     </td>
   </tr>
 </table>
@@ -132,7 +138,7 @@
 <table>
   <tr>
     <td width="33%" valign="top"><h4>In the window</h4>Home · New · Studio (files, code, manifest, Check, Preview, Library) · Terminal and Claude Code · Run in App · Package · Publish · Docs · Preferences</td>
-    <td width="33%" valign="top"><h4>27 MCP tools</h4>status · docs · templates · new · read · write · manifest · validate · preview · package · sign · verify · run_in_app · publish · submit and the rest</td>
+    <td width="33%" valign="top"><h4>33 MCP tools</h4>status · docs · templates · new · read · write · manifest · validate · preview · package · sign · verify · run_in_app · publish · submit · family · source · source_files · source_read · source_search · skills and the rest</td>
     <td width="33%" valign="top"><h4>Twelve hosts</h4>FormVis · FormCut · FormWav · FormPDF · FormDeck · FormLit · form.md · FormEncoder · FormVFX · FormMCP · FormTray · FormSkills</td>
   </tr>
 </table>
@@ -145,6 +151,10 @@ The window, the command line and the MCP server call one engine, so an agent and
 ./formext cli new "Beat Board" --app formwav --starter panel   # a working project from a starter
 ./formext cli validate beat-board                              # Check, in the same words as the window
 ./formext cli package beat-board                               # the deterministic .formpkg
+./formext cli family                                           # every Form app, its repository, whether its source is here
+./formext cli source formwav                                   # pull FormWav's source to read (read-only)
+./formext cli skills formwav                                   # the skills that teach an agent FormWav
+./formext cli submit beat-board --ready                        # can the one-step registry pull request run here
 ./formext mcp                                                  # MCP server on stdio
 ```
 
@@ -160,7 +170,7 @@ The window, the command line and the MCP server call one engine, so an agent and
 ./formext agents sync --check   # exits 1 on any drift, for CI
 ```
 
-Two MCP servers are registered: `formext` (this studio) and `formmcp`, the Form family hub that reaches every installed Form app's own tools. formMCP is a separate app: when it is not installed, `formmcp` shows as failed or unavailable in your agent and everything else works; install it with FormPortal and run `./formext agents install` again. The skills include `formext-harness` (the build loop), `formext-hosts` (what an extension can do in each of the twelve apps, which host skill explains the app, how to test live) and the host skills copied from the apps themselves, recorded with their source commits in [`.claude/skills/HOSTS.md`](.claude/skills/HOSTS.md). With these, "make a FormWav extension that does X" can be built, checked, previewed, packaged and run in the app by Claude Code, Codex or Cursor.
+Two MCP servers are registered: `formext` (this studio) and `formmcp`, the Form family hub that reaches every installed Form app's own tools. formMCP is a separate app: when it is not installed, `formmcp` shows as failed or unavailable in your agent and everything else works; install it with FormPortal and run `./formext agents install` again. The skills include `formext-harness` (the build loop), `formext-hosts` (what an extension can do in each of the twelve apps, which host skill explains the app, how to test live) and the host skills copied from the apps themselves, recorded with their source commits in [`.claude/skills/HOSTS.md`](.claude/skills/HOSTS.md). With these, "make a FormWav extension that does X" can be built, checked, previewed, packaged and run in the app by Claude Code, Codex or Cursor. An agent can also read the app's real source (`source`, `source_files`, `source_read`, `source_search`), and `submit` with `pull_request` opens the registry pull request once the person agrees.
 
 ### Terminal
 
@@ -181,7 +191,7 @@ The app opens the same demo in its own window: Home, Demos, or Help, Demo: The S
 
 ## Run it from source
 
-**Requires:** Node 20.19 or newer, Python 3.12, git. Rust stable and the Tauri prerequisites only for the desktop window.
+**Requires:** Node 20.19 or newer, Python 3.12, git (and GitHub's `gh`, signed in once, only for the one-step registry pull request). Rust stable and the Tauri prerequisites only for the desktop window.
 
 ```sh
 git clone git@github.com:nodemode-dev/form.ext.git
