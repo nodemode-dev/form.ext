@@ -22,6 +22,7 @@ DEFAULTS: dict[str, Any] = {
         "checkout": "",
         "developer": False,
     },
+    "sources": {"auto": True, "base": "", "local": {}},
 }
 
 _lock = threading.Lock()

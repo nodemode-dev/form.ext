@@ -15,7 +15,7 @@ import threading
 import time
 from pathlib import Path
 
-from app.services import agents, paths, terminal
+from app.services import agents, paths, sources, terminal
 from app.services.workspace import WorkspaceError, workspace
 
 log = logging.getLogger("formext.claude_code")
@@ -32,11 +32,16 @@ _cache: dict = {"at": 0.0, "value": None}
 
 def note(folder: str, project: str | None) -> str:
     where = f"the extension project {project}" if project else "no extension project yet"
+    host = sources.project_source(project)
+    source = (
+        f"The source code of the host app ({host[0]}) is on this computer at {host[1]}, read-only and added to your directories: read it for the app's real commands, document fields and events. "
+        if host else "Call the formext source tool with the host app's id to bring that app's source code onto this computer, then read it for the app's real commands, document fields and events. "
+    )
     return (
         "You are Claude Code inside form.ext, the Form family's extension studio, in its Terminal panel under the editor. "
         f"Your working directory is {folder} ({where}). "
         "Make, check, preview, package and run Form extensions with the formext MCP server's tools: start with status, then docs for the contract and for the host app, "
-        "and use the formext-harness and formext-hosts skills. To understand a host app and to drive it, load that app's own skill (see formext-hosts) and, when the formmcp server is available, "
+        "and use the formext-harness and formext-hosts skills. " + source + "To understand a host app and to drive it, load that app's own skill (see formext-hosts) and, when the formmcp server is available, "
         "its app_tools and call_app. Ask the person before run_in_app, publish and delete."
     )
 
@@ -114,9 +119,13 @@ def mcp_config(port: int) -> str:
     return json.dumps({"mcpServers": agents.mcp_servers(terminal.engine_url(port))})
 
 
-def extra_dirs() -> list[str]:
+def extra_dirs(project: str | None = None) -> list[str]:
     root = paths.repo_root()
-    return ["--add-dir", str(root)] if terminal.source_checkout() else []
+    out = ["--add-dir", str(root)] if terminal.source_checkout() else []
+    host = sources.project_source(project)
+    if host:
+        out += ["--add-dir", str(host[1])]
+    return out
 
 
 class Agent:
@@ -342,7 +351,7 @@ def start(mode: str = "ask", fresh: bool = False, port: int | None = None, proje
     AGENT.project = project
     args = [found["path"], "-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose", "--include-partial-messages",
             "--permission-prompt-tool", "stdio", "--permission-mode", MODES[mode], "--append-system-prompt", note(folder, project),
-            "--mcp-config", mcp_config(port or 8640), *extra_dirs()]
+            "--mcp-config", mcp_config(port or 8640), *extra_dirs(project)]
     if AGENT.session:
         args += ["--resume", AGENT.session]
     AGENT.gen += 1
@@ -409,7 +418,7 @@ def terminal_env(port: int) -> dict:
 
 
 def terminal_argv(path: str, port: int, folder: str, project: str | None, prompt: str | None, resume: str | None) -> list[str]:
-    cmd = [path, "--mcp-config", mcp_config(port), "--allowedTools", "mcp__formext", "mcp__formmcp", "--append-system-prompt", note(folder, project), *extra_dirs()]
+    cmd = [path, "--mcp-config", mcp_config(port), "--allowedTools", "mcp__formext", "mcp__formmcp", "--append-system-prompt", note(folder, project), *extra_dirs(project)]
     if resume:
         cmd += ["--resume", resume]
     if prompt:

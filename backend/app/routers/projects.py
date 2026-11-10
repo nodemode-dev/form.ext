@@ -4,6 +4,7 @@ import mimetypes
 from fastapi import APIRouter, Body, Request
 from fastapi.responses import Response
 
+from app.services import sources
 from app.services.workspace import WorkspaceError, clean_rel, workspace
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
@@ -69,6 +70,7 @@ def get_project(pid: str, touch: bool = True):
     project = workspace.get(pid)
     if touch:
         workspace.touch(pid)
+        sources.auto(str(project.get("product") or ""))
     return project
 
 
