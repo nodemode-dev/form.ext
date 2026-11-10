@@ -2,6 +2,12 @@
 
 The living log of the form.ext engine. Read it before editing `backend/`. Core files belong to the engine module; module routers and services (`routers/<module>.py`, `services/<module>.py`) keep their own notes in their own HASHOUT logs.
 
+## 0.3.1 anchors, entry file, registry digest
+
+- refers-to: contract/tools/formpkg.py; contract/host/python/formext_host.py
+- The kit's `ID_RE`, `LOCAL_RE` and `VERSION_RE` ended in `$`, which Python also matches before a trailing newline, so a manifest id, version or contributed id ending in a newline passed the check (and named the built file with a newline) while the JSON schema refused it. They now end in `\Z`, in `formpkg.py` and `formext_host.py`, byte for byte as the kit mirror in form.ext-registry.
+- `formpkg.problems()` checked `entry.ui` with `is_file()`, which accepts a hidden file or a `../` path that `files_of()` never packs, so the built package had no entry file. It now requires the entry to be one of the files `files_of()` would pack.
+
 ## 0.2.2 cryptography on Intel Macs
 
 - refers-to: backend/requirements.txt; NOTICE.md
