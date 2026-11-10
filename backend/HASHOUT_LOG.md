@@ -8,6 +8,7 @@ The living log of the form.ext engine. Read it before editing `backend/`. Core f
 - The kit's `ID_RE`, `LOCAL_RE` and `VERSION_RE` ended in `$`, which Python also matches before a trailing newline, so a manifest id, version or contributed id ending in a newline passed the check (and named the built file with a newline) while the JSON schema refused it. They now end in `\Z`, in `formpkg.py` and `formext_host.py`, byte for byte as the kit mirror in form.ext-registry.
 - `formpkg.problems()` checked `entry.ui` with `is_file()`, which accepts a hidden file or a `../` path that `files_of()` never packs, so the built package had no entry file. It now requires the entry to be one of the files `files_of()` would pack.
 - The same `$` to `\Z` change in the engine's own id patterns, so a project, extension or publisher id with a trailing newline is refused there too: `services/portal.py` (`ID_RE`), `services/workspace.py` (`ID_RE`), `services/keys.py` (`PUBLISHER_RE`) and `services/package.py` (the project id check in `_root`). The messages that print the pattern are unchanged.
+- `formext.bat` `cli`, `mcp` and `agents` ran `shift & ... %1 ... %9` on one line, and cmd expands `%n` before `shift` runs, so the subcommand word was passed twice and the ninth argument lost. They now pass `%2` to `%9` without `shift`, as the `app` line does. Traced, not run: no Windows host. The file keeps its line endings (LF in this tree).
 
 ## 0.2.2 cryptography on Intel Macs
 
