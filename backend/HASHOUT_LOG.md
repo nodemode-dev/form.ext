@@ -9,6 +9,7 @@ The living log of the form.ext engine. Read it before editing `backend/`. Core f
 - `formpkg.problems()` checked `entry.ui` with `is_file()`, which accepts a hidden file or a `../` path that `files_of()` never packs, so the built package had no entry file. It now requires the entry to be one of the files `files_of()` would pack.
 - The same `$` to `\Z` change in the engine's own id patterns, so a project, extension or publisher id with a trailing newline is refused there too: `services/portal.py` (`ID_RE`), `services/workspace.py` (`ID_RE`), `services/keys.py` (`PUBLISHER_RE`) and `services/package.py` (the project id check in `_root`). The messages that print the pattern are unchanged.
 - `formext.bat` `cli`, `mcp` and `agents` ran `shift & ... %1 ... %9` on one line, and cmd expands `%n` before `shift` runs, so the subcommand word was passed twice and the ninth argument lost. They now pass `%2` to `%9` without `shift`, as the `app` line does. Traced, not run: no Windows host. The file keeps its line endings (LF in this tree).
+- `services/registry.py` `Registry.package` only checked that an index entry's `sha256` had 64 characters before using it in the cache path `packages/<sha256>.formpkg`, so a value with `../` could read, write or unlink a `.formpkg` outside the cache (reachable with an unsigned index, that is the `registry.developer` setting). It now needs exactly 64 lowercase hex characters (`re.fullmatch`) and otherwise answers with the existing "no usable package address or SHA-256" refusal.
 
 ## 0.2.2 cryptography on Intel Macs
 

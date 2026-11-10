@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import tempfile
 import threading
 import time
@@ -313,7 +314,7 @@ class Registry:
         index, entry = self._entry(eid)
         url = str(entry.get("url") or "")
         digest = str(entry.get("sha256") or "")
-        if not url.startswith(("https://", "http://", "file://")) or len(digest) != 64:
+        if not url.startswith(("https://", "http://", "file://")) or not re.fullmatch(r"[0-9a-f]{64}", digest):
             raise RegistryError(f"The registry entry of {eid} has no usable package address or SHA-256.", "format", 422)
         url = mirrored(url, index["url"])
         cached = _cache_dir() / "packages" / f"{digest}.formpkg"
