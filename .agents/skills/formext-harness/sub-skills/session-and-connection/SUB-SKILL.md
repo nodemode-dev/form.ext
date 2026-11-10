@@ -13,7 +13,7 @@ The server (`./formext mcp`) and the command line (`./formext cli`) call the eng
 2. Otherwise a running engine whose data folder is the same as theirs: the desktop app's (its port is in `engine.port` in the data folder) or `./formext boot`'s on 127.0.0.1:8640 (`FORMEXT_PORT` moves it).
 3. Otherwise the engine's routes run inside the server process (`--local` forces this). Nothing is lost: the data folder is the same, and an open window picks up the files from disk. Live events (the window refreshing at once) need the running engine.
 
-`status` reports `engine.mode` (`http` or `in-process`), the URL, the data folder and which modules the engine has (check, new, preview, package, run, publish). A module marked no is not in that build: its tools fail with a sentence naming the missing router.
+`status` reports `engine.mode` (`http` or `in-process`), the URL, the data folder and which modules the engine has (check, new, preview, package, run, publish, sources). A module marked no is not in that build: its tools fail with a sentence naming the missing router.
 
 ## Setup
 
@@ -28,7 +28,10 @@ The server (`./formext mcp`) and the command line (`./formext cli`) call the eng
 | `FORMEXT_HOME` | form.ext's data folder (projects, builds, keys, submissions, settings) |
 | `FORMEXT_URL` | the engine to talk to |
 | `FORMEXT_PORT` | the port probed for a running engine (default 8640) |
+| `FORMEXT_SOURCES_BASE` | another address to pull the host apps' sources from (default `https://github.com/nodemode-dev`) |
 | `FORMPORTAL_ROOT` | FormPortal's folder, where Run in App writes `extensions/[product]/dev.json` |
+
+Inside the data folder, pulled sources live in `sources/` and the registry working clone for pull requests in `registry-work/`.
 
 Use a scratch `FORMEXT_HOME` and `FORMPORTAL_ROOT` for experiments, so the person's real projects and apps are untouched.
 

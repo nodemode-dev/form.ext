@@ -17,6 +17,17 @@ description: "form.ext's engine modules, each a routers/[module].py with its ser
 | publish | `GET /api/publish/{id}` (with `registry {submission, folder, checkout, repo}`), `POST /api/publish/{id} {url, publisher, passphrase, sign}`, `POST /api/publish/{id}/send`, `POST /api/publish/{id}/reveal`, `POST /api/publish/{id}/registry` (Submit to Registry), `POST /api/publish/{id}/registry/reveal` |
 | library | `POST /api/library/inspect`, `POST /api/library/import` (JSON `{path}` or the raw bytes), `GET/POST /api/library/builds/{id}/{sha}[/import]`, `GET /api/library/compare/{id}[/file]`, `GET /api/library/registry[?refresh=1]`, `GET /api/library/registry/{id}`, `POST /api/library/registry/{id}/import` (`services/registry.py`: the signed index, keys in `app/registry_keys.txt` plus `FORMEXT_REGISTRY_PUBKEY`) |
 
+## Sources, family and the registry pull request
+
+`services/sources.py` is the source store (shallow clones, or archive downloads when git is missing, under the data folder's `sources/[repository name]/`), `services/family.py` the family map and the link to FormSkills (`formskills-cli`), `services/registry_pr.py` the pull request for Submit to Registry (working clone in `registry-work/`). Routes: `GET /api/sources`, `GET /api/sources/family`, `/api/sources/{key}` with `pull`, `files`, `file`, `search` and `skills`, and `GET|POST /api/publish/{pid}/registry/pull-request`. Events: `source.changed` and `publish.pull_request`.
+
+- **Sources are read-only.** Never build, install or execute anything from a pulled source, and never write into it. A source set with `sources.local.[key]` is the person's own checkout: never delete it.
+- **Subprocess calls take an argument list.** Every call to git, `gh` or `formskills-cli` passes a list, never a shell string.
+- **Caller paths go through `_inside`.** Any path from a caller (a file in a source, a skills checkout) is checked with `_inside` before use.
+- **Network failures become a plain sentence.** A failed pull, download or `gh` call answers with a sentence a person can act on, and the source state becomes `failed`; no traceback reaches the answer.
+- **The pull request is opt-in and public.** It runs only for `pull_request: true`, refuses while the registry's checks fail or a README or LICENSE placeholder is left, and posts under the person's GitHub account.
+- **New ops** go into the `OPS` table in `backend/app/cli.py` (the route first), then run `./formext agents sync`.
+
 Each module keeps its own notes in its pane folder's `HASHOUT_LOG.md` (for example `frontend/src/panes/check/HASHOUT_LOG.md` covers the validate service and router).
 
 ## Rules

@@ -1,6 +1,6 @@
 # formvis commands
 
-Generated from the window's command catalogue (1670 commands) by `./formvis agents sync`; do not edit by hand. The live list is `GET /api/commands` or the MCP tools `list_commands` and `describe_command`; run one with `run_command`, several as one undo step with `run_commands`.
+Generated from the window's command catalogue (1674 commands) by `./formvis agents sync`; do not edit by hand. The live list is `GET /api/commands` or the MCP tools `list_commands` and `describe_command`; run one with `run_command`, several as one undo step with `run_commands`.
 
 ## Contents
 
@@ -19,7 +19,7 @@ Generated from the window's command catalogue (1670 commands) by `./formvis agen
 - Tools: 53
 - Type: 66
 - View: 102
-- Window: 152
+- Window: 156
 
 ## Edit
 
@@ -1714,6 +1714,10 @@ Generated from the window's command catalogue (1670 commands) by `./formvis agen
 | `delete-brush-preset` | Delete Brush Preset |  | Deletes a saved or imported brush preset by id; the built-in presets stay. |
 | `delete-frame` | Delete Frame |  | Deletes the current animation frame. (changes the picture) |
 | `delete-workspace` | Delete Workspace |  | Deletes the saved workspace chosen in the title bar and returns to Essentials; the built-in workspaces cannot be deleted. |
+| `demo-design` | Type and design |  | Opens the design demo as a new, unsaved document: an event kit on three artboards with live type, shape layers, layer styles and Smart Filters. |
+| `demo-open` | Open a Demo |  | Opens one of the three demos by id (paint, retouch, design) as new, unsaved documents; nothing open is replaced. Param id. |
+| `demo-paint` | Painting and photo editing |  | Opens the painting demo as new, unsaved documents: a landscape painted with the brush over masks, adjustment layers and type, the poster Above the Clouds and five photographs. |
+| `demo-retouch` | Selections and retouching |  | Opens the retouching demo as new, unsaved documents: a portrait retouched with Spot Healing, Clone Stamp and Selection-Aware Fill with a refined subject selection, and a photograph with a chain selected for Remove. |
 | `developer-tools` | Developer Tools |  | Opens the web inspector of the desktop window; in a browser tab it says to use the browser's own developer tools. |
 | `float-all-windows` | Float All in Windows |  | Gives every open document a floating window of its own. |
 | `float-window` | Float in Window |  | Detaches a view of the current document into a floating window inside the app, with its own zoom, pan and rotation; drag its title to move it and its edges to resize it. |

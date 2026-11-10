@@ -10,12 +10,34 @@ Source: `docs/apps/[app].md` and `contract/CONTRACT.md`. The page of each app is
 | formpdf | `formpdf-harness` | summary, text, fields, comments, selection, file | command, page_numbers, header_footer, watermark, annotate, fill, form, organize, crop, redact, metadata, compress, sanitize, ocr | Extensions menu between Tools and Window; last tab Extensions; Mod+K |
 | formdeck | `formdeck-harness` | deck, slide, slide with id or number, selection, json | apply-ops (set, ins, del, move on the deck JSON), new-slide, duplicate-slide, set-font, align and distribute commands | Extensions menu between Present and Help; right side pane; Shift+Mod+P |
 | formlit | `formlit-driving` | summary, selection, photo, catalog | photo.addKeywords, photo.rate, photo.flag, photo.label, collection.create, develop.set, develop.auto, preset.apply, library.select | Extensions menu between Window and Help; right column in every module |
-| form.md | none (read the app page) | all, blocks, markdown, selection, outline, page, file | doc.insertMarkdown, doc.replaceBlock, doc.setBlockText, doc.replaceText, doc.markText, page.new, page.newDatabase, page.find | Extensions item in the sidebar foot; Mod+Shift+P; right-side pane |
+| form.md | none (API page, then `source`) | all, blocks, markdown, selection, outline, page, file | doc.insertMarkdown, doc.replaceBlock, doc.setBlockText, doc.replaceText, doc.markText, page.new, page.newDatabase, page.find | Extensions item in the sidebar foot; Mod+Shift+P; right-side pane |
 | formencoder | `formencoder-harness` | queue, selection, watch, presets, formats, history | queue.addSource, queue.setPreset, queue.setSettings, queue.start, encode.estimate, encode.verify, preset.create, captions.convert, watch.add | Extensions menu between Effects and Window; right dock group; Cmd or Ctrl K |
 | formvfx | `formvfx-harness` | summary, project, comp, layers, selection, file | comp.new, layer.newSolid, layer.newText, layer.setTransform, prop.set, prop.addKey, effect.apply, keys.easyEase, time.set | Extensions menu between Window and Help; right panel group; Cmd+K |
 | formmcp | `formmcp-harness` | its own state (see the page) | set_for, set_expose, set_start, set_tool, tool_list, profile_save, profile_use, select_agent, refresh | Extensions button in the filter row; section under the filter row; no palette |
-| formtray | none (read the app page) | all, apps, board, pinned, hidden, updates, view | board.add, group.create, stack.pin, app.hide, app.open, view.show, apps.rescan | Extensions submenu of the tray menu; sheet over the panel; dock panels become Widgets tiles |
-| formskills | none (read the app page) | view, selection, library, skill, file, edits, own | choose, open-skill, open-file, filter, search, read-file, check, edit-start, edit-write, own-new | Extensions button in the header; detail pane; no palette |
+| formtray | none (API page, then `source`) | all, apps, board, pinned, hidden, updates, view | board.add, group.create, stack.pin, app.hide, app.open, view.show, apps.rescan | Extensions submenu of the tray menu; sheet over the panel; dock panels become Widgets tiles |
+| formskills | none (API page, then `source`) | view, selection, library, skill, file, edits, own | choose, open-skill, open-file, filter, search, read-file, check, edit-start, edit-write, own-new | Extensions button in the header; detail pane; no palette |
+
+## Identity, licence, skill and formMCP reach
+
+Second table, same order, plus FormPortal (which installs the apps and is not itself a host). Repositories are `nodemode-dev/[repo]`. The licence is the source repository's. "Reach" says whether formMCP can drive the app through the app's own MCP server.
+
+| Product id | App | For | Repository | Licence | Skill that teaches driving it | formMCP reach |
+| --- | --- | --- | --- | --- | --- | --- |
+| formvis | FormVis | layered image editing | `formvis` | Apache-2.0 | `formvis-driving` | yes |
+| formcut | FormCut | local multi-track video editing | `formcut` | Apache-2.0 | `formcut-mcp` | yes |
+| formwav | FormWav | audio editing and music, multitrack | `formwav` | Apache-2.0 | `formwav-harness` | yes |
+| formpdf | FormPDF | PDF editing, redaction, OCR, signing, forms | `formpdf` | Apache-2.0 | `formpdf-harness` | yes |
+| formdeck | FormDeck | presentations | `formdeck` | Apache-2.0 | `formdeck-harness` | yes |
+| formlit | FormLit | photo library and raw developer | `formlit` | Apache-2.0 | `formlit-driving` | yes |
+| formmd | Form.md | workspace of documents and databases | `form.md` | Apache-2.0 | none: read its API page and source | yes |
+| formencoder | FormEncoder | media encoding queue | `formencoder` | Apache-2.0 | `formencoder-harness` | yes |
+| formvfx | FormVFX | motion graphics and VFX compositing | `formvfx` | Apache-2.0 | `formvfx-harness` | yes |
+| formmcp | formMCP | agent gateway to the family | `formMCP` | GPL-3.0 | `formmcp-harness` | it is the hub itself |
+| formtray | FormTray | launcher for every Form app | `formtray` | Apache-2.0 | none: read its API page and source | no (no MCP server) |
+| formskills | FormSkills | the apps' released agent skills | `formskills` | GPL-3.0 | none: read its API page and source | no (no MCP server) |
+| formportal | FormPortal | installs, updates and rolls back the apps | `formportal` | GPL-3.0 | `formportal-harness` | not checked; it has its own MCP server (`formportal mcp`), so use `formportal-harness` |
+
+Form.md has `contextual-compression` in its repository, but that skill is about context packing, not driving the app. The source of a GPL app may be read to learn its API; copying its code into an extension puts the extension under the GPL.
 
 ## Agents and tools per app
 

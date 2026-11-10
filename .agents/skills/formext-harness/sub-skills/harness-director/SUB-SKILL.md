@@ -19,7 +19,8 @@ Settle these before the first change. Ask in plain prose only for what the reque
 ## 2. Read before writing
 
 1. `docs {topic: "[product]"}`: the document snapshot, the ops (`document.apply` commands with their args), `app.run` commands, and the events. Note the exact command ids and fields you will use.
-2. `templates {product}` and, after `new`, `read` the starter's `ui/app.js`: it already reads the document and runs a real command, so extend it rather than starting blank.
+2. `source {app: "[product]"}`, then read the `docs` files and `extension_host` files it names and `source_search` the commands and fields from step 1. Note the exact command ids and fields from the code, and the commit (`host-source` has the recipes).
+3. `templates {product}` and, after `new`, `read` the starter's `ui/app.js`: it already reads the document and runs a real command, so extend it rather than starting blank.
 
 ## 3. Plan
 
@@ -27,6 +28,7 @@ Write a short plan in the reply before editing:
 
 ```text
 app       formcut, starter panel-commands, id beat-markers
+source    formcut at commit a1b2c3d, ops and commands confirmed in backend/app/extensions.py
 reads     document.read "project": timeline.tracks[].clips[], selection.clipId
 does      app.run media.beats {mediaId}; document.apply "Beat markers" [marker.add {t, note}]
 contributes panel main (dock), command open-beats (panel main), command mark-beats (headless)
@@ -48,6 +50,7 @@ On long jobs keep a ledger in replies:
 
 ```text
 project  beat-markers (formcut) /data/projects/beat-markers
+source   formcut a1b2c3d ready, media.beats and marker.add found in the code
 checked  validate 0 errors 1 warning (unused-permission files-read, removed)
 preview  ready, 3 assets served, consent: read and change the open document
 next     package, then run_in_app after the person agrees
@@ -59,6 +62,7 @@ next     package, then run_in_app after the person agrees
 - `preview` reports state ready, `headers_ok`, no `missing` and no `inline_script`.
 - The manifest's permissions are exactly what the code calls, and its description is the one sentence from intake.
 - When packaged: the SHA-256 and size are reported, and `reproduce` agreed.
+- The reply says which commit of the host source the code was written against.
 - The reply lists the project id and folder, what was checked and how, what was not (for example not run in the real app), and the package path when there is one.
 
 ## When to load the others
