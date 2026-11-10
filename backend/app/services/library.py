@@ -42,7 +42,7 @@ PERMISSION_WORDS = {
     "native-code": "Run native code",
 }
 
-SHA_RE = re.compile(r"^[0-9a-f]{64}$")
+SHA_RE = re.compile(r"^[0-9a-f]{64}\Z")
 
 
 class Refused(WorkspaceError):
