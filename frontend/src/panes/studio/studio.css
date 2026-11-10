@@ -70,6 +70,9 @@
 .st-projcard > div { display: flex; flex-direction: column; min-width: 0; }
 .st-projcard-name { font-size: var(--fs-14); font-weight: 600; }
 .st-projcard small { color: var(--ink-soft); font-size: var(--fs-12); }
+.st-projcard-src { display: flex; align-items: center; gap: var(--sp-2); height: var(--ctl-sm); min-width: 0; }
+.st-projcard-src small { flex: 1 1 auto; min-width: 0; color: var(--ink-faint); }
+.st-projcard-src .btn { flex: none; min-width: calc(var(--ctl-sm) * 3.6); justify-content: center; }
 .st-search { display: flex; align-items: center; gap: var(--sp-2); height: var(--ctl-lg); margin: var(--sp-3); padding: 0 var(--sp-3); border: 1px solid var(--edge); border-radius: var(--radius-lg); background: var(--main); color: var(--ink-faint); flex: none; }
 .st-search input { flex: 1 1 auto; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--ink); font: inherit; font-size: var(--fs-13); }
 .st-colh { display: flex; justify-content: space-between; padding: var(--sp-2) var(--sp-3); border-top: 1px solid var(--edge); border-bottom: 1px solid var(--edge); color: var(--ink-faint); font-size: var(--fs-12); flex: none; }

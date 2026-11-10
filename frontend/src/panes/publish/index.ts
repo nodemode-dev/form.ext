@@ -34,7 +34,7 @@ interface RegistrySubmission {
   prepared_at: number;
 }
 interface Status {
-  registry: { submission: RegistrySubmission | null; folder: string; checkout: string; repo: string };
+  registry: { submission: RegistrySubmission | null; folder: string; checkout: string; managed?: boolean; repo: string };
   project: string;
   manifest: Record<string, unknown>;
   default_url: string;
@@ -43,9 +43,16 @@ interface Status {
   submission: Submission | null;
   submissions_dir: string;
 }
+interface Need { what: string; say: string; how: string }
+interface Readiness { ready: boolean; git: boolean; gh: boolean; signed_in: boolean; login: string | null; needs: Need[]; repo: string }
+interface PullRequest { ok: boolean; state: string; url?: string; branch?: string; title?: string; message?: string; next?: string }
+interface PrView { kind: 'info' | 'success' | 'warning' | 'error'; text: string; needs: Need[]; url: string }
 interface Sent { method: string; opened?: string; note?: string | null; cli_error?: string | null; installed?: { name?: string; version?: string } | null }
 
 const NO_SIGN = '';
+const HAS_CHECKOUT = 'A local clone of nodemode-dev/form.ext-registry. With one, Submit runs its tools/check.py, the checks CI runs; without one, form.ext\'s own Check.';
+const MANAGED_CHECKOUT = 'form.ext keeps its own copy of nodemode-dev/form.ext-registry and fetches it at each submit, so this can stay empty. Fill it in only to use your own clone; Submit then runs that clone\'s tools/check.py.';
+const NO_ENGINE: Readiness = { ready: false, git: false, gh: false, signed_in: false, login: null, needs: [{ what: 'engine', say: 'Opening a pull request needs the form.ext engine on this computer.', how: '' }], repo: 'nodemode-dev/form.ext-registry' };
 const PLAIN: Record<string, string> = {
   document: 'read and change the open document',
   'files-read': 'open files you choose',
@@ -121,16 +128,23 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
           </section>
           <section class="section publish-reg">
             <div class="section-title">Submit to Registry</div>
-            <p class="publish-reg-lead">Official Form extensions live in form.ext-registry, one folder per extension. Submit writes this project into that layout, runs the registry's checks on it, and gives the commands that open the pull request; the owners review it, and once merged the registry signs and publishes it.</p>
+            <p class="publish-reg-lead">Official Form extensions live in form.ext-registry, one folder per extension. Submit writes this project into that layout, and runs the registry's checks on it. Open pull request then sends it for review, or you run the commands yourself; the owners review it, and once merged the registry signs and publishes it.</p>
             <div class="publish-form">
               <div class="field publish-checkout-field">
                 <label for="publish-checkout">Registry checkout</label>
                 <input id="publish-checkout" class="input code publish-checkout" spellcheck="false" autocomplete="off" placeholder="/path/to/form.ext-registry" />
-                <span class="hint">A local clone of nodemode-dev/form.ext-registry. With one, Submit runs its tools/check.py, the checks CI runs; without one, form.ext's own Check.</span>
+                <span class="hint publish-checkout-hint">${HAS_CHECKOUT}</span>
               </div>
               <div class="publish-reg-go"><button class="btn primary publish-submit" type="button" disabled>${icon('upload')}<span>Submit to Registry</span></button></div>
             </div>
             <div class="notice publish-reg-status info" role="status"><span class="publish-reg-icon">${icon('info')}</span><span class="publish-reg-text">&nbsp;</span></div>
+            <div class="section-title">Open the pull request</div>
+            <div class="publish-reg-pr-row">
+              <button class="btn primary publish-reg-pr" type="button" disabled>${icon('upload')}<span>Open pull request</span></button>
+              <a class="publish-reg-pr-link" href="https://github.com/nodemode-dev/form.ext-registry/pulls" target="_blank" rel="noreferrer" hidden>&nbsp;</a>
+            </div>
+            <div class="notice publish-reg-pr-status info" role="status"><span class="publish-reg-pr-icon">${icon('info')}</span><span class="publish-reg-pr-text">&nbsp;</span></div>
+            <ul class="publish-reg-pr-needs"></ul>
             <dl class="publish-facts publish-reg-facts">
               <dt>Folder</dt><dd><code class="publish-reg-folder">&nbsp;</code></dd>
               <dt>Files</dt><dd class="publish-reg-files">&nbsp;</dd>
@@ -142,7 +156,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
             </div>
             <div class="section-title">Checks</div>
             <pre class="code-block publish-reg-report">&nbsp;</pre>
-            <div class="section-title">Commands for the pull request</div>
+            <div class="section-title">Or by hand: the commands for the pull request</div>
             <pre class="code-block publish-reg-commands">&nbsp;</pre>
           </section>
         </div>
@@ -183,7 +197,17 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
   const regCopy = q<HTMLButtonElement>('.publish-reg-copy');
   const regReport = q('.publish-reg-report');
   const regCommands = q('.publish-reg-commands');
+  const checkoutHint = q('.publish-checkout-hint');
+  const prBtn = q<HTMLButtonElement>('.publish-reg-pr');
+  const prLink = q<HTMLAnchorElement>('.publish-reg-pr-link');
+  const prStatus = q('.publish-reg-pr-status');
+  const prNeeds = q('.publish-reg-pr-needs');
   let regLevel = '';
+  let prLevel = '';
+  let needsSig = '';
+  let prBusy = false;
+  let prReady: Readiness | null = null;
+  let prResult: PrView | null = null;
 
   let state: Status | null = null;
   let busy = false;
@@ -231,9 +255,127 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     setText(regStatus.lastElementChild, text);
   }
 
+  function setPrStatus(kind: PrView['kind'], text: string): void {
+    if (prLevel !== kind) {
+      prStatus.className = `notice publish-reg-pr-status ${kind}`;
+      prStatus.firstElementChild!.innerHTML = icon(kind);
+      prLevel = kind;
+    }
+    setText(prStatus.lastElementChild, text);
+  }
+
+  function needItem(n: Need): HTMLElement {
+    const li = document.createElement('li');
+    li.append(n.say);
+    if (n.how) {
+      li.append(' ');
+      if (/^https?:\/\//.test(n.how)) {
+        const a = document.createElement('a');
+        a.href = n.how;
+        a.target = '_blank';
+        a.rel = 'noreferrer';
+        a.textContent = n.how;
+        li.append(a);
+      } else {
+        const c = document.createElement('code');
+        c.textContent = n.how;
+        li.append(c);
+      }
+    }
+    return li;
+  }
+
+  function setNeeds(needs: Need[]): void {
+    const sig = JSON.stringify(needs.map((n) => [n.say, n.how]));
+    if (sig === needsSig) return;
+    needsSig = sig;
+    prNeeds.replaceChildren(...needs.map(needItem));
+  }
+
+  function setPrLink(url: string): void {
+    if (prLink.hidden !== !url) prLink.hidden = !url;
+    if (!url) return;
+    if (prLink.getAttribute('href') !== url) prLink.setAttribute('href', url);
+    setText(prLink, url);
+  }
+
+  function renderPr(): void {
+    const ok = !!state && state.project === ctx.project.current()?.id && !!state.registry.submission?.checks?.ok;
+    const disabled = busy || prBusy || !ok || !prReady?.ready;
+    if (prBtn.disabled !== disabled) prBtn.disabled = disabled;
+    if (prBusy) {
+      setPrStatus('info', 'Opening the pull request: checking, pushing to your fork. This can take a minute.');
+      setNeeds([]);
+    } else if (prResult) {
+      setPrStatus(prResult.kind, prResult.text);
+      setNeeds(prResult.needs);
+      setPrLink(prResult.url);
+    } else if (!prReady) {
+      setPrStatus('info', 'Checking whether this computer can open the pull request...');
+      setNeeds([]);
+      setPrLink('');
+    } else if (prReady.ready && !ok) {
+      setPrStatus('info', `This computer is ready (GitHub account ${prReady.login ?? 'signed in'}). Submit to Registry first: the button opens once the checks pass.`);
+      setNeeds([]);
+      setPrLink('');
+    } else if (prReady.ready) {
+      setPrStatus('info', `Ready: form.ext will fork ${prReady.repo || 'nodemode-dev/form.ext-registry'} as ${prReady.login ?? 'you'}, push the branch and open the pull request.`);
+      setNeeds([]);
+      setPrLink('');
+    } else {
+      setPrStatus('warning', prReady.needs.length ? 'Not ready yet. form.ext still needs:' : 'Not ready yet.');
+      setNeeds(prReady.needs);
+      setPrLink('');
+    }
+  }
+
+  async function loadReady(pid: string): Promise<void> {
+    try {
+      prReady = await ctx.api.get<Readiness>(`/api/publish/${encodeURIComponent(pid)}/registry/pull-request`);
+    } catch {
+      prReady = NO_ENGINE;
+    }
+    renderPr();
+  }
+
+  async function openPullRequest(): Promise<void> {
+    const project = ctx.project.current();
+    if (!project || busy || prBusy) return;
+    const sb = state && state.project === project.id ? state.registry.submission : null;
+    if (!sb?.checks?.ok) {
+      prResult = { kind: 'warning', text: 'Submit to Registry first: the pull request opens only when the checks have passed.', needs: [], url: '' };
+      renderPr();
+      return;
+    }
+    const repo = state?.registry.repo || 'nodemode-dev/form.ext-registry';
+    const yes = await ctx.dialog.confirm('Open a public pull request?', `This posts publicly under your GitHub account. form.ext forks ${repo} into your account, pushes ${sb.id} ${sb.version} to your fork and opens a pull request on ${repo}, where anyone can see it.`, 'Open Pull Request');
+    if (!yes) return;
+    prBusy = true;
+    prResult = null;
+    renderPr();
+    try {
+      const r = await ctx.api.post<PullRequest>(`/api/publish/${encodeURIComponent(project.id)}/registry/pull-request`);
+      if (r.ok) {
+        const said = r.state === 'updated' ? 'The pull request is updated.' : r.state === 'unchanged' ? 'The open pull request already holds this, so nothing changed.' : 'The pull request is open.';
+        prResult = { kind: 'success', text: r.next ? `${said} ${r.next}` : said, needs: [], url: r.url ?? '' };
+      } else {
+        prResult = { kind: 'info', text: r.message || 'The registry already holds exactly this.', needs: [], url: '' };
+      }
+    } catch (err) {
+      const found = err instanceof ApiError && err.status === 409 ? (err.detail as { needs?: Need[] } | null)?.needs : undefined;
+      if (err instanceof ApiError && err.status === 409) prResult = { kind: 'warning', text: `Not opened: ${err.message.replace(/\.$/, '')}.`, needs: Array.isArray(found) ? found : [], url: '' };
+      else prResult = { kind: 'error', text: `Not opened: ${errorMessage(err)}`, needs: [], url: '' };
+    } finally {
+      prBusy = false;
+      renderPr();
+    }
+  }
+
   function renderRegistry(s: Status): void {
     const r = s.registry;
-    if (document.activeElement !== checkoutInput) checkoutInput.value = r.checkout;
+    const managed = !!r.managed;
+    if (document.activeElement !== checkoutInput) checkoutInput.value = managed ? '' : r.checkout;
+    setText(checkoutHint, managed ? MANAGED_CHECKOUT : HAS_CHECKOUT);
     checkoutInput.disabled = busy;
     submitBtn.disabled = busy;
     const sb = r.submission;
@@ -245,7 +387,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       setText(regShot, 'docs/screenshot.png: the extension in its app');
       setText(regReport, 'Submit to see the checks.');
       setText(regCommands, `The git and gh commands that fork ${r.repo}, add the folder and open the pull request appear here.`);
-      if (!busy) setRegStatus('info', `Writes extensions/${String(s.manifest.id ?? 'id')}/ in the registry's layout and checks it. Nothing is pushed: you run the commands.`);
+      if (!busy) setRegStatus('info', `Writes extensions/${String(s.manifest.id ?? 'id')}/ in the registry's layout and checks it. Submit pushes nothing; opening the pull request is a separate step below.`);
       return;
     }
     setText(regFolder, sb.folder);
@@ -265,10 +407,11 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     if (!project || busy) return;
     const checkout = checkoutInput.value.trim();
     busy = true;
+    prResult = null;
     setRegStatus('info', 'Writing the registry folder and running the checks...');
     render();
     try {
-      if (state && checkout !== state.registry.checkout) await ctx.api.put('/api/settings', { registry: { checkout } });
+      if (state && checkout !== (state.registry.managed ? '' : state.registry.checkout)) await ctx.api.put('/api/settings', { registry: { checkout } });
       const sb = await ctx.api.post<RegistrySubmission>(`/api/publish/${encodeURIComponent(project.id)}/registry`);
       if (state) state = { ...state, registry: { ...state.registry, submission: sb, checkout } };
       busy = false;
@@ -282,6 +425,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
 
   function render(): void {
     const project = ctx.project.current();
+    renderPr();
     none.classList.toggle('hidden', !!project);
     main.classList.toggle('hidden', !project);
     prepareBtn.disabled = busy || !project || !state;
@@ -346,6 +490,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
       if (!state || state.project !== s.project) urlInput.value = storage.get(urlKey(s.project)) ?? '';
       state = s;
       render();
+      void loadReady(s.project);
     } catch (err) {
       setStatus('error', `Publish could not read the project: ${errorMessage(err)}`);
     }
@@ -434,6 +579,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
   }));
   q('.publish-choose').addEventListener('click', () => void chooseProject());
   submitBtn.addEventListener('click', () => void submitRegistry());
+  prBtn.addEventListener('click', () => void openPullRequest());
   regReveal.addEventListener('click', () => void act(async () => {
     await ctx.api.post(`/api/publish/${encodeURIComponent(ctx.project.current()!.id)}/registry/reveal`);
   }));
@@ -444,10 +590,12 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
 
   ctx.commands.register({ id: 'publish.prepare', title: 'Prepare Submission for formai.studio', run: () => { ctx.openPane('publish'); return prepare(); } });
   ctx.commands.register({ id: 'publish.registry', title: 'Submit to Registry', run: () => { ctx.openPane('publish'); return submitRegistry(); } });
+  ctx.commands.register({ id: 'publish.pull-request', title: 'Open Registry Pull Request', run: () => { ctx.openPane('publish'); return openPullRequest(); } });
 
   const offs = [
     ctx.project.onChange((_p: ProjectRef | null) => {
       state = null;
+      prResult = null;
       render();
       void load();
     }),

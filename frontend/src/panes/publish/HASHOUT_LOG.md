@@ -2,5 +2,18 @@
 
 The Publish pane belongs to the ship module, whose living log is `frontend/src/panes/run/HASHOUT_LOG.md` (sections `#publish`, `#registry` and `#panes`, with `backend/app/services/publish.py` and `backend/app/routers/publish.py`).
 
-Current build version: v0.3.0
-Last updated: 2026-11-08 · v0.2.0 a sheet of the Studio
+Current build version: v0.4.0
+Last updated: 2026-11-10 · v0.4.0 Open pull request (#pull-request). Before: v0.2.0 a sheet of the Studio
+
+---
+
+## Open the pull request {#pull-request}
+- refers-to: frontend/src/panes/publish/index.ts :: renderPr, loadReady, openPullRequest, renderRegistry, submitRegistry · frontend/src/demo/engine/router.ts · frontend/src/demo/engine/publish.ts :: pullRequestReady, pullRequest
+- kind: interface
+- logged: v0.4.0 · 2026-11-10
+
+- Right under the Submit status notice, above the folder facts, the Submit to Registry section has a block that exists in the first render: the primary button "Open pull request" (`publish-reg-pr`), a link for the pull request address (`publish-reg-pr-link`, hidden until there is one, in a row the button already sizes), a notice (`publish-reg-pr-status`, a fixed 96 px that scrolls inside when a sentence is longer) and a list for the lines the engine says are missing (`publish-reg-pr-needs`, a fixed height that scrolls inside). The block sits above the Checks and commands blocks on purpose: those grow from 96 px to their content when the first result arrives, and in a browser run with the block below them the button moved 493 px on the first Submit; the notice at a 58 px minimum also grew 16.5 px on its longest sentence. Measured again after the move, in Chrome at 4x CPU and 400 ms latency, through first paint, a failing Submit, a passing Submit, a refused pull request, an opened one and an unchanged one: the Submit button, its notice, the pull request row, its button, its notice (96 px throughout) and the needs list never changed top or height. The cost is a quiet band where the needs list keeps its room when it is empty. The button is also disabled while the computer is not ready, so it never sits enabled beside "Not ready yet". While a request runs the link is left as it is, so an open pull request's address does not blink off. Updates write only text, `hidden`, `disabled`, the notice level class (guarded by a cached level) and list items inside the needs list, which are replaced only when a cached signature of the lines changes.
+- The button is enabled when the project has a registry submission whose checks passed, the computer is ready and nothing else is running. The pane reads `GET /api/publish/{id}/registry/pull-request` after each load of its state; any error counts as not ready with one line saying the form.ext engine is needed on this computer. A `how` that starts with http becomes a link (new tab, noreferrer), anything else is shown as code text.
+- A click asks first through the shell dialog (it names the repository and says the pull request is public under the person's GitHub account), then posts and shows opened, updated or unchanged with the address and the engine's `next` sentence; `same` shows its message; a 409 shows its `detail` and the needs list; other errors show their message. The button is enabled again afterwards. The palette command `publish.pull-request` does the same.
+- Managed checkout: `registry.managed` true means form.ext keeps its own copy of the registry. The Registry checkout field then stays empty (placeholder only) and its hint says so, so the engine's path is never in the input and Submit never saves it as the `registry.checkout` setting: the setting is written only when the typed text differs from what the person set (empty when managed).
+- The browser demo answers the readiness route with `ready: false` and one need saying the demo cannot do it, and the POST with 409 and the same need; its registry object carries `managed: true`.

@@ -39,6 +39,16 @@ interface Session {
   prefix: string;
 }
 
+interface SourceInfo {
+  key: string;
+  name: string;
+  state: 'absent' | 'pulling' | 'ready' | 'failed';
+  dir: string;
+  commit: string;
+  subject: string;
+  error?: string;
+}
+
 interface OpenArgs {
   path?: string;
   line?: number;
@@ -99,7 +109,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
               <button type="button" role="tab" data-ltab="library" aria-selected="false">Library<em class="st-lib-count">0</em></button>
             </div></div>
             <div class="st-lbody" data-lbody="files">
-              <div class="st-projcard"><span class="st-projicon"></span><div><b class="st-projcard-name ellipsis">&nbsp;</b><small class="st-projcard-a ellipsis">&nbsp;</small><small class="st-projcard-b ellipsis">&nbsp;</small></div></div>
+              <div class="st-projcard"><span class="st-projicon"></span><div><b class="st-projcard-name ellipsis">&nbsp;</b><small class="st-projcard-a ellipsis">&nbsp;</small><small class="st-projcard-b ellipsis">&nbsp;</small><span class="st-projcard-src"><small class="st-projcard-c ellipsis">&nbsp;</small><button class="btn ghost sm st-src-btn hidden" type="button">${icon('refresh', 12)}<span>Update</span></button></span></div></div>
               <label class="st-search">${icon('search', 14)}<input type="search" placeholder="Search files" aria-label="Search files" autocomplete="off" spellcheck="false" /></label>
               <div class="st-colh"><span>Name</span><span>Type</span></div>
               <div class="edit-side"></div>
@@ -738,6 +748,77 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     }
   }
 
+  const sourceCache = new Map<string, SourceInfo | null>();
+  let sourceKey = '';
+  let sourceBusy = false;
+  const sourceText = q('.st-projcard-c');
+  const sourceBtn = q<HTMLButtonElement>('.st-src-btn');
+  const sourceBtnText = q('.st-src-btn span');
+
+  function paintSource(): void {
+    const info = sourceKey ? sourceCache.get(sourceKey) : undefined;
+    let text = '';
+    let tip = '';
+    let label = '';
+    if (info === null) {
+      text = 'Source: desktop app';
+      tip = "The host app's source code is fetched by form.ext on your computer, not in this page.";
+    } else if (info) {
+      const lead = `${info.name}'s source code`;
+      if (info.state === 'absent') {
+        text = 'Source: not here';
+        tip = `${lead} is not on this computer yet. Get it so you or your agent can read the app's real commands.`;
+        label = 'Get';
+      } else if (info.state === 'pulling') {
+        text = 'Source: fetching';
+        tip = `Fetching ${lead} from GitHub.`;
+      } else if (info.state === 'ready') {
+        text = `Source: ${(info.commit ?? '').slice(0, 7) || 'here'}`;
+        tip = [`${lead} is on this computer, read-only.`, info.dir, info.subject].filter(Boolean).join('\n');
+        label = 'Update';
+      } else {
+        text = 'Source: failed';
+        tip = `${lead} could not be fetched. ${info.error ?? ''}`;
+        label = 'Retry';
+      }
+    }
+    setText(sourceText, text);
+    if (sourceText.title !== tip) sourceText.title = tip;
+    if (label) setText(sourceBtnText, label);
+    sourceBtn.classList.toggle('hidden', !label);
+    if (sourceBtn.disabled !== sourceBusy) sourceBtn.disabled = sourceBusy;
+  }
+
+  async function loadSource(): Promise<void> {
+    const key = sourceKey;
+    if (!key) return;
+    let info: SourceInfo | null;
+    try {
+      info = await ctx.api.get<SourceInfo>(`/api/sources/${encodeURIComponent(key)}`);
+    } catch (err) {
+      if (!(err instanceof ApiError && err.status === 404)) return;
+      info = null;
+    }
+    sourceCache.set(key, info);
+    if (key === sourceKey) paintSource();
+  }
+
+  async function pullSource(): Promise<void> {
+    const key = sourceKey;
+    const cur = key ? sourceCache.get(key) : null;
+    if (!key || !cur || sourceBusy) return;
+    sourceBusy = true;
+    paintSource();
+    try {
+      const r = await ctx.api.post<SourceInfo>(`/api/sources/${encodeURIComponent(key)}/pull`, cur.state === 'ready' ? { wait: false, update: true } : { wait: false });
+      sourceCache.set(key, r);
+    } catch (err) {
+      if (!(err instanceof ApiError && err.status === 404)) ctx.notify(errorMessage(err), 'error');
+    }
+    sourceBusy = false;
+    if (key === sourceKey) paintSource();
+  }
+
   function projectBar(p: ProjectRef | null): void {
     const app = p ? productName(p.product) || 'no app chosen' : '';
     const chip = q('.st-pf');
@@ -750,6 +831,12 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
     setText(q('.st-projcard-a'), p ? `${app} · ${p.id}${mf.version ? ` · ${String(mf.version)}` : ''}` : ' ');
     setText(q('.st-projcard-b'), p ? `${mf.kind ? `${String(mf.kind)} · ` : ''}${plural(perms, 'permission')}` : ' ');
     setText(q('.st-perm-count'), perms ? String(perms) : '');
+    const nextKey = p?.product ?? '';
+    if (nextKey !== sourceKey) {
+      sourceKey = nextKey;
+      paintSource();
+      void loadSource();
+    }
     const mark = q('.st-projicon');
     const html = p ? appIcon(p.product) : '';
     if (mark.innerHTML !== html) mark.innerHTML = html;
@@ -816,6 +903,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
   }
   window.addEventListener('beforeunload', guard);
 
+  sourceBtn.addEventListener('click', () => void pullSource());
   q('.edit-open').addEventListener('click', () => void chooseProject());
   q('.edit-new').addEventListener('click', () => ctx.openPane('new'));
   q('.edit-conflict-load').addEventListener('click', () => {
@@ -867,6 +955,9 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
         changed.clear();
         void reconcile(list);
       }, 150);
+    }),
+    ctx.events.on('source.changed', (d: { key?: string }) => {
+      if (d?.key && d.key === sourceKey) void loadSource();
     }),
     ctx.events.on('project.deleted', (d: { id?: string }) => {
       if (d?.id) sessions.delete(d.id);
