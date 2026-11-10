@@ -59,7 +59,7 @@ class Packages:
         self._lock = threading.Lock()
 
     def _root(self, pid: str) -> Path:
-        if not isinstance(pid, str) or not re.match(r"^[a-z0-9][a-z0-9-]{1,63}$", pid):
+        if not isinstance(pid, str) or not re.match(r"^[a-z0-9][a-z0-9-]{1,63}\Z", pid):
             raise NotFound("no such project")
         folder = paths.builds_dir() / pid
         folder.mkdir(parents=True, exist_ok=True)

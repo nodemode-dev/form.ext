@@ -18,7 +18,7 @@ from app.services import paths
 from app.services.bus import bus
 from app.services.workspace import Conflict, NotFound, WorkspaceError
 
-PUBLISHER_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,38}$")
+PUBLISHER_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,38}\Z")
 FORMAT = "formext-publisher-key"
 ALGORITHM = "ed25519"
 MIN_PASSPHRASE = 8

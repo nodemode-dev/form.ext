@@ -12,7 +12,7 @@ from app.services.bus import bus
 PRODUCTS = ["formvis", "formcut", "formwav", "formpdf", "formdeck", "formlit", "formmd", "formencoder", "formvfx", "formmcp", "formtray", "formskills", "formportal"]
 PACKAGE = "package"
 MANIFEST = "manifest.json"
-ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,63}$")
+ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,63}\Z")
 HIDDEN = {".git", ".formext", "node_modules", "__pycache__", ".DS_Store", "Thumbs.db", ".venv", "venv"}
 MAX_FILE = 50 * 1024 * 1024
 MAX_IMPORT_FILES = 5000
