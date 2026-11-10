@@ -8,6 +8,7 @@ import os
 import re
 import shutil
 import subprocess
+import time
 from pathlib import Path
 
 from app.services import paths, portal, publish, registry, sources
@@ -23,6 +24,8 @@ VERSION_RE = re.compile(r"\d+\.\d+\.\d+")
 GH_INSTALL = "https://cli.github.com"
 GH_SYSTEM = ("/opt/homebrew/bin/gh", "/usr/local/bin/gh", "/usr/bin/gh")
 TIMEOUT = 300
+READY_KEEP = 20
+_ready: dict = {"at": 0.0, "value": None}
 
 
 class Needs(WorkspaceError):
@@ -77,8 +80,16 @@ def _user(program: str) -> dict | None:
     return data if isinstance(data, dict) and data.get("login") else None
 
 
-def readiness() -> dict:
-    """What the one-step pull request needs on this computer, in the order a person fixes it."""
+def readiness(fresh: bool = False) -> dict:
+    """What the one-step pull request needs on this computer, in the order a person fixes it. Kept for a few seconds, since the
+    window asks on every refresh and each answer costs a call to GitHub."""
+    if not fresh and _ready["value"] is not None and time.time() - _ready["at"] < READY_KEEP:
+        return _ready["value"]
+    _ready["value"], _ready["at"] = _readiness(), time.time()
+    return _ready["value"]
+
+
+def _readiness() -> dict:
     program = gh()
     git = sources.git()
     user = _user(program) if program else None
@@ -145,7 +156,7 @@ def _texts(manifest: dict, update: bool) -> tuple[str, str, str, str]:
 
 
 def open_pull_request(pid: str) -> dict:
-    ready = readiness()
+    ready = readiness(fresh=True)
     if not ready["ready"]:
         raise Needs("the pull request needs a little setup first: " + " ".join(n["say"] for n in ready["needs"]), ready["needs"])
     record = publish.submit(pid)

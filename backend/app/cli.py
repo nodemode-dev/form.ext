@@ -651,6 +651,8 @@ def _say_package(d: dict) -> str:
     if "reproduce" in d:
         r = d["reproduce"]
         lines.append(f"reproducible: {r.get('ok', r.get('reproducible'))}")
+    if b.get("path"):
+        lines.append(f"kept {b['path']}")
     if d.get("saved"):
         lines.append(f"saved {d['saved']}")
     return "\n".join(lines)
