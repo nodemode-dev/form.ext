@@ -15,10 +15,10 @@ if /i "%CMD%"=="serve" goto serve
 if /i "%CMD%"=="freeze" ( bash setup/freeze_backend & goto :eof )
 if /i "%CMD%"=="app" ( call build_app.bat %2 %3 %4 & goto :eof )
 if /i "%CMD%"=="desktop" goto desktop
-if /i "%CMD%"=="cli" ( shift & "%PYEXE%" backend\formext_engine.py cli %1 %2 %3 %4 %5 %6 %7 %8 %9 & goto :eof )
-if /i "%CMD%"=="mcp" ( shift & "%PYEXE%" backend\formext_engine.py mcp %1 %2 %3 %4 %5 %6 %7 %8 %9 & goto :eof )
+if /i "%CMD%"=="cli" ( "%PYEXE%" backend\formext_engine.py cli %2 %3 %4 %5 %6 %7 %8 %9 & goto :eof )
+if /i "%CMD%"=="mcp" ( "%PYEXE%" backend\formext_engine.py mcp %2 %3 %4 %5 %6 %7 %8 %9 & goto :eof )
 if /i "%CMD%"=="claude" goto claude
-if /i "%CMD%"=="agents" ( shift & "%PYEXE%" setup\agents.py %1 %2 %3 %4 %5 %6 %7 %8 %9 & goto :eof )
+if /i "%CMD%"=="agents" ( "%PYEXE%" setup\agents.py %2 %3 %4 %5 %6 %7 %8 %9 & goto :eof )
 if /i "%CMD%"=="doctor" goto doctor
 if /i "%CMD%"=="version" ( "%PYEXE%" backend\formext_engine.py --version & goto :eof )
 if /i "%CMD%"=="help" goto usage

@@ -8,9 +8,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 API = "1"
-ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,63}$")
-LOCAL_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
-VERSION_RE = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
+ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,63}\Z")
+LOCAL_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}\Z")
+VERSION_RE = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+\Z")
 TYPES = {
     ".html": "text/html; charset=utf-8",
     ".js": "text/javascript; charset=utf-8",
