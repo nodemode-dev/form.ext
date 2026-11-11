@@ -15,15 +15,20 @@ if /i "%CMD%"=="serve" goto serve
 if /i "%CMD%"=="freeze" ( bash setup/freeze_backend & goto :eof )
 if /i "%CMD%"=="app" ( call build_app.bat %2 %3 %4 & goto :eof )
 if /i "%CMD%"=="desktop" goto desktop
-if /i "%CMD%"=="cli" ( "%PYEXE%" backend\formext_engine.py cli %2 %3 %4 %5 %6 %7 %8 %9 & goto :eof )
-if /i "%CMD%"=="mcp" ( "%PYEXE%" backend\formext_engine.py mcp %2 %3 %4 %5 %6 %7 %8 %9 & goto :eof )
+if /i "%CMD%"=="cli" ( set "RUN=backend\formext_engine.py cli" & goto forward )
+if /i "%CMD%"=="mcp" ( set "RUN=backend\formext_engine.py mcp" & goto forward )
 if /i "%CMD%"=="claude" goto claude
-if /i "%CMD%"=="agents" ( "%PYEXE%" setup\agents.py %2 %3 %4 %5 %6 %7 %8 %9 & goto :eof )
+if /i "%CMD%"=="agents" ( set "RUN=setup\agents.py" & goto forward )
 if /i "%CMD%"=="doctor" goto doctor
 if /i "%CMD%"=="version" ( "%PYEXE%" backend\formext_engine.py --version & goto :eof )
 if /i "%CMD%"=="help" goto usage
 echo [formext] unknown command: %CMD%
 goto usage
+:forward
+set ARGS=%*
+setlocal EnableDelayedExpansion
+"%PYEXE%" %RUN% !ARGS:*%1=!
+goto :eof
 :boot
 if not exist frontend\node_modules call formext_oc_install.bat
 start "formext engine" cmd /k backend\boot_backend.bat

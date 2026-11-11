@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.4.1 · 2026-11-11
+
+- Fixed: two registry pull requests at once broke each other (one failed with "nothing to commit", the other could push the wrong folder), because both used the same working clone. The clone, commit and push steps now take a lock, in the engine and across processes, so the second waits for the first.
+- Fixed: the kit's package check and the host accepted an `entry.ui` ending in `/` (`ui/index.html/`); both refuse it now, and so does the browser demo's port of the kit.
+- Fixed: `formext.bat cli`, `mcp` and `agents` dropped arguments after the eighth; they now pass every argument, quoting unchanged. Traced, not run on Windows.
+- The engine's self check (`--selfcheck`, run by CI) now checks both fixes and fails when either regresses.
+- Fixed: an `entry.ui` whose last part is `.` (`ui/index.html/.`) or empty still passed the kit, the host and the demo; all three refuse it now, and the kit refuses a backslash as the host does. `./ui/index.html` and `ui//index.html` still pass.
+- A second pull request waits at most 10 minutes for the first, then stops with "another pull request is still running", in the engine and across processes.
+- The `.bat` scripts are checked out with Windows line endings (`.gitattributes`), so cmd.exe finds their labels reliably.
+- The self check also runs two whole pull requests at once (with GitHub and git stubbed) and fails if their clone and push steps overlap, and checks that the wait gives up.
+- Known, unchanged: Submit runs the registry's `tools/check.py` inside the engine process, an owner decision; two submits at once can leave the engine's standard output redirected (see `backend/HASHOUT_LOG.md#pr-lock`).
+
 ## v0.4.0 · 2026-11-10
 
 The host app's source sits beside the project, the skills know the whole family, and the registry pull request opens from the window.

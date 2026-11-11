@@ -3,13 +3,16 @@ nodemode-dev/form.ext-registry into the person's GitHub account, puts the checke
 data folder, pushes the branch to the fork and opens (or updates) the pull request. GitHub's own command line, gh, holds the
 sign-in: nothing here reads or stores a token. It runs only when the person asks, and only after the checks passed."""
 
+import contextlib
 import json
 import os
 import re
 import shutil
 import subprocess
+import threading
 import time
 from pathlib import Path
+from typing import Iterator
 
 from app.services import paths, portal, publish, registry, sources
 from app.services.bus import bus
@@ -26,6 +29,10 @@ GH_SYSTEM = ("/opt/homebrew/bin/gh", "/usr/local/bin/gh", "/usr/bin/gh")
 TIMEOUT = 300
 READY_KEEP = 20
 _ready: dict = {"at": 0.0, "value": None}
+LOCK_WAIT = 600
+LOCK_POLL = 0.5
+BUSY = "another pull request is still running"
+_work_guard = threading.Lock()
 
 
 class Needs(WorkspaceError):
@@ -48,6 +55,61 @@ def gh() -> str | None:
 
 def work_dir() -> Path:
     return paths.sub("registry-work") / "form.ext-registry"
+
+
+@contextlib.contextmanager
+def held(lock_file: Path) -> Iterator[None]:
+    deadline = time.monotonic() + LOCK_WAIT
+    if not _work_guard.acquire(timeout=LOCK_WAIT):
+        raise WorkspaceError(BUSY)
+    try:
+        with open(lock_file, "a+b") as handle:
+            _lock_file(handle, deadline)
+            try:
+                yield
+            finally:
+                _unlock_file(handle)
+    finally:
+        _work_guard.release()
+
+
+def _lock_file(handle, deadline: float) -> None:
+    while not _try_lock(handle):
+        left = deadline - time.monotonic()
+        if left <= 0:
+            raise WorkspaceError(BUSY)
+        time.sleep(min(LOCK_POLL, left))
+
+
+def _try_lock(handle) -> bool:
+    handle.seek(0)
+    if os.name == "nt":
+        import msvcrt
+
+        try:
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+        except OSError:
+            return False
+        return True
+    import fcntl
+
+    try:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        return False
+    return True
+
+
+def _unlock_file(handle) -> None:
+    handle.seek(0)
+    if os.name == "nt":
+        import msvcrt
+
+        msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+        return
+    import fcntl
+
+    fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
 def _env() -> dict:
@@ -155,30 +217,7 @@ def _texts(manifest: dict, update: bool) -> tuple[str, str, str, str]:
     return branch, title, message, "\n".join(lines) + "\n"
 
 
-def open_pull_request(pid: str) -> dict:
-    ready = readiness(fresh=True)
-    if not ready["ready"]:
-        raise Needs("the pull request needs a little setup first: " + " ".join(n["say"] for n in ready["needs"]), ready["needs"])
-    record = publish.submit(pid)
-    folder = Path(record["folder"])
-    if not record["checks"]["ok"]:
-        raise Needs("the checks found problems, so no pull request was opened; fix them and submit again", [{"what": "checks", "say": p["message"], "how": p.get("where", "")} for p in record["checks"]["problems"]])
-    left = unfinished(folder)
-    if left:
-        raise Needs("the checks passed, but some text is still left for you to write before the owners can review it", [{"what": "text", "say": s, "how": ""} for s in left])
-    manifest = workspace.manifest(pid)
-    eid = manifest["id"]
-    if not ID_RE.fullmatch(str(eid)) or not VERSION_RE.fullmatch(str(manifest.get("version"))):
-        raise WorkspaceError("the manifest's id or version is not in the registry's form (a lowercase id, a version such as 1.2.3)")
-    program = gh()
-    user = _user(program)
-    if not user:
-        raise Needs("GitHub's sign-in was lost; sign in again", [{"what": "sign-in", "say": "Sign in to GitHub again: run this in the Terminal tab and follow the browser.", "how": "gh auth login --web --git-protocol https"}])
-    login = user["login"]
-    branch, title, message, body = _texts(manifest, bool(record.get("update")))
-    steps = []
-    fork_url = _fork(program, login)
-    steps.append(f"fork {login}/{registry.REPO.split('/', 1)[1]}")
+def _push(program: str, user: dict, folder: Path, eid: str, branch: str, message: str, fork_url: str, steps: list[str]) -> str | None:
     clone = work_dir()
     upstream = sources.url("registry") + ".git"
     top = _run([sources.git(), "rev-parse", "--show-toplevel"], cwd=clone, timeout=20) if (clone / ".git").exists() else None
@@ -203,7 +242,7 @@ def open_pull_request(pid: str) -> dict:
     _git(["add", "-A", "--", f"extensions/{eid}"], clone, program, "stage the extension folder")
     same = _run([sources.git(), "diff", "--cached", "--quiet"], cwd=clone, timeout=60)
     if same.returncode == 0:
-        return {"ok": False, "state": "same", "message": f"extensions/{eid} is already exactly this in the registry, so there is nothing to submit", "branch": branch, "steps": steps}
+        return None
     _run([sources.git(), "update-ref", "-d", f"refs/remotes/fork/{branch}"], cwd=clone, timeout=20)
     _run([sources.git(), "-c", "credential.helper=", "-c", f'credential.helper=!"{program}" auth git-credential', "fetch", "--no-tags", "fork", f"+refs/heads/{branch}:refs/remotes/fork/{branch}"], cwd=clone)
     staged = _run([sources.git(), "write-tree"], cwd=clone, timeout=60).stdout.strip()
@@ -216,7 +255,38 @@ def open_pull_request(pid: str) -> dict:
         commit = _run([sources.git(), "rev-parse", "HEAD"], cwd=clone, timeout=20).stdout.strip()
         steps.append(f"commit {commit[:12]} on {branch}")
         _git(["push", "--force-with-lease", "fork", f"HEAD:refs/heads/{branch}"], clone, program, "push the branch to your fork")
-        steps.append(f"pushed to {login}:{branch}")
+        steps.append(f"pushed to {user['login']}:{branch}")
+    return commit
+
+
+def open_pull_request(pid: str) -> dict:
+    ready = readiness(fresh=True)
+    if not ready["ready"]:
+        raise Needs("the pull request needs a little setup first: " + " ".join(n["say"] for n in ready["needs"]), ready["needs"])
+    record = publish.submit(pid)
+    folder = Path(record["folder"])
+    if not record["checks"]["ok"]:
+        raise Needs("the checks found problems, so no pull request was opened; fix them and submit again", [{"what": "checks", "say": p["message"], "how": p.get("where", "")} for p in record["checks"]["problems"]])
+    left = unfinished(folder)
+    if left:
+        raise Needs("the checks passed, but some text is still left for you to write before the owners can review it", [{"what": "text", "say": s, "how": ""} for s in left])
+    manifest = workspace.manifest(pid)
+    eid = manifest["id"]
+    if not ID_RE.fullmatch(str(eid)) or not VERSION_RE.fullmatch(str(manifest.get("version"))):
+        raise WorkspaceError("the manifest's id or version is not in the registry's form (a lowercase id, a version such as 1.2.3)")
+    program = gh()
+    user = _user(program)
+    if not user:
+        raise Needs("GitHub's sign-in was lost; sign in again", [{"what": "sign-in", "say": "Sign in to GitHub again: run this in the Terminal tab and follow the browser.", "how": "gh auth login --web --git-protocol https"}])
+    login = user["login"]
+    branch, title, message, body = _texts(manifest, bool(record.get("update")))
+    steps = []
+    fork_url = _fork(program, login)
+    steps.append(f"fork {login}/{registry.REPO.split('/', 1)[1]}")
+    with held(work_dir().parent / ".lock"):
+        commit = _push(program, user, folder, eid, branch, message, fork_url, steps)
+    if commit is None:
+        return {"ok": False, "state": "same", "message": f"extensions/{eid} is already exactly this in the registry, so there is nothing to submit", "branch": branch, "steps": steps}
     listed = _run([program, "pr", "list", "--repo", registry.REPO, "--head", branch, "--author", "@me", "--state", "open", "--json", "number,url"], timeout=60)
     try:
         mine = json.loads(listed.stdout) if listed.returncode == 0 else []

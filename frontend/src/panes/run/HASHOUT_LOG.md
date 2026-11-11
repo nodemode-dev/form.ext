@@ -2,7 +2,7 @@
 
 Living log of the ship module: the Run in App pane (`frontend/src/panes/run/`), the Publish pane (`frontend/src/panes/publish/`), `backend/app/services/portal.py`, `backend/app/services/publish.py`, `backend/app/routers/runapp.py` and `backend/app/routers/publish.py`. Source files stay comment-free; what they would have said lives here.
 
-Current build version: v0.4.0
+Current build version: v0.4.1
 Last updated: 2026-11-08 · v0.2.0 a sheet of the Studio
 
 ---
