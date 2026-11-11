@@ -3,7 +3,7 @@
 Living log for the desktop shell (Tauri 2). Source files stay comment-free; what they would have said lives here.
 
 Current build version: v0.4.0
-Last updated: 2026-11-10 · v0.4.0 the version only. Before: v0.2.1 the version only. Before: v0.2.0 overlay title bar
+Last updated: 2026-11-10 · v0.4.0 the version only. Before: v0.3.1 the version only. Before: v0.2.1 the version only. Before: v0.2.0 overlay title bar
 
 ---
 

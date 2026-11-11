@@ -9,7 +9,17 @@ The host app's source sits beside the project, the skills know the whole family,
 - **Skills:** `formext-harness` pulls and reads the host's source before writing code (new `host-source` sub-skill) and names the commit it wrote against; `formext-hosts` gains `family.md` (how the apps, FormPortal, form.ext, the registry, formMCP and FormSkills fit together) and `sources.md` (where each host implements the contract). The host skills and three app API pages (form.md, FormVFX, FormSkills) are refreshed from the apps' current sources.
 - **Submit to Registry:** there is no clone to set up. form.ext keeps its own copy of form.ext-registry and runs the registry's `tools/check.py` from it on every submit. **Open pull request** (Publish, or `submit --pull-request`) forks the registry into your GitHub account, pushes the folder on a branch and opens or updates the pull request, through GitHub's `gh`; it asks first, and refuses while the checks fail or a placeholder text is left. `submit --ready` says what the computer still needs. New starter READMEs carry the Permissions and Screenshot sections the registry asks for, and a missing LICENSE is written in full for Apache-2.0 and MIT.
 - Checked here: clones of all fourteen family repositories; list, read and search over them; the archive path against a local mirror; `skills` through a locally built formskills-cli; submit with the registry's own checks; the pull request flow against local stand-ins for the registry, a fork and `gh`, from the command line and in the window; both panes in Chrome under 4x CPU and network throttling; the engine self check and the frontend build.
+- Includes every v0.3.1 fix: main was merged into this release, and the browser demo bundle was rebuilt from the merged tree (v0.3.1 had edited its version strings by hand).
 - Not verified yet: the pull request against GitHub itself, the archive download from GitHub, FormSkills' released catalogue (neither address is reachable from the build machine), Windows, and the frozen desktop engine.
+
+## v0.3.1 · 2026-11-10
+
+- Fixed: the contract kit's id, panel and command id and version patterns ended in `$`, which also matches before a trailing newline, so a manifest with such an id or version passed the check and the package file was named with a newline; they now end in `\Z` in the kit (`formpkg.py`, `formext_host.py`) and in the engine's own id patterns (`portal.py`, `workspace.py`, `keys.py`, `package.py`).
+- Fixed: the kit's check accepted an `entry.ui` that the package would never contain (a hidden file or a `../` path); it now requires the entry to be one of the files that get packed.
+- Fixed: `formext.bat cli`, `mcp` and `agents` passed the subcommand word twice and dropped the last argument; they now pass the arguments after it.
+- Fixed: the kit's `entry.ui` check compares the normalised path, so `./ui/index.html` and `ui//index.html` pass as before, and `SHA_RE` in `package.py` and `library.py` now ends in `\Z` too.
+- The tracked demo bundle `demo/assets/formext.js` was not rebuilt: its two version strings (`version:` in the health answer and `hy`) were edited by hand to 0.3.1.
+- Fixed: a registry index entry whose `sha256` is not exactly 64 lowercase hex characters is refused before it is used in the package cache path.
 
 ## v0.3.0 · 2026-11-09
 

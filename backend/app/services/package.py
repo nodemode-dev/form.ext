@@ -23,7 +23,7 @@ from app.services.workspace import NotFound, WorkspaceError, workspace
 paths.use_contract()
 formpkg = importlib.import_module("formpkg")
 
-SHA_RE = re.compile(r"^[0-9a-f]{64}$")
+SHA_RE = re.compile(r"^[0-9a-f]{64}\Z")
 RECORD = "build.json"
 CONTRACT_RULES = {"json", "package", "schema", "host", "missing-entry"}
 DEFAULT_URL ="https://formai.studio/extensions/packages/{id}-{version}.formpkg"
@@ -59,7 +59,7 @@ class Packages:
         self._lock = threading.Lock()
 
     def _root(self, pid: str) -> Path:
-        if not isinstance(pid, str) or not re.match(r"^[a-z0-9][a-z0-9-]{1,63}$", pid):
+        if not isinstance(pid, str) or not re.match(r"^[a-z0-9][a-z0-9-]{1,63}\Z", pid):
             raise NotFound("no such project")
         folder = paths.builds_dir() / pid
         folder.mkdir(parents=True, exist_ok=True)

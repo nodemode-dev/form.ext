@@ -38,7 +38,7 @@ NAMES = dict(APPS)
 CHANNELS = ("stable", "beta", "nightly")
 DEV_FORMAT = "formext-dev-extensions"
 ENABLED_FORMAT = "formportal-enabled-extensions"
-ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,63}$")
+ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,63}\Z")
 CLI_TIMEOUT = 90
 
 
