@@ -29,6 +29,9 @@ GH_SYSTEM = ("/opt/homebrew/bin/gh", "/usr/local/bin/gh", "/usr/bin/gh")
 TIMEOUT = 300
 READY_KEEP = 20
 _ready: dict = {"at": 0.0, "value": None}
+LOCK_WAIT = 600
+LOCK_POLL = 0.5
+BUSY = "another pull request is still running"
 _work_guard = threading.Lock()
 
 
@@ -56,31 +59,57 @@ def work_dir() -> Path:
 
 @contextlib.contextmanager
 def held(lock_file: Path) -> Iterator[None]:
-    with _work_guard, open(lock_file, "a+b") as handle:
-        _lock_file(handle, True)
-        try:
-            yield
-        finally:
-            _lock_file(handle, False)
+    deadline = time.monotonic() + LOCK_WAIT
+    if not _work_guard.acquire(timeout=LOCK_WAIT):
+        raise WorkspaceError(BUSY)
+    try:
+        with open(lock_file, "a+b") as handle:
+            _lock_file(handle, deadline)
+            try:
+                yield
+            finally:
+                _unlock_file(handle)
+    finally:
+        _work_guard.release()
 
 
-def _lock_file(handle, take: bool) -> None:
+def _lock_file(handle, deadline: float) -> None:
+    while not _try_lock(handle):
+        left = deadline - time.monotonic()
+        if left <= 0:
+            raise WorkspaceError(BUSY)
+        time.sleep(min(LOCK_POLL, left))
+
+
+def _try_lock(handle) -> bool:
     handle.seek(0)
     if os.name == "nt":
         import msvcrt
 
-        if not take:
-            msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
-            return
-        while True:
-            try:
-                msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
-                return
-            except OSError:
-                time.sleep(0.5)
+        try:
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+        except OSError:
+            return False
+        return True
     import fcntl
 
-    fcntl.flock(handle.fileno(), fcntl.LOCK_EX if take else fcntl.LOCK_UN)
+    try:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        return False
+    return True
+
+
+def _unlock_file(handle) -> None:
+    handle.seek(0)
+    if os.name == "nt":
+        import msvcrt
+
+        msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+        return
+    import fcntl
+
+    fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
 def _env() -> dict:

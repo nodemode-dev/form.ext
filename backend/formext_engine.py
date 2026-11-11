@@ -49,7 +49,12 @@ def checks(contract) -> dict:
     from pathlib import Path
 
     with tempfile.TemporaryDirectory() as tmp:
-        return {"entry_trailing_slash": entry_slash_refused(contract / "examples" / "hello", Path(tmp) / "hello"), "registry_pr_lock": registry_lock_serialises(Path(tmp) / ".lock")}
+        return {
+            "entry_ui_paths": entry_slash_refused(contract / "examples" / "hello", Path(tmp) / "hello"),
+            "registry_pr_lock": registry_lock_serialises(Path(tmp) / ".lock"),
+            "registry_pr_push_held": pull_requests_serialise(Path(tmp) / "registry"),
+            "registry_pr_lock_gives_up": registry_lock_gives_up(Path(tmp) / "wait.lock"),
+        }
 
 
 def entry_slash_refused(example, folder) -> bool:
@@ -61,11 +66,12 @@ def entry_slash_refused(example, folder) -> bool:
     shutil.copytree(example, folder)
     manifest = json.loads((folder / "manifest.json").read_text(encoding="utf-8"))
     verdicts = []
-    for entry in ("ui/index.html", "ui/index.html/"):
+    entries = {"ui/index.html": False, "./ui/index.html": False, "ui//index.html": False, "ui/index.html/": True, "ui/index.html/.": True, "ui/index.html//": True, "ui\\index.html": True}
+    for entry, refused in entries.items():
         (folder / "manifest.json").write_text(json.dumps({**manifest, "entry": {"ui": entry}}), encoding="utf-8")
         ext = formext_host.check(formext_host.Extension(id=manifest["id"], version=manifest["version"], source="sideload", path=folder), manifest["product"], "9.99.9", "the host")
-        verdicts.append((bool(formpkg.problems(folder)[0]), ext.state == "refused"))
-    return verdicts == [(False, False), (True, True)]
+        verdicts.append((bool(formpkg.problems(folder)[0]), ext.state == "refused") == (refused, refused))
+    return all(verdicts)
 
 
 def registry_lock_serialises(lock_file) -> bool:
@@ -90,6 +96,92 @@ def registry_lock_serialises(lock_file) -> bool:
         return False
     first, second = sorted(spans)
     return first[1] <= second[0]
+
+
+def pull_requests_serialise(root) -> bool:
+    from types import SimpleNamespace
+
+    from app.services import registry_pr
+
+    (root / "work").mkdir(parents=True)
+    (root / "ext").mkdir()
+    spans: list[tuple[float, float]] = []
+    results: list[dict] = []
+
+    def push(*_args) -> None:
+        start = time.monotonic()
+        time.sleep(0.2)
+        spans.append((start, time.monotonic()))
+
+    stubs = {
+        "readiness": lambda fresh=False: {"ready": True, "needs": []},
+        "publish": SimpleNamespace(submit=lambda pid: {"folder": str(root / "ext"), "checks": {"ok": True, "problems": []}}, PLAIN={}),
+        "workspace": SimpleNamespace(manifest=lambda pid: {"id": "selfcheck-ext", "version": "1.0.0", "product": "formext"}),
+        "gh": lambda: "gh",
+        "_user": lambda program: {"login": "selfcheck"},
+        "_fork": lambda program, login: "file:///selfcheck",
+        "_push": push,
+        "work_dir": lambda: root / "work" / "form.ext-registry",
+    }
+    saved = {name: getattr(registry_pr, name) for name in stubs}
+
+    def submit() -> None:
+        results.append(registry_pr.open_pull_request("selfcheck"))
+
+    try:
+        for name, stub in stubs.items():
+            setattr(registry_pr, name, stub)
+        workers = [threading.Thread(target=submit) for _ in range(2)]
+        for worker in workers:
+            worker.start()
+        for worker in workers:
+            worker.join()
+    finally:
+        for name, original in saved.items():
+            setattr(registry_pr, name, original)
+    if len(spans) != 2 or [r.get("state") for r in results] != ["same", "same"]:
+        return False
+    first, second = sorted(spans)
+    return first[1] <= second[0]
+
+
+def registry_lock_gives_up(lock_file) -> bool:
+    from app.services import registry_pr
+    from app.services.workspace import WorkspaceError
+
+    saved = registry_pr.LOCK_WAIT
+    entered = threading.Event()
+    release = threading.Event()
+    refusals: list[str] = []
+
+    def hold() -> None:
+        with registry_pr.held(lock_file):
+            entered.set()
+            release.wait(5)
+
+    def wait_on(take) -> None:
+        try:
+            take()
+        except WorkspaceError as exc:
+            refusals.append(str(exc))
+
+    holder = threading.Thread(target=hold)
+    try:
+        registry_pr.LOCK_WAIT = 0.3
+        holder.start()
+        entered.wait(5)
+        started = time.monotonic()
+        wait_on(lambda: registry_pr.held(lock_file).__enter__())
+        thread_wait = time.monotonic() - started
+        with open(lock_file, "a+b") as other:
+            started = time.monotonic()
+            wait_on(lambda: registry_pr._lock_file(other, time.monotonic() + 0.3))
+            file_wait = time.monotonic() - started
+    finally:
+        release.set()
+        holder.join()
+        registry_pr.LOCK_WAIT = saved
+    return refusals == [registry_pr.BUSY, registry_pr.BUSY] and thread_wait < 3 and file_wait < 3
 
 
 def file_lock_taken(lock_file) -> bool:

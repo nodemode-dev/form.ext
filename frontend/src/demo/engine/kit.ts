@@ -102,7 +102,7 @@ export function problems(folder: Folder): [string[], Json] {
     if (c.panel && !panelIds.has(c.panel)) out.push(`manifest.json: command ${pyRepr(c.id)} names panel ${pyRepr(c.panel)}, which is not contributed`);
   }
   if (((contributes.panels || []).length || (contributes.commands || []).length) && !entry) out.push('manifest.json: entry.ui is required when panels or commands are contributed');
-  if (entry && (String(entry).endsWith('/') || !folder.has(normRel(entry)))) out.push(`manifest.json: entry.ui ${entry} is not a file in the folder`);
+  if (entry && (String(entry).includes('\\') || ['', '.'].includes(String(entry).split('/').pop() ?? '') || !folder.has(normRel(entry)))) out.push(`manifest.json: entry.ui ${entry} is not a file in the folder`);
   return [out, m];
 }
 
@@ -253,7 +253,7 @@ export function check(e: Extension, folder: Folder | null, product: string, appV
   if ((panels.length || commands.length) && !ui) return refuse('it contributes panels or commands but has no entry.ui');
   if (ui) {
     if (!safeRel(ui)) return refuse('its entry.ui is not a path inside the package');
-    if (ui.endsWith('/') || !folder!.has(normRel(ui))) return refuse(`its entry.ui ${ui} is not in the package`);
+    if (['', '.'].includes(ui.split('/').pop() ?? '') || !folder!.has(normRel(ui))) return refuse(`its entry.ui ${ui} is not in the package`);
   }
   e.entry_ui = ui;
   e.panels = panels.map((p: Json) => ({ id: p.id, title: String(p.title).slice(0, 60), location: p.location === 'dock' || p.location === 'dialog' ? p.location : 'dock' }));
