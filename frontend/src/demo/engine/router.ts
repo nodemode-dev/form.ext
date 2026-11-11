@@ -76,7 +76,7 @@ function decodeFiles(rawFiles: Json): Record<string, Uint8Array> {
   return out;
 }
 
-on('GET', '/api/health', () => ({ ok: true, app: 'formext', version: '0.3.1 in this page', api: '1', pid: 0, python: null, frozen: false, home: DATA, contract: 'bundled', uptime: Math.round(performance.now() / 100) / 10, live_clients: 0, routers: ['health', 'settings', 'projects', 'live', 'library', 'package', 'preview', 'publish', 'runapp', 'templates', 'validate'], router_errors: {}, frontend: 'demo', demo: true }));
+on('GET', '/api/health', () => ({ ok: true, app: 'formext', version: '0.4.0 in this page', api: '1', pid: 0, python: null, frozen: false, home: DATA, contract: 'bundled', uptime: Math.round(performance.now() / 100) / 10, live_clients: 0, routers: ['health', 'settings', 'projects', 'live', 'library', 'package', 'preview', 'publish', 'runapp', 'templates', 'validate'], router_errors: {}, frontend: 'demo', demo: true }));
 on('GET', '/api/settings', () => ({ ...settings.get(), home: DATA }));
 on('PUT', '/api/settings', (_m, r) => {
   const patch = { ...json(r) };
@@ -201,6 +201,8 @@ on('POST', `/api/publish/${seg}/send`, (m) => publish.send(d(m[1])));
 on('POST', `/api/publish/${seg}/reveal`, (m) => publish.reveal(d(m[1])));
 on('POST', `/api/publish/${seg}/registry`, (m) => publish.submit(d(m[1])));
 on('POST', `/api/publish/${seg}/registry/reveal`, (m) => publish.revealRegistry(d(m[1])));
+on('GET', `/api/publish/${seg}/registry/pull-request`, () => publish.pullRequestReady());
+on('POST', `/api/publish/${seg}/registry/pull-request`, () => publish.pullRequest());
 
 on('GET', '/api/library/registry', () => library.registryShelf());
 on('GET', `/api/library/registry/${seg}`, (m) => library.inspectRegistry(d(m[1])));

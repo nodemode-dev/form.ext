@@ -43,7 +43,22 @@
 .publish-pane .publish-reg-status.warning .publish-reg-icon { color: var(--warning); }
 .publish-pane .publish-reg-status.error .publish-reg-icon { color: var(--error); }
 .publish-pane .publish-reg-status.info .publish-reg-icon { color: var(--info); }
-.publish-pane .publish-reg-report, .publish-pane .publish-reg-commands { min-height: 96px; max-height: 360px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--fs-12); }
+.publish-pane .publish-checkout-hint { min-height: 4.4em; }
+.publish-pane .publish-reg-pr-row { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-3); }
+.publish-pane .publish-reg-pr-link { min-width: 0; font-size: var(--fs-13); overflow-wrap: anywhere; }
+.publish-pane .publish-reg-pr-status { height: 96px; overflow: auto; align-items: center; }
+.publish-pane .publish-reg-pr-status > span:last-child { flex: 1 1 auto; min-width: 0; }
+.publish-pane .publish-reg-pr-icon { display: inline-grid; place-items: center; width: var(--icon-s); height: var(--icon-s); flex: none; }
+.publish-pane .publish-reg-pr-icon svg { margin-top: 0; }
+.publish-pane .publish-reg-pr-status.success .publish-reg-pr-icon { color: var(--success); }
+.publish-pane .publish-reg-pr-status.warning .publish-reg-pr-icon { color: var(--warning); }
+.publish-pane .publish-reg-pr-status.error .publish-reg-pr-icon { color: var(--error); }
+.publish-pane .publish-reg-pr-status.info .publish-reg-pr-icon { color: var(--info); }
+.publish-pane .publish-reg-pr-needs { height: calc(var(--sp-5) * 3); overflow: auto; margin: 0; padding-left: var(--sp-5); font-size: var(--fs-13); color: var(--ink-soft); }
+.publish-pane .publish-reg-pr-needs li + li { margin-top: var(--sp-1); }
+.publish-pane .publish-reg-pr-needs code { font-family: var(--font-code); font-size: var(--fs-12); color: var(--ink); overflow-wrap: anywhere; }
+.publish-pane .publish-reg-pr-needs a { overflow-wrap: anywhere; }
+.publish-pane .publish-reg-report,.publish-pane .publish-reg-commands { min-height: 96px; max-height: 360px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--fs-12); }
 
 @media (max-width: 860px) {
   .publish-pane .publish-form { grid-template-columns: 1fr; }

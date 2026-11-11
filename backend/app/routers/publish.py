@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Body
+from fastapi.responses import JSONResponse
 
-from app.services import publish
+from app.services import publish, registry_pr
 
 router = APIRouter(prefix="/api/publish", tags=["publish"])
 
@@ -24,6 +25,19 @@ def send(pid: str):
 @router.post("/{pid}/registry")
 def submit(pid: str):
     return publish.submit(pid)
+
+
+@router.get("/{pid}/registry/pull-request")
+def pull_request_ready(pid: str):
+    return registry_pr.readiness()
+
+
+@router.post("/{pid}/registry/pull-request")
+def pull_request(pid: str):
+    try:
+        return registry_pr.open_pull_request(pid)
+    except registry_pr.Needs as exc:
+        return JSONResponse({"detail": exc.message, "needs": exc.needs}, status_code=exc.status)
 
 
 @router.post("/{pid}/registry/reveal")

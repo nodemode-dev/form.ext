@@ -45,7 +45,7 @@ Errors arrive as `FormExtError` with `code`: -32001 permission not granted, -320
 
 ## Changing the document
 
-Use the app's own command ids and args from `docs {topic: "[product]"}`. One user action is one `apply` with a clear label (it becomes the undo step's name). Read the document again after `document.changed` (debounce it) rather than keeping a stale copy.
+Use the app's own command ids and args from `docs {topic: "[product]"}`. Before using a command, confirm its args in the pulled source: `source_search {app: "[product]", query: "[command id]"}`, then `source_read` around the match (`host-source`). One user action is one `apply` with a clear label (it becomes the undo step's name). Read the document again after `document.changed` (debounce it) rather than keeping a stale copy.
 
 ## Theme
 

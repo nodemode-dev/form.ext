@@ -2,7 +2,7 @@
 
 Living log for `frontend/src/panes/studio/` (formerly `edit/`), the Studio module (FX5). Source files stay comment-free; what they would have said lives here.
 
-Current build version: v0.3.1
+Current build version: v0.4.0
 
 ## Terminal dock {#terminal}
 
@@ -126,3 +126,16 @@ The Edit pane (folder `edit`) became the Studio (`studio`, `view: 'studio'`): a 
 `zones.ts` is the compositor. The part panes (library, check, preview, package, publish, run) are mounted hidden into their own slots; on mount it moves their pieces into the zones: the Library root into the left panel, Preview's stage, bar and message log into the split panel and bottom panel, Check's list and filters into Problems and its Run button and options into the inspector. Package, Run in App and Publish open as a sheet: the part's first child moves into `.st-sheet` and goes back on close, so their code and state are untouched. A part opens through `ctx.openPane(id)`, which the shell turns into `studio.part`; the zones react. The choices (left tab, right tab, bottom tab, split, fold) are remembered in `formext.studio.*`. `check.result` and `library.count` carry the numbers for the inspector summary and the tab counts. The Output tab lists every toast and message (`shell/output.ts`).
 
 Differences from the mock: the host app art is a glyph tile, not the real app icons; the Manifest tab keeps the existing form (its groups are drawn by CSS) instead of the mock's rebuilt group rows; Package, Run in App and Publish open sheets rather than acting as one-click toolbar buttons that only toast.
+
+---
+
+## Host source row in the project card {#source}
+- refers-to: index.ts :: paintSource, loadSource, pullSource, projectBar · studio.css :: .st-projcard-src
+- kind: decision
+- logged: v0.4.0 · 2026-11-10
+
+The project card has a fourth line from the first paint: a muted text (`.st-projcard-c`) and a small ghost button with the refresh glyph, inside `.st-projcard-src`, whose height is fixed at `--ctl-sm`, so no state changes the card's height. `paintSource` writes only the text (`setText`), the `title` and the button label when they differ, the button's `hidden` class and its `disabled` flag. States: absent reads "Source: not here" with Get; pulling reads "Source: fetching" with no button; ready reads "Source: [first 7 characters of the commit]" with Update; failed reads "Source: failed" with Retry. The full sentence for each state (the app's name, the folder, the commit subject, the error) is the text's `title`. The words are this short because the left panel is 287 px at every window width: a first version read "[App] source: not on this computer", and in a browser run the state itself was cut off by the ellipsis in every state. The button has a minimum width so the text's room does not change with the label. With no project or no product the text is empty and the button hidden.
+
+`projectBar` notes the host product; when it differs from the last one it paints from `sourceCache` (a Map per product, so switching back is instant) and asks `GET /api/sources/[product]` once. An answer is cached always but painted only if the open product is still the one asked for. The button posts `/pull` with `{wait: false}` (plus `update: true` when ready), is disabled while the request runs, and paints the answer. The live event `source.changed` re-fetches the status when its key is the open product; it is unsubscribed with the other events.
+
+In the browser demo the routes answer 404: the status is cached as unavailable, the line reads "Source: desktop app", the button stays hidden, and nothing is notified or logged. Other fetch failures leave the row as it was; a failed pull click on any status other than 404 shows one error toast.

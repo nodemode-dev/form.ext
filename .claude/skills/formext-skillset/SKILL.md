@@ -12,7 +12,7 @@ Route every change to form.ext's code through this file. It maps the subsystems,
 | Subsystem | Root | Specialist |
 | --- | --- | --- |
 | Engine core | `backend/app/main.py`, `services/{workspace,bus,settings,paths}.py`, `routers/{projects,live,settings,health}.py`, `backend/formext_engine.py`, `backend/boot_backend` | `sub-skills/engine-core/SUB-SKILL.md` |
-| Engine modules | `routers/[module].py` with `services/[module].py`: validate, templates (and `templates/`), preview, package and keys, runapp and portal, publish, library | `sub-skills/engine-modules/SUB-SKILL.md` |
+| Engine modules | `routers/[module].py` with `services/[module].py`: validate, templates (and `templates/`), preview, package and keys, runapp and portal, publish, library, plus `services/sources.py` (the source store), `services/family.py` (the family map and the FormSkills link), `services/registry_pr.py` (the registry pull request) and `routers/sources.py` | `sub-skills/engine-modules/SUB-SKILL.md` |
 | Interface | `frontend/src/shell/`, `frontend/src/styles/`, `frontend/src/panes/[name]/`, `frontend/src/sim/` | `sub-skills/interface/SUB-SKILL.md` |
 | Command line and MCP | `backend/app/cli.py` (engine client, the op table, the commands), `backend/app/mcp.py` (stdio server), `.mcp.json`, `.claude/skills/formext-harness`, `.agents/skills`, `AGENTS.md` | `sub-skills/agent-substrate/SUB-SKILL.md` |
 | Desktop and release | `src-tauri/`, `setup/freeze_backend`, `./formext`, `./formext_oc_install`, `./build_app` | `sub-skills/desktop-and-release/SUB-SKILL.md` |

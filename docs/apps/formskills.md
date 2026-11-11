@@ -90,6 +90,7 @@ A `library` answer (one app shown, trimmed):
 | `own` | `{}` | your own skills |
 | `download` | `{ app, skill? }` | `{ path, name, skills, files, bytes }`, the zip saved in Downloads |
 | `refresh` | `{}` | the `library` snapshot after checking every app's latest release again |
+| `demo-open` | `{ demo }`: `explore`, `author` or `install` | `{ demo, opened }`; the demo opens over the window in a sandbox on sample skills, and Exit Demo returns to the window as it was |
 
 Your own skills use the app id `yours` in `edit-read`, `edit-write` and `check` (`copy: true`).
 

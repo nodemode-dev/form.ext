@@ -22,6 +22,17 @@ The extension in a simulated host for its app, built on the contract's own host 
 
 The manifest against the kit's package rules, the schema and the hosts' refusals; the code against the CSP and the sandbox (inline script, outside resources, direct network, `eval`, browser storage, dialogs and popups); permissions used but not declared and declared but not used; headless commands that never call `ext.done`; sizes. It runs on open, on F7 and after every save.
 
+## Read the app's source
+
+The app you are making for is open source, and its code is the best answer to "what does this command really do". form.ext pulls the host app's source into its data folder (`sources/`) when you make or open a project, read-only and never built or run. Two commands put it in your hands:
+
+```sh
+./formext cli source formmd     # pull it (or show where it is); the app id, or a project id
+./formext cli family            # every app, its repository, whether its source is here
+```
+
+Read the pages it names first (`docs/EXTENSIONS.md`, `CLAUDE.md`), then the files that implement the contract. Some apps are GPL: read them, do not copy their code into your extension. More is in the Manual under Host sources.
+
 ## Library
 
 Import a `.formpkg` into a project with the kit's checks, inspect any package (manifest, files, hashes, permissions, determinism), compare two builds of a project or a build and the working files, and the Registry shelf: the extensions of form.ext-registry from its signed index (the signature checked with the registry keys compiled into the engine, `backend/app/registry_keys.txt`, plus `FORMEXT_REGISTRY_PUBKEY`), each with the Verified mark, its app, version, permissions and source link. Importing one downloads the package and checks its SHA-256 and publisher signature first. The index address is the setting `registry.url`, or `FORMEXT_REGISTRY_URL`.

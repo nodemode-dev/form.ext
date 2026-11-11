@@ -23,6 +23,14 @@ STARTERS = [
     ("command", "Command", "A command that runs without a panel, changes the document in one step and finishes."),
     ("panel-commands", "Panel with commands", "A panel, a command that opens it, and a headless command that shares its code."),
 ]
+PLAIN = {
+    "document": "read and change the open document",
+    "files-read": "open files you choose",
+    "files-write": "save files where you choose",
+    "network": "reach the internet",
+    "models": "use local models",
+    "native-code": "run native code",
+}
 META = "template.json"
 SHARED = "_shared"
 NAMED = (".html", ".htm", ".md")
@@ -157,7 +165,16 @@ def _readme(product: str, starter: str, name: str, info: dict) -> str:
         "",
     ]
     lines += [f"- `{u}`" for u in info.get("uses", [])]
+    perms = [p for p in info.get("permissions", []) if isinstance(p, str)]
+    lines += ["", "## Permissions", ""]
+    lines += [f"- `{p}`: {PLAIN.get(p, p)}. Why: say here what the extension does with it." for p in perms] or ["- None: it asks for no permission."]
     lines += [
+        "",
+        "## Screenshot",
+        "",
+        f"![{name} in {_names()[product]}](docs/screenshot.png)",
+        "",
+        "Save a picture of the extension running in the app as `docs/screenshot.png`; the registry asks for it.",
         "",
         "## Next",
         "",

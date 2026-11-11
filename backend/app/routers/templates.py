@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Body
 
-from app.services import templates
+from app.services import sources, templates
 
 router = APIRouter(prefix="/api/templates", tags=["templates"])
 
@@ -17,12 +17,16 @@ def list_examples():
 
 @router.post("/examples/{example}")
 def create_example(example: str, body: dict | None = Body(None)):
-    return templates.create_example(example, (body or {}).get("name"))
+    project = templates.create_example(example, (body or {}).get("name"))
+    sources.auto(str(project.get("product") or ""))
+    return project
 
 
 @router.post("/create")
 def create_project(body: dict = Body(...)):
-    return templates.create(str(body.get("product", "")), str(body.get("starter", "")), str(body.get("name", "")), body.get("description"))
+    project = templates.create(str(body.get("product", "")), str(body.get("starter", "")), str(body.get("name", "")), body.get("description"))
+    sources.auto(str(project.get("product") or ""))
+    return project
 
 
 @router.get("/{product}/{starter}")

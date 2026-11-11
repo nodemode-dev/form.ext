@@ -8,6 +8,16 @@
 - A folder opened with `import {link: true}` is edited in place; when its `manifest.json` is at its root, `package_prefix` is empty and paths are `manifest.json`, `ui/app.js`.
 - Writes are atomic and the window shows them at once; edits made in an editor outside form.ext are picked up too.
 
+## Host sources
+
+- A host app's source lives in the data folder at `sources/[repository name]/` (the registry at `sources/form.ext-registry/`); the pull request working clone is `registry-work/`.
+- `source {app}` pulls it (git clone, or an archive when git is missing); `source_files`, `source_read` and `source_search` read it; `family` maps every app.
+- It is read-only reference: never edit, build or run it from here.
+- The app's `docs` list and `extension_host` files say where its extension contract is implemented.
+- When the API page and the source disagree, the source wins; tell the person.
+- GPL-3.0 hosts (formMCP, FormSkills, FormPortal): read to learn, never copy their code into an extension.
+- The engine pulls a project's host source in the background when the project is made or opened (setting `sources.auto`).
+
 ## What a starter gives you
 
 Every starter has `ui/index.html` (no inline script), `ui/app.js` (the extension), `ui/formext.js` (the SDK as plain JavaScript), `ui/kit.js` (small helpers: `$`, `esc`, `fill`, `status`, `errorText`, `debounce`, `headless`, `plural`) and `ui/base.css` (styles that follow the host's theme tokens). Keep `formext.js` as it is; change `app.js`, `index.html` and the manifest.

@@ -1,6 +1,6 @@
 import { emit } from '../../shell/events';
 import { now, utf8 } from './bytes';
-import { bad, notFound } from './errors';
+import { bad, HttpError, notFound } from './errors';
 import { PLAIN } from './kit';
 import type { Json } from './kit';
 import { keys } from './keys';
@@ -128,7 +128,7 @@ export async function status(pid: string): Promise<Json> {
   const m = project.manifest;
   const pick: Json = {};
   for (const k of ['id', 'name', 'product', 'version', 'kind', 'author', 'licence', 'permissions', 'description', 'minimum_app', 'api', 'native', 'homepage', 'support']) pick[k] = m[k] ?? null;
-  const registry = { submission: registrySubmission(pid), folder: `${registryRoot()}/extensions/${m.id ?? 'id'}`, checkout: String(settings.value('registry.checkout') || ''), repo: REGISTRY_REPO };
+  const registry = { submission: registrySubmission(pid), folder: `${registryRoot()}/extensions/${m.id ?? 'id'}`, checkout: String(settings.value('registry.checkout') || ''), managed: true, repo: REGISTRY_REPO };
   return { project: pid, manifest: pick, default_url: DEFAULT_URL(m.id ?? 'id', m.version ?? '0.0.0'), keys: await keys.list(), publisher: settings.value('publisher') || '', submission: latest(pid), submissions_dir: submissionsDir(), registry };
 }
 
@@ -322,6 +322,17 @@ export async function revealRegistry(pid: string): Promise<Json> {
   const sub = registrySubmission(pid);
   if (!sub) throw notFound('submit to the registry first');
   return saveZip(sub.folder);
+}
+
+const PR_DEMO = 'Opening a pull request needs form.ext on your computer; this page is the demo.';
+const prNeeds = () => [{ what: 'engine', say: PR_DEMO, how: '' }];
+
+export function pullRequestReady(): Json {
+  return { ready: false, git: false, gh: false, signed_in: false, login: null, needs: prNeeds(), repo: REGISTRY_REPO };
+}
+
+export function pullRequest(): Json {
+  throw new HttpError(409, PR_DEMO, { needs: prNeeds() });
 }
 
 async function saveZip(folder: string): Promise<Json> {

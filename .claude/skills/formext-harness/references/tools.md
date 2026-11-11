@@ -11,6 +11,12 @@ The table lists every tool; a section per tool follows with its arguments.
 | `status` | `status` | read | The engine (running window or in-process), the data folder, which modules are in this engine, and the projects. |
 | `docs` | `docs` | read | The Form Extension Contract, the SDK, the package schema, the hello example, or one app's extension API page (topic is a product id). Read the app's page before writing code for it. |
 | `templates` | `templates` | read | The twelve host apps, the starters each one has (panel, command, panel-commands) and the kit examples. |
+| `family` | `family` | read | Every Form app an extension can be made for, with its repository, API page, starters, skills and whether its source is here; and whether formMCP (reaches every installed app's own tools), FormSkills (the apps' released skills) and FormPortal are on this computer. |
+| `source` | `source` | changes | Bring the source code of a Form app onto this computer, beside the projects, so the extension is written against the real app: a shallow clone of its public repository (an archive download when git is not installed), read-only. Answers where it is, its commit and licence, the docs to read first, the files that implement the extension host, and the app's own skills. Call it for the host app before writing code. Also takes formportal and registry. With no app it lists every source. |
+| `source_files` | `source-files` | read | The files of a pulled source, with sizes: all of them, one folder (under) or the ones matching a glob such as *.go or web/src/extensions/*. |
+| `source_read` | `source-read` | read | Read one file of a pulled source, by lines (400 at a time unless lines says otherwise). |
+| `source_search` | `source-search` | read | Search a pulled source for words or a regular expression: each match with its file and line. Use it to find a command id, a document field or an event in the app's own code. |
+| `skills` | `skills` | changes | The skills that teach an agent one Form app: the ones bundled with form.ext, the ones in the app's pulled source, and the app's released skills through FormSkills (formskills-cli) when it is installed. install puts the released skills into Claude Code's skills folder, for the person or for one project. |
 | `new` | `new` | changes | Make a new extension project from a starter for one host app (or copy a kit example). The starter already works: it reads the app's document and runs a real command. |
 | `projects` | `projects` | read | Every project in form.ext's data folder and every linked folder, newest change first. |
 | `project` | `project` | read | One project: its folder, manifest and files. |
@@ -34,7 +40,7 @@ The table lists every tool; a section per tool follows with its arguments.
 | `apps` | `apps` | read | FormPortal's folder, the Form apps it has installed on this computer, and the development extensions each app loads from dev.json (with what the host would say about each). |
 | `run_in_app` | `run-in-app` | changes | Add the project's package folder to FormPortal's dev.json for its app, so the real app loads it live as a development extension and picks up every save. remove takes it out again, status only reports, open also opens the app. |
 | `publish` | `publish` | changes | Build, sign with the publisher key (unless unsigned) and make the submission folder for formai.studio: the .formpkg, entry.json, a one-package extensions.json and a README. formportal also sends the package to FormPortal to install. |
-| `submit` | `submit` | changes | Write the project into a folder in form.ext-registry's layout (extensions/[id]/ with package/, the source, package.json when there is one, README.md, LICENSE, CHANGELOG.md and a screenshot slot), run the registry's tools/check.py on it when a local registry checkout is set (else form.ext's own Check, and it says which ran), and give the git and gh commands that fork nodemode-dev/form.ext-registry, add the folder and open the pull request. It never pushes anything itself. |
+| `submit` | `submit` | changes | Write the project into a folder in form.ext-registry's layout (extensions/[id]/ with package/, the source, package.json when there is one, README.md, LICENSE, CHANGELOG.md and a screenshot slot), and run the registry's own tools/check.py on it from the copy of the registry form.ext keeps (it fetches it; when that fails form.ext's own Check runs, and it says which ran). With pull_request it then forks nodemode-dev/form.ext-registry into the person's GitHub account, pushes the folder on a branch and opens the pull request, through GitHub's gh command line; it refuses while the checks fail or a placeholder text is left. ready reports what the one-step pull request still needs on this computer. Without pull_request it pushes nothing and gives the commands to do it by hand. |
 
 ## status
 
@@ -57,6 +63,67 @@ The twelve host apps, the starters each one has (panel, command, panel-commands)
 | Argument | Type | Required | Meaning |
 | --- | --- | --- | --- |
 | `product` | string | no | Only this host app. |
+
+## family
+
+Every Form app an extension can be made for, with its repository, API page, starters, skills and whether its source is here; and whether formMCP (reaches every installed app's own tools), FormSkills (the apps' released skills) and FormPortal are on this computer.
+
+No arguments.
+
+## source
+
+Bring the source code of a Form app onto this computer, beside the projects, so the extension is written against the real app: a shallow clone of its public repository (an archive download when git is not installed), read-only. Answers where it is, its commit and licence, the docs to read first, the files that implement the extension host, and the app's own skills. Call it for the host app before writing code. Also takes formportal and registry. With no app it lists every source.
+
+| Argument | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `app` | string | no | A product id such as formmd, or formportal, or registry, or a project id (then its host app). |
+| `action` | string (get, status, update, remove, list) | no | get pulls it when it is not here yet; status only reports; update fetches the newest commit; remove deletes the copy; list shows every source. Default get. |
+
+## source_files
+
+The files of a pulled source, with sizes: all of them, one folder (under) or the ones matching a glob such as *.go or web/src/extensions/*.
+
+| Argument | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `app` | string | yes | A product id, formportal, registry, or a project id. |
+| `under` | string | no | Only this folder of the source. |
+| `glob` | string | no | Only paths or file names matching this pattern. |
+| `limit` | integer | no | At most this many rows (default 2000). |
+
+## source_read
+
+Read one file of a pulled source, by lines (400 at a time unless lines says otherwise).
+
+| Argument | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `app` | string | yes | A product id, formportal, registry, or a project id. |
+| `path` | string | yes | The file's path inside the source, such as docs/EXTENSIONS.md. |
+| `start` | integer | no | The first line to read (default 1). |
+| `lines` | integer | no | How many lines (default 400, at most 2000). |
+
+## source_search
+
+Search a pulled source for words or a regular expression: each match with its file and line. Use it to find a command id, a document field or an event in the app's own code.
+
+| Argument | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `app` | string | yes | A product id, formportal, registry, or a project id. |
+| `query` | string | yes | The words to find (or a regular expression with regex). |
+| `glob` | string | no | Only files whose path or name matches this pattern, such as *.ts. |
+| `regex` | boolean | no | Treat query as a regular expression. |
+| `case` | boolean | no | Match upper and lower case exactly. |
+| `limit` | integer | no | At most this many matches (default 60). |
+
+## skills
+
+The skills that teach an agent one Form app: the ones bundled with form.ext, the ones in the app's pulled source, and the app's released skills through FormSkills (formskills-cli) when it is installed. install puts the released skills into Claude Code's skills folder, for the person or for one project.
+
+| Argument | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `app` | string | yes | A product id, formportal, or a project id. |
+| `install` | boolean | no | Install the app's released skills with formskills-cli. Ask the person first. |
+| `project` | string | no | Install into this project's folder instead of the person's own skills folder. |
+| `checkout` | boolean | no | Have FormSkills read the pulled sources instead of the releases (its dev mode). |
 
 ## new
 
@@ -275,9 +342,11 @@ Build, sign with the publisher key (unless unsigned) and make the submission fol
 
 ## submit
 
-Write the project into a folder in form.ext-registry's layout (extensions/[id]/ with package/, the source, package.json when there is one, README.md, LICENSE, CHANGELOG.md and a screenshot slot), run the registry's tools/check.py on it when a local registry checkout is set (else form.ext's own Check, and it says which ran), and give the git and gh commands that fork nodemode-dev/form.ext-registry, add the folder and open the pull request. It never pushes anything itself.
+Write the project into a folder in form.ext-registry's layout (extensions/[id]/ with package/, the source, package.json when there is one, README.md, LICENSE, CHANGELOG.md and a screenshot slot), and run the registry's own tools/check.py on it from the copy of the registry form.ext keeps (it fetches it; when that fails form.ext's own Check runs, and it says which ran). With pull_request it then forks nodemode-dev/form.ext-registry into the person's GitHub account, pushes the folder on a branch and opens the pull request, through GitHub's gh command line; it refuses while the checks fail or a placeholder text is left. ready reports what the one-step pull request still needs on this computer. Without pull_request it pushes nothing and gives the commands to do it by hand.
 
 | Argument | Type | Required | Meaning |
 | --- | --- | --- | --- |
 | `id` | string | yes | The project id (projects lists them). |
-| `checkout` | string | no | A local clone of nodemode-dev/form.ext-registry whose tools/check.py runs on the folder (saved as the setting registry.checkout). |
+| `checkout` | string | no | Your own clone of nodemode-dev/form.ext-registry to use instead of form.ext's copy (saved as the setting registry.checkout). |
+| `pull_request` | boolean | no | Also fork, push and open the pull request. Ask the person first: it posts publicly under their GitHub account. |
+| `ready` | boolean | no | Only report whether git and gh are installed and signed in. |

@@ -11,6 +11,8 @@ description: "form.ext's agent surface: the formext command line and MCP server 
 
 Ops call the engine's routes only (never services directly), so the window, the command line and the MCP server always agree. Routes that belong to other modules are named in `ROUTES` and checked with `_need`, which fails in plain words when that module's router is missing from the engine.
 
+The ops added with the family work are `family`, `source`, `source_files`, `source_read`, `source_search` and `skills`, plus `submit` with `checkout`, `pull_request` and `ready`. `docs` answers from a pulled app's `docs/EXTENSIONS.md` when it is newer than the bundled page. `submit` with `pull_request` must stay opt-in: it defaults to off, is never implied by `ready` or `checkout`, and its help says it posts publicly under the person's GitHub account. `skills` with `install` is likewise opt-in.
+
 ## Reaching the engine
 
 `Engine` picks, per call: `--engine` or `FORMEXT_URL`; else a running engine whose `/api/health` `home` is this process's data folder (the desktop engine's `engine.port`, then 127.0.0.1 on `FORMEXT_PORT`, default 8640), re-probed every 5 s; else the FastAPI app in-process through a small ASGI caller (`_asgi_call`, run with anyio), with `FORMEXT_WATCH=0`. HTTP goes through an opener with no proxy, since loopback must never reach a proxy.

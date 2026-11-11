@@ -12,10 +12,13 @@ PROTOCOLS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"]
 
 INSTRUCTIONS = (
     "form.ext makes extensions for the Form apps (formvis, formcut, formwav, formpdf, formdeck, formlit, formmd, formencoder, formvfx, formmcp, formtray, formskills). "
-    "Read docs {topic: 'contract'} once and docs {topic: <product>} for the app you build for. "
-    "The loop: templates, new, read and write the files, manifest, validate until it has no errors, preview, package, then run_in_app to load it in the real app, sign and publish. "
+    "Read docs {topic: 'contract'} once and docs {topic: <product>} for the app you build for; family maps every app, its skills and its neighbours formMCP and FormSkills. "
+    "Before writing code call source {app: <product>}: it brings that app's source code onto this computer, beside the project, and names the files to read; "
+    "source_search and source_read then answer what a command takes or what a document field holds from the app's own code. The source is read-only. "
+    "The loop: templates, new, source, read and write the files, manifest, validate until it has no errors, preview, package, then run_in_app to load it in the real app, sign and publish; "
+    "submit prepares the registry folder and runs the registry's checks, and submit {pull_request: true} opens the pull request for the person. "
     "Paths are relative to the project folder (package/ui/app.js); files gives package_prefix. "
-    "Ask the person before run_in_app (it writes FormPortal's dev.json), publish with formportal (it installs), and delete."
+    "Ask the person before run_in_app (it writes FormPortal's dev.json), publish with formportal (it installs), submit with pull_request (it posts publicly under their GitHub account), skills with install, and delete."
 )
 
 

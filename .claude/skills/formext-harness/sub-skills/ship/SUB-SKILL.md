@@ -1,6 +1,6 @@
 ---
 name: ship
-description: "Shipping a Form extension from form.ext: Run in App through FormPortal's dev.json, the installed apps, deterministic .formpkg packages and the reproducibility check, Ed25519 publisher keys, signing and verifying builds, formai-extensions index entries, the formai.studio submission folder, sending a package to FormPortal to install, and submitting to form.ext-registry (the registry layout, its tools/check.py, the git and gh pull request commands). Use when the person wants the extension loaded in the real app, packaged, signed, published, installed or registered."
+description: "Shipping a Form extension from form.ext: Run in App through FormPortal's dev.json, the installed apps, deterministic .formpkg packages and the reproducibility check, Ed25519 publisher keys, signing and verifying builds, formai-extensions index entries, the formai.studio submission folder, sending a package to FormPortal to install, and submitting to form.ext-registry (form.ext's own registry copy, its tools/check.py, whether git and gh are ready, opening the pull request). Use when the person wants the extension loaded in the real app, packaged, signed, published, installed or registered."
 ---
 
 # ship
@@ -30,10 +30,12 @@ description: "Shipping a Form extension from form.ext: Run in App through FormPo
 
 ## Submit to the registry
 
-Official Form extensions live in `nodemode-dev/form.ext-registry` (one `extensions/[id]/` folder each; the owners review every pull request, CI runs `tools/check.py`, and the merge publishes a signed release).
+Official Form extensions live in `nodemode-dev/form.ext-registry` (one `extensions/[id]/` folder each; the owners review every pull request, CI runs `tools/check.py`, and the merge publishes a signed release). form.ext can open the pull request for the person.
 
-1. Make the project registry-ready first: `README.md` that says what it does, a `## Permissions` section naming every permission and why, and the screenshot `![...](docs/screenshot.png)` with the picture at `docs/screenshot.png`; `LICENSE`; `CHANGELOG.md` with an entry for the version; source in `src/` when there is any (without `src/` the registry reads the shipped files, bundled SDK included, for the permission check). A changed extension raises its version above the published one.
-2. `submit {id, checkout?}` writes `submissions/registry/extensions/[id]/` in the data folder (package/, the source, the metadata; it writes README, LICENSE or CHANGELOG only when missing, and lists them in `made` for you to finish). `checkout` is a local clone of the registry: then the clone's own `tools/check.py` runs on the folder (`checks.by` is `registry`); without it form.ext's Check runs (`checks.by` is `formext`). Say which ran.
-3. When `checks.ok` is false, fix the project and submit again. When it is true, give the person `commands` (fork, branch, copy, check, commit, push, `gh pr create`). Never run the push or the pull request yourself unless the person asks.
+1. Make the project registry-ready first. New starter READMEs already carry the `## Permissions` and `## Screenshot` sections: write the real reason for each permission (replace "Why: say here what the extension does with it.") and save the picture at `docs/screenshot.png`. `LICENSE` is written in full for Apache-2.0 and MIT when missing. Also `CHANGELOG.md` with an entry for the version, and source in `src/` when there is any (without `src/` the registry reads the shipped files, bundled SDK included, for the permission check). A changed extension raises its version above the published one.
+2. `submit {id}` fetches form.ext's own copy of the registry (the `registry` source; no clone to set up) and runs the registry's `tools/check.py` on `submissions/registry/extensions/[id]/` in the data folder (package/, the source, the metadata; README, LICENSE or CHANGELOG are written only when missing and listed in `made`). `checkout` is only for using the person's own clone instead. `checks.by` says which checker ran (`registry` or `formext`): say which.
+3. `submit {id, ready: true}` reports whether git and `gh` are installed and signed in, and what to do when not (`gh auth login --web`).
+4. When `checks.ok` is true and the person agrees, `submit {id, pull_request: true}` forks the registry, pushes the branch `add-[id]-[version]` (or `update-...`) and opens or updates the pull request. It answers the URL, the branch, the fork and what happens next. It posts publicly under their GitHub account, so ask first. It refuses while checks fail or placeholder text is left in README.md or LICENSE: fix the project and submit again.
+5. When `gh` is not available, give the person the `commands` list (fork, branch, copy, check, commit, push, `gh pr create`) instead. Never run the push yourself.
 
 The Library's Registry shelf (in the window) lists the registry's verified extensions from its signed index; importing one checks its SHA-256 and publisher signature.

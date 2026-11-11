@@ -7,7 +7,7 @@ import shutil
 import time
 from pathlib import Path
 
-from app.services import paths, portal, registry, settings
+from app.services import paths, portal, registry, settings, sources
 from app.services.bus import bus
 from app.services.keys import keys
 from app.services.package import DEFAULT_URL, packages
@@ -178,6 +178,7 @@ def status(pid: str) -> dict:
             "submission": registry_submission(pid),
             "folder": str(registry_root() / "extensions" / str(manifest.get("id", "id"))),
             "checkout": str(registry_checkout() or ""),
+            "managed": registry_checkout_managed(),
             "repo": registry.REPO,
         },
     }
@@ -274,6 +275,28 @@ def reveal(pid: str) -> dict:
 
 SKIP_ROOT = {"import.json", "dist", "build"}
 SCREENSHOT_NAMES = ("docs/screenshot.png", "docs/screenshot.jpg", "docs/screenshot.webp", "screenshot.png", "screenshot.jpg", "screenshot.webp")
+MIT_TEXT = """MIT License
+
+Copyright (c) {year} {holder}
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 
 
 def registry_root() -> Path:
@@ -283,8 +306,24 @@ def registry_root() -> Path:
 def registry_checkout() -> Path | None:
     configured = settings.value("registry.checkout")
     if not isinstance(configured, str) or not configured.strip():
-        return None
+        return sources.host_dir("registry")
     return Path(configured.strip()).expanduser()
+
+
+def registry_checkout_managed() -> bool:
+    configured = settings.value("registry.checkout")
+    return not (isinstance(configured, str) and configured.strip())
+
+
+def _ensure_registry() -> str | None:
+    """Bring form.ext's own copy of the registry up to date before a submit, so its tools/check.py is the one CI runs; a note when it cannot."""
+    if not registry_checkout_managed():
+        return None
+    try:
+        sources.pull("registry", update=sources.present("registry"))
+    except WorkspaceError as exc:
+        return f"form.ext could not fetch the registry's checks ({exc.message})"
+    return None
 
 
 def _registry_readme(m: dict) -> str:
@@ -299,7 +338,14 @@ def _registry_readme(m: dict) -> str:
 
 def _registry_licence(m: dict) -> str:
     year = time.strftime("%Y")
-    return f"SPDX-License-Identifier: {m.get('licence') or 'NOASSERTION'}\n\nCopyright {year} {m.get('author') or 'the author'}\n\nReplace this file with the full text of the {m.get('licence') or 'chosen'} licence before the pull request.\n"
+    holder = m.get("author") or "the author"
+    licence = str(m.get("licence") or "")
+    apache = paths.templates_dir() / "LICENSE"
+    if licence == "Apache-2.0" and apache.is_file():
+        return apache.read_text(encoding="utf-8")
+    if licence == "MIT":
+        return MIT_TEXT.format(year=year, holder=holder)
+    return f"SPDX-License-Identifier: {licence or 'NOASSERTION'}\n\nCopyright {year} {holder}\n\nReplace this file with the full text of the {licence or 'chosen'} licence before the pull request.\n"
 
 
 def _registry_changelog(m: dict) -> str:
@@ -444,7 +490,10 @@ def submit(pid: str) -> dict:
         shutil.rmtree(staging, ignore_errors=True)
         raise
     screenshot = next((n for n in SCREENSHOT_NAMES if (folder / n).is_file()), None)
+    fetch_note = _ensure_registry()
     checks = _registry_checks(root, folder, manifest)
+    if fetch_note and checks["by"] == "formext":
+        checks["note"] = f"{fetch_note}, so form.ext ran its own Check, the kit's package rules and the metadata files instead of the registry's tools/check.py."
     try:
         listed = {e["id"]: e for e in registry.registry.shelf()["extensions"]}
     except WorkspaceError:

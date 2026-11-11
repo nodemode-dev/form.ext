@@ -1,6 +1,6 @@
 import { utf8 } from './bytes';
 import { bad, notFound } from './errors';
-import type { Json } from './kit';
+import { PLAIN, type Json } from './kit';
 import { settings } from './settings';
 import { slug, workspace } from './workspace';
 
@@ -131,6 +131,7 @@ function cleanName(name: string): string {
 }
 
 function readme(product: string, name: string, info: Json): string {
+  const perms: string[] = (info.permissions || []).filter((p: unknown) => typeof p === 'string');
   const lines = [
     `# ${name}`,
     '',
@@ -146,6 +147,16 @@ function readme(product: string, name: string, info: Json): string {
     '## What it uses',
     '',
     ...(info.uses || []).map((u: string) => `- \`${u}\``),
+    '',
+    '## Permissions',
+    '',
+    ...(perms.length ? perms.map((p) => `- \`${p}\`: ${PLAIN[p] ?? p}. Why: say here what the extension does with it.`) : ['- None: it asks for no permission.']),
+    '',
+    '## Screenshot',
+    '',
+    `![${name} in ${NAMES[product]}](docs/screenshot.png)`,
+    '',
+    'Save a picture of the extension running in the app as `docs/screenshot.png`; the registry asks for it.',
     '',
     '## Next',
     '',

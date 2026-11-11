@@ -44,6 +44,7 @@ MODULES = {
     "package": "package",
     "run": "runapp",
     "publish": "publish",
+    "sources": "sources",
 }
 
 REF_RE = re.compile(r"""(?:src|href)\s*=\s*["']([^"'#?]+)""", re.I)
@@ -361,7 +362,7 @@ def op_status(eng: Engine) -> dict:
         "router_errors": health.get("router_errors") or {},
         "projects": len(projects),
         "recent": [_row(p) for p in projects[:5]],
-        "next": "templates, then new" if not projects else "validate, preview, package" + ("" if not missing else f" (not in this engine yet: {', '.join(missing)})"),
+        "next": "family, templates, then new and source" if not projects else "validate, preview, package" + ("" if not missing else f" (not in this engine yet: {', '.join(missing)})"),
     }
 
 
@@ -393,7 +394,24 @@ def op_docs(eng: Engine, topic: str = "list") -> dict:
             if item.is_file() and item.stat().st_size < 64 * 1024:
                 files[item.relative_to(target).as_posix()] = item.read_text(encoding="utf-8", errors="replace")
         return {"topic": topic, "path": str(target), "files": files}
-    return {"topic": topic, "path": str(target), "text": target.read_text(encoding="utf-8", errors="replace")}
+    text = target.read_text(encoding="utf-8", errors="replace")
+    live = _live_page(topic)
+    if live is not None and live[1] != text:
+        return {"topic": topic, "path": str(live[0]), "text": live[1], "from": "the app's pulled source (docs/EXTENSIONS.md), which is newer than the page bundled with this form.ext"}
+    return {"topic": topic, "path": str(target), "text": text}
+
+
+def _live_page(topic: str) -> tuple[Path, str] | None:
+    from app.services import sources
+
+    try:
+        found = sources.host_dir(topic)
+    except OSError:
+        return None
+    page = found / "docs" / "EXTENSIONS.md" if found else None
+    if page is None or not page.is_file():
+        return None
+    return page, page.read_text(encoding="utf-8", errors="replace")
 
 
 def op_templates(eng: Engine, product: str | None = None) -> dict:
@@ -421,7 +439,7 @@ def op_new(eng: Engine, name: str = "", product: str = "", starter: str = "panel
         project = eng.post("/api/templates/create", {"product": product, "starter": starter or "panel", "name": name, "description": description})
     project = project.get("project", project) if isinstance(project, dict) else project
     files = eng.get(f"/api/projects/{q(project['id'])}/files")
-    return {"project": _row(project), "manifest": project.get("manifest"), "files": [f["path"] for f in files.get("files", [])], "next": "edit the files (file_write), then validate and preview"}
+    return {"project": _row(project), "manifest": project.get("manifest"), "files": [f["path"] for f in files.get("files", [])], "next": f"source {project.get('product')} brings the host app's source code here to read; then edit the files (write), validate and preview"}
 
 
 def op_projects(eng: Engine) -> dict:
@@ -633,6 +651,8 @@ def _say_package(d: dict) -> str:
     if "reproduce" in d:
         r = d["reproduce"]
         lines.append(f"reproducible: {r.get('ok', r.get('reproducible'))}")
+    if b.get("path"):
+        lines.append(f"kept {b['path']}")
     if d.get("saved"):
         lines.append(f"saved {d['saved']}")
     return "\n".join(lines)
@@ -739,18 +759,105 @@ def _say_publish(d: dict) -> str:
     return "\n".join(lines)
 
 
-def op_submit(eng: Engine, id: str, checkout: str | None = None) -> dict:
+def op_submit(eng: Engine, id: str, checkout: str | None = None, pull_request: bool = False, ready: bool = False) -> dict:
     route = _route("submit", id=id)
     _need(eng, "publish", "Submit to Registry", route)
+    if ready:
+        return eng.get(f"/api/publish/{q(id)}/registry/pull-request")
     if checkout:
         folder = Path(checkout).expanduser().resolve()
         if not (folder / "tools" / "check.py").is_file():
             raise OpError(f"{folder} is not a form.ext-registry checkout (it has no tools/check.py)")
         eng.call("PUT", "/api/settings", {"registry": {"checkout": str(folder)}})
+    if pull_request:
+        try:
+            return eng.call("POST", f"/api/publish/{q(id)}/registry/pull-request", {})
+        except EngineError as err:
+            needs = err.data.get("needs") if isinstance(err.data, dict) else None
+            if needs:
+                raise OpError(err.message, {"needs": needs}) from err
+            raise
     return eng.call(route[0], route[1], {})
 
 
+def _sources(eng: Engine) -> None:
+    _need(eng, "sources", "Host sources", ("GET", "/api/sources"))
+
+
+def op_source(eng: Engine, app: str | None = None, action: str = "get") -> dict:
+    _sources(eng)
+    if not app or action == "list":
+        return eng.get("/api/sources")
+    base = f"/api/sources/{q(app)}"
+    if action == "status":
+        return eng.get(base)
+    if action == "remove":
+        return eng.call("DELETE", base)
+    result = eng.call("POST", f"{base}/pull", {"update": action == "update"})
+    result["next"] = "read the docs files first (source_read), then the extension_host files; source_search finds a command id or a document field"
+    return result
+
+
+def op_source_files(eng: Engine, app: str, under: str | None = None, glob: str | None = None, limit: int | None = None) -> dict:
+    _sources(eng)
+    return eng.get(f"/api/sources/{q(app)}/files", under=under, glob=glob, limit=limit)
+
+
+def op_source_read(eng: Engine, app: str, path: str, start: int | None = None, lines: int | None = None) -> dict:
+    _sources(eng)
+    return eng.call("GET", f"/api/sources/{q(app)}/file", query={"path": path, "start": start, "lines": lines})
+
+
+def op_source_search(eng: Engine, app: str, query: str, glob: str | None = None, regex: bool = False, case: bool = False, limit: int | None = None) -> dict:
+    _sources(eng)
+    return eng.get(f"/api/sources/{q(app)}/search", q=query, glob=glob, regex=regex or None, case=case or None, limit=limit)
+
+
+def op_family(eng: Engine) -> dict:
+    _sources(eng)
+    return eng.get("/api/sources/family")
+
+
+def op_skills(eng: Engine, app: str, install: bool = False, project: str | None = None, checkout: bool = False) -> dict:
+    _sources(eng)
+    base = f"/api/sources/{q(app)}/skills"
+    if install:
+        return eng.post(base, {"project": project, "checkout": checkout})
+    return eng.get(base, checkout=checkout or None)
+
+
+def _say_source(d: dict) -> str:
+    rows = d.get("sources")
+    if rows is not None:
+        lines = [f"sources in {d.get('dir')}  (git {'found' if d.get('git') else 'not installed: archives are downloaded instead'})"]
+        lines += [f"{r['key']:12} {r['state']:8} {(r.get('commit') or '')[:12]:13} {r['repository']}" for r in rows]
+        return "\n".join(lines)
+    lines = [f"{d.get('name')} ({d.get('repository')}): {d.get('state')}" + (f"  {(d.get('commit') or '')[:12]}  {d.get('subject') or ''}" if d.get("commit") else "")]
+    if d.get("error"):
+        lines.append(f"error  {d['error']}")
+    if d.get("dir"):
+        lines.append(f"dir    {d['dir']}  ({d.get('files')} files, licence {d.get('licence')})")
+    for label, key in (("docs", "docs"), ("host", "extension_host"), ("skill", "skills")):
+        for item in d.get(key) or []:
+            lines.append(f"{label:6} {item}")
+    if d.get("note"):
+        lines.append(f"note   {d['note']}")
+    return "\n".join(lines)
+
+
+def _say_family(d: dict) -> str:
+    lines = [f"{a['id']:12} {a['name']:24} page {'yes' if a.get('api_page') else 'no ':3} starters {'yes' if a.get('starters') else 'no ':3} source {a['source']['state']:7} skills {', '.join(a.get('skills') or []) or 'none here'}" for a in d.get("apps", [])]
+    for key, label in (("formmcp", "formMCP"), ("formskills", "FormSkills")):
+        part = d.get(key) or {}
+        lines.append(f"{label}: {'installed' if part.get('installed') else 'not installed'}. {part.get('use')}")
+    return "\n".join(lines)
+
+
 def _say_submit(d: dict) -> str:
+    if "needs" in d and "ready" in d:
+        return "ready for a one-step pull request" + (f" as {d.get('login')}" if d.get("login") else "") if d["ready"] else "\n".join(f"{n['say']}  {n['how']}" for n in d["needs"])
+    if "state" in d and "checks" not in d:
+        return "\n".join([f"pull request {d.get('state')}: {d.get('url') or d.get('message')}", *(d.get("steps") or []), d.get("next") or ""])
     c = d.get("checks") or {}
     lines = [f"registry folder {d.get('folder')}", f"files {', '.join(d.get('files') or [])}"]
     if d.get("made"):
@@ -877,6 +984,37 @@ OPS: list[Op] = [
     Op("status", "Status", "The engine (running window or in-process), the data folder, which modules are in this engine, and the projects.", op_status, say=_say_status),
     Op("docs", "Docs", "The Form Extension Contract, the SDK, the package schema, the hello example, or one app's extension API page (topic is a product id). Read the app's page before writing code for it.", op_docs, [Param("topic", help="contract, sdk, schema, example, a product id such as formcut, or list.", positional=True, default="list")], say=lambda d: d.get("text") or "\n".join(f"{t['topic']:12} {t['path']}" for t in d.get("topics", [])) or json.dumps(d.get("files"), indent=1)),
     Op("templates", "Templates", "The twelve host apps, the starters each one has (panel, command, panel-commands) and the kit examples.", op_templates, [Param("product", help="Only this host app.", positional=True)], say=_say_templates),
+    Op("family", "Form family", "Every Form app an extension can be made for, with its repository, API page, starters, skills and whether its source is here; and whether formMCP (reaches every installed app's own tools), FormSkills (the apps' released skills) and FormPortal are on this computer.", op_family, say=_say_family),
+    Op("source", "Host source", "Bring the source code of a Form app onto this computer, beside the projects, so the extension is written against the real app: a shallow clone of its public repository (an archive download when git is not installed), read-only. Answers where it is, its commit and licence, the docs to read first, the files that implement the extension host, and the app's own skills. Call it for the host app before writing code. Also takes formportal and registry. With no app it lists every source.", op_source, [
+        Param("app", help="A product id such as formmd, or formportal, or registry, or a project id (then its host app).", positional=True),
+        Param("action", help="get pulls it when it is not here yet; status only reports; update fetches the newest commit; remove deletes the copy; list shows every source.", enum=["get", "status", "update", "remove", "list"], default="get"),
+    ], read_only=False, say=_say_source),
+    Op("source_files", "Source files", "The files of a pulled source, with sizes: all of them, one folder (under) or the ones matching a glob such as *.go or web/src/extensions/*.", op_source_files, [
+        Param("app", help="A product id, formportal, registry, or a project id.", required=True, positional=True),
+        Param("under", help="Only this folder of the source."),
+        Param("glob", help="Only paths or file names matching this pattern."),
+        Param("limit", "integer", "At most this many rows (default 2000)."),
+    ], say=lambda d: "\n".join(f"{f['size']:>9}  {f['path']}" for f in d["files"]) + (f"\n({d['total']} files; raise limit or narrow with under or glob)" if d.get("truncated") else "")),
+    Op("source_read", "Read source file", "Read one file of a pulled source, by lines (400 at a time unless lines says otherwise).", op_source_read, [
+        Param("app", help="A product id, formportal, registry, or a project id.", required=True, positional=True),
+        Param("path", help="The file's path inside the source, such as docs/EXTENSIONS.md.", required=True, positional=True),
+        Param("start", "integer", "The first line to read (default 1)."),
+        Param("lines", "integer", "How many lines (default 400, at most 2000)."),
+    ], say=lambda d: d.get("text") if "text" in d else f"{d.get('path')}: {d.get('size')} bytes of binary"),
+    Op("source_search", "Search source", "Search a pulled source for words or a regular expression: each match with its file and line. Use it to find a command id, a document field or an event in the app's own code.", op_source_search, [
+        Param("app", help="A product id, formportal, registry, or a project id.", required=True, positional=True),
+        Param("query", help="The words to find (or a regular expression with regex).", required=True, positional=True),
+        Param("glob", help="Only files whose path or name matches this pattern, such as *.ts."),
+        Param("regex", "boolean", "Treat query as a regular expression."),
+        Param("case", "boolean", "Match upper and lower case exactly."),
+        Param("limit", "integer", "At most this many matches (default 60)."),
+    ], say=lambda d: "\n".join(f"{m['path']}:{m['line']}: {m['text']}" for m in d["matches"]) or "no match"),
+    Op("skills", "App skills", "The skills that teach an agent one Form app: the ones bundled with form.ext, the ones in the app's pulled source, and the app's released skills through FormSkills (formskills-cli) when it is installed. install puts the released skills into Claude Code's skills folder, for the person or for one project.", op_skills, [
+        Param("app", help="A product id, formportal, or a project id.", required=True, positional=True),
+        Param("install", "boolean", "Install the app's released skills with formskills-cli. Ask the person first."),
+        Param("project", help="Install into this project's folder instead of the person's own skills folder."),
+        Param("checkout", "boolean", "Have FormSkills read the pulled sources instead of the releases (its dev mode)."),
+    ], read_only=False),
     Op("new", "New extension", "Make a new extension project from a starter for one host app (or copy a kit example). The starter already works: it reads the app's document and runs a real command.", op_new, [
         Param("name", help="The extension's name, such as Beat Markers; the project id is its slug.", positional=True),
         Param("product", help="The host app id, such as formcut (templates lists them).", flag="--app"),
@@ -942,9 +1080,11 @@ OPS: list[Op] = [
         Param("unsigned", "boolean", "Do not sign."),
         Param("formportal", "boolean", "Also send the package to FormPortal to install."),
     ], read_only=False, say=_say_publish),
-    Op("submit", "Submit to Registry", "Write the project into a folder in form.ext-registry's layout (extensions/[id]/ with package/, the source, package.json when there is one, README.md, LICENSE, CHANGELOG.md and a screenshot slot), run the registry's tools/check.py on it when a local registry checkout is set (else form.ext's own Check, and it says which ran), and give the git and gh commands that fork nodemode-dev/form.ext-registry, add the folder and open the pull request. It never pushes anything itself.", op_submit, [
+    Op("submit", "Submit to Registry", "Write the project into a folder in form.ext-registry's layout (extensions/[id]/ with package/, the source, package.json when there is one, README.md, LICENSE, CHANGELOG.md and a screenshot slot), and run the registry's own tools/check.py on it from the copy of the registry form.ext keeps (it fetches it; when that fails form.ext's own Check runs, and it says which ran). With pull_request it then forks nodemode-dev/form.ext-registry into the person's GitHub account, pushes the folder on a branch and opens the pull request, through GitHub's gh command line; it refuses while the checks fail or a placeholder text is left. ready reports what the one-step pull request still needs on this computer. Without pull_request it pushes nothing and gives the commands to do it by hand.", op_submit, [
         P_ID,
-        Param("checkout", help="A local clone of nodemode-dev/form.ext-registry whose tools/check.py runs on the folder (saved as the setting registry.checkout)."),
+        Param("checkout", help="Your own clone of nodemode-dev/form.ext-registry to use instead of form.ext's copy (saved as the setting registry.checkout)."),
+        Param("pull_request", "boolean", "Also fork, push and open the pull request. Ask the person first: it posts publicly under their GitHub account.", flag="--pull-request"),
+        Param("ready", "boolean", "Only report whether git and gh are installed and signed in."),
     ], read_only=False, say=_say_submit),
     Op("agents_sync", "Sync agent files", "Regenerate the harness skill's references/tools.md from this table and mirror the harness skill into .agents/skills.", op_agents_sync, mcp=False, read_only=False),
 ]
@@ -1015,6 +1155,8 @@ def main(argv: list[str] | None = None) -> int:
             problems = err.data.get("problems") if isinstance(err.data, dict) else None
             for p in problems or []:
                 print(f"  {p.get('path') or p.get('file')}:{p.get('line') or ''} {p.get('rule')}: {p.get('message')}", file=sys.stderr)
+            for n in (err.data.get("needs") if isinstance(err.data, dict) else None) or []:
+                print(f"  {n.get('say')}" + (f"  {n['how']}" if n.get("how") else ""), file=sys.stderr)
         return err.code
     try:
         _print(op, data, as_json)
