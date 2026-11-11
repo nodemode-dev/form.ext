@@ -154,7 +154,7 @@ def check(ext: Extension, product: str, app_version: str, app_name: str) -> Exte
         if not _safe_rel(entry):
             return refuse("its entry.ui is not a path inside the package")
         target = (ext.path / entry).resolve()
-        if not target.is_file() or ext.path.resolve() not in target.parents:
+        if entry.endswith("/") or not target.is_file() or ext.path.resolve() not in target.parents:
             return refuse(f"its entry.ui {entry} is not in the package")
     ext.entry_ui = entry
     ext.panels = [{"id": p["id"], "title": str(p["title"])[:60], "location": p.get("location", "dock") if p.get("location") in ("dock", "dialog") else "dock"} for p in panels]

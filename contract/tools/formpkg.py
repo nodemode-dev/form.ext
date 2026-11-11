@@ -81,7 +81,7 @@ def problems(folder: Path) -> tuple[list[str], dict]:
             out.append(f"manifest.json: command {c.get('id')!r} names panel {c['panel']!r}, which is not contributed")
     if (contributes.get("panels") or contributes.get("commands")) and not entry:
         out.append("manifest.json: entry.ui is required when panels or commands are contributed")
-    if entry and Path(entry).as_posix() not in {p.relative_to(folder).as_posix() for p in files_of(folder)[0]}:
+    if entry and (str(entry).endswith("/") or Path(entry).as_posix() not in {p.relative_to(folder).as_posix() for p in files_of(folder)[0]}):
         out.append(f"manifest.json: entry.ui {entry} is not a file in the folder")
     return out, m
 

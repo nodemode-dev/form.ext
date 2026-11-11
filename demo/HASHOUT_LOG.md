@@ -2,8 +2,8 @@
 
 Living log of the offline browser demo. Source files stay comment-free; what they would have said lives here.
 
-Current build version: v0.4.0
-Last updated: 2026-11-10 · v0.4.0 rebuilt: the Publish pane's Open pull request answers that it needs form.ext on the computer, the Studio's source row reads "Source: desktop app" (the sources routes are not ported), and starter READMEs carry Permissions and Screenshot as the engine's do. Before: v0.3.1 the version only (the bundle's two version strings edited by hand). Before: v0.3.0 the page engine moved to frontend/src/demo and the app opens this demo in its window. Before: v0.2.1 the version only
+Current build version: v0.4.1
+Last updated: 2026-11-11 · v0.4.1 rebuilt: `engine/kit.ts` refuses an `entry.ui` that ends in `/`, as the kit's `formpkg.py` and `formext_host.py` now do. Before: v0.4.0 rebuilt: the Publish pane's Open pull request answers that it needs form.ext on the computer, the Studio's source row reads "Source: desktop app" (the sources routes are not ported), and starter READMEs carry Permissions and Screenshot as the engine's do. Before: v0.3.1 the version only (the bundle's two version strings edited by hand). Before: v0.3.0 the page engine moved to frontend/src/demo and the app opens this demo in its window. Before: v0.2.1 the version only
 
 ---
 

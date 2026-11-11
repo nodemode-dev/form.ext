@@ -35,12 +35,75 @@ def selfcheck() -> int:
         import formpkg  # noqa: F401
 
         info["kit"] = "ok"
+        info["checks"] = checks(paths.contract_dir())
     except Exception as exc:
         info["app"] = f"failed: {exc!r}"
         print(json.dumps(info))
         return 1
     print(json.dumps(info))
-    return 0 if info["contract"] and not info["router_errors"] else 1
+    return 0 if info["contract"] and not info["router_errors"] and all(info["checks"].values()) else 1
+
+
+def checks(contract) -> dict:
+    import tempfile
+    from pathlib import Path
+
+    with tempfile.TemporaryDirectory() as tmp:
+        return {"entry_trailing_slash": entry_slash_refused(contract / "examples" / "hello", Path(tmp) / "hello"), "registry_pr_lock": registry_lock_serialises(Path(tmp) / ".lock")}
+
+
+def entry_slash_refused(example, folder) -> bool:
+    import shutil
+
+    import formext_host
+    import formpkg
+
+    shutil.copytree(example, folder)
+    manifest = json.loads((folder / "manifest.json").read_text(encoding="utf-8"))
+    verdicts = []
+    for entry in ("ui/index.html", "ui/index.html/"):
+        (folder / "manifest.json").write_text(json.dumps({**manifest, "entry": {"ui": entry}}), encoding="utf-8")
+        ext = formext_host.check(formext_host.Extension(id=manifest["id"], version=manifest["version"], source="sideload", path=folder), manifest["product"], "9.99.9", "the host")
+        verdicts.append((bool(formpkg.problems(folder)[0]), ext.state == "refused"))
+    return verdicts == [(False, False), (True, True)]
+
+
+def registry_lock_serialises(lock_file) -> bool:
+    from app.services import registry_pr
+
+    spans: list[tuple[float, float]] = []
+    probes: list[bool] = []
+
+    def hold() -> None:
+        with registry_pr.held(lock_file):
+            start = time.monotonic()
+            probes.append(file_lock_taken(lock_file))
+            time.sleep(0.2)
+            spans.append((start, time.monotonic()))
+
+    workers = [threading.Thread(target=hold) for _ in range(2)]
+    for worker in workers:
+        worker.start()
+    for worker in workers:
+        worker.join()
+    if len(spans) != 2 or not all(probes):
+        return False
+    first, second = sorted(spans)
+    return first[1] <= second[0]
+
+
+def file_lock_taken(lock_file) -> bool:
+    if os.name == "nt":
+        return True
+    import fcntl
+
+    with open(lock_file, "a+b") as other:
+        try:
+            fcntl.flock(other.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return True
+        fcntl.flock(other.fileno(), fcntl.LOCK_UN)
+        return False
 
 
 def watch_parent() -> None:
