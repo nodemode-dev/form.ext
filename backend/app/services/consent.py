@@ -1,3 +1,6 @@
+import contextvars
+import hmac
+import os
 import secrets
 import threading
 import time
@@ -14,6 +17,44 @@ TIMED_OUT = "Nobody answered in the form.ext window in time, so this call was re
 _lock = threading.Lock()
 _pending: dict[str, dict] = {}
 _windows = {"count": 0}
+_tabs: dict[str, str] = {}
+_inapp = contextvars.ContextVar("formext_inapp", default=False)
+
+
+def open_tab(token: str, path: str) -> None:
+    with _lock:
+        _tabs[token] = path
+
+
+def close_tab(token: str | None) -> None:
+    with _lock:
+        path = _tabs.pop(token, None) if token else None
+    if path:
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+
+
+def close_tabs() -> None:
+    for token in list(_tabs):
+        close_tab(token)
+
+
+def is_tab(value) -> bool:
+    if not isinstance(value, str) or not value:
+        return False
+    with _lock:
+        live = list(_tabs)
+    return any(hmac.compare_digest(value.encode("utf-8"), t.encode("utf-8")) for t in live)
+
+
+def from_tab(value) -> contextvars.Token:
+    return _inapp.set(is_tab(value))
+
+
+def end_tab(mark: contextvars.Token) -> None:
+    _inapp.reset(mark)
 
 
 def access() -> str:
@@ -62,6 +103,8 @@ def answer(request_id: str, choice: str) -> bool:
 
 
 def check(tool: str, title: str, args: dict) -> str | None:
+    if _inapp.get():
+        return None
     mode = access()
     if mode == "allowed":
         return None

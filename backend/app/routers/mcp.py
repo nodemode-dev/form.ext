@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse, Response
 from starlette.concurrency import run_in_threadpool
 
 from app.routers.terminal import origin_ok, server_port
-from app.services import terminal
+from app.services import consent, terminal
 
 router = APIRouter(tags=["mcp"])
 _servers: dict = {}
@@ -23,10 +23,14 @@ def _server(port: int):
         return _servers["server"]
 
 
-def _answer(server, message):
-    if isinstance(message, list):
-        return [a for a in (server.handle(m) for m in message) if a]
-    return server.handle(message)
+def _answer(server, message, tab_token=None):
+    mark = consent.from_tab(tab_token)
+    try:
+        if isinstance(message, list):
+            return [a for a in (server.handle(m) for m in message) if a]
+        return server.handle(message)
+    finally:
+        consent.end_tab(mark)
 
 
 @router.post("/mcp", include_in_schema=False)
@@ -39,7 +43,7 @@ async def mcp(request: Request) -> Response:
         message = json.loads(await request.body())
     except ValueError:
         return JSONResponse({"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "Parse error"}})
-    answer = await run_in_threadpool(_answer, _server(server_port(request)), message)
+    answer = await run_in_threadpool(_answer, _server(server_port(request)), message, request.headers.get("x-formext-inapp"))
     if not answer:
         return Response(status_code=202)
     return JSONResponse(answer)

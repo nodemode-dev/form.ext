@@ -154,6 +154,9 @@ class Engine:
         headers = {"Accept": "application/json", "User-Agent": f"formext-cli/{__version__}"}
         if data:
             headers["Content-Type"] = "application/json"
+        tab_token = os.environ.get("FORMEXT_INAPP_TOKEN")
+        if tab_token and url == f"{self.url}/mcp":
+            headers["X-Formext-Inapp"] = tab_token
         req = urllib.request.Request(url, data=data or None, method=method, headers=headers)
         try:
             with self.opener.open(req, timeout=timeout) as res:

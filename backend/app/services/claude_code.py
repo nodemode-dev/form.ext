@@ -7,6 +7,7 @@ import asyncio
 import json
 import logging
 import os
+import secrets
 import shlex
 import shutil
 import subprocess
@@ -16,7 +17,7 @@ import time
 from pathlib import Path
 
 from app.cli import allowed_tools
-from app.services import agents, paths, sources, terminal
+from app.services import agents, consent, paths, sources, terminal
 from app.services.workspace import WorkspaceError, workspace
 
 log = logging.getLogger("formext.claude_code")
@@ -116,8 +117,18 @@ def info(fresh: bool = False) -> dict:
     return _cache["value"]
 
 
-def mcp_config(port: int) -> str:
-    return json.dumps({"mcpServers": agents.mcp_servers(terminal.engine_url(port))})
+def tab_config(port: int) -> tuple[str, str]:
+    token = secrets.token_urlsafe(32)
+    servers = agents.mcp_servers(terminal.engine_url(port))
+    servers["formext"]["env"]["FORMEXT_INAPP_TOKEN"] = token
+    folder = paths.home() / "AgentTokens"
+    folder.mkdir(mode=0o700, parents=True, exist_ok=True)
+    path = folder / f"mcp-{secrets.token_hex(8)}.json"
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(json.dumps({"mcpServers": servers}))
+    consent.open_tab(token, str(path))
+    return token, str(path)
 
 
 def extra_dirs(project: str | None = None) -> list[str]:
@@ -145,6 +156,7 @@ class Agent:
         self.streamed: set[str] = set()
         self.message_id = ""
         self.stderr_tail: list[str] = []
+        self.token: str | None = None
 
     def describe(self) -> dict:
         return {"running": self.proc is not None and self.proc.poll() is None, "state": self.state, "mode": self.mode, "session": self.session, "project": self.project}
@@ -350,9 +362,10 @@ def start(mode: str = "ask", fresh: bool = False, port: int | None = None, proje
             AGENT.log.clear()
     AGENT.mode = mode
     AGENT.project = project
+    AGENT.token, mcp_file = tab_config(port or 8640)
     args = [found["path"], "-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose", "--include-partial-messages",
             "--permission-prompt-tool", "stdio", "--permission-mode", MODES[mode], "--append-system-prompt", note(folder, project),
-            "--mcp-config", mcp_config(port or 8640), *extra_dirs(project)]
+            "--mcp-config", mcp_file, *extra_dirs(project)]
     if AGENT.session:
         args += ["--resume", AGENT.session]
     AGENT.gen += 1
@@ -364,6 +377,8 @@ def start(mode: str = "ask", fresh: bool = False, port: int | None = None, proje
     try:
         proc = subprocess.Popen(args, cwd=folder, env=child_env(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
     except OSError as exc:
+        consent.close_tab(AGENT.token)
+        AGENT.token = None
         set_state("exited")
         raise RuntimeError(f"Claude Code could not start: {exc}")
     AGENT.proc = proc
@@ -387,6 +402,8 @@ def stop(quiet: bool = False) -> dict:
     proc = AGENT.proc
     AGENT.gen += 1
     AGENT.proc = None
+    consent.close_tab(AGENT.token)
+    AGENT.token = None
     for gate in list(AGENT.waiting.values()):
         gate["allow"] = False
         gate["event"].set()
@@ -418,8 +435,8 @@ def terminal_env(port: int) -> dict:
     )
 
 
-def terminal_argv(path: str, port: int, folder: str, project: str | None, prompt: str | None, resume: str | None) -> list[str]:
-    cmd = [path, "--mcp-config", mcp_config(port), "--allowedTools", *allowed_tools(), "--append-system-prompt", note(folder, project), *extra_dirs(project)]
+def terminal_argv(path: str, mcp_file: str, folder: str, project: str | None, prompt: str | None, resume: str | None) -> list[str]:
+    cmd = [path, "--mcp-config", mcp_file, "--allowedTools", *allowed_tools(), "--append-system-prompt", note(folder, project), *extra_dirs(project)]
     if resume:
         cmd += ["--resume", resume]
     if prompt:
@@ -444,4 +461,11 @@ def open_terminal(port: int, prompt: str | None = None, resume: str | None = Non
         if path is None:
             raise LookupError(MISSING)
         title = "Claude Code (from Chat)" if resume else "Claude Code"
-        return terminal.open_session(folder, cols, rows, title, terminal_argv(path, port, folder, project, prompt, resume), terminal_env(port), "claude").describe()
+        token, mcp_file = tab_config(port)
+        try:
+            session = terminal.open_session(folder, cols, rows, title, terminal_argv(path, mcp_file, folder, project, prompt, resume), terminal_env(port), "claude")
+        except BaseException:
+            consent.close_tab(token)
+            raise
+        session.on_close.append(lambda: consent.close_tab(token))
+        return session.describe()
