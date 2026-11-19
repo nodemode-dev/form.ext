@@ -2,6 +2,16 @@
 
 The living log of the form.ext engine. Read it before editing `backend/`. Core files belong to the engine module; module routers and services (`routers/<module>.py`, `services/<module>.py`) keep their own notes in their own HASHOUT logs.
 
+## Unreleased: agents/manifest.json {#agent-manifest}
+
+- refers-to: ../setup/agents.py; ../agents/manifest.json; ../tests/test_agent_manifest.py; app/cli.py; app/mcp.py; app/routers/mcp.py
+- `./formext agents sync` writes `agents/manifest.json` (formadaptor's `spec/agent-manifest.schema.json`) and `--check` names it when it drifts. `app` is `form.ext`, the file name of formcompiler's `apps/form.ext.json`.
+- From the source: `mcp.tools` is every `Op` in `OPS` with `mcp` true, in table order (what `mcp.tools()` lists); `read_only` those with `read_only`, which is the `readOnlyHint` the server sends; `approval_gated` every listed tool that is not read-only, because `run_op` calls `consent.check` for exactly those (under Ask they wait for the window; the Studio's own tabs are not asked, see #tab-token). `transports`: `http` when `routers/mcp.py` declares `POST /mcp` (read with `ast`, because the sync runs on the system Python, which has no FastAPI), `stdio` when `app.mcp.Server` has `serve`.
+- `skills` lists form.ext's own skill folders (`formext-harness`, `formext-hosts`, `formext-skillset`) and the `SUB-SKILL.md` folders under each `sub-skills/`. The host skills copied from the apps (`HOSTS.md`) are left out: each belongs to its app's own manifest, and listing them here would count them twice in the family spec.
+- `dock` is declared in `DOCK` in setup/agents.py, read from the frontend: the Terminal tab in the Studio pane's bottom panel (`frontend/src/panes/studio/index.ts`, `BOTTOM`), bottom only, with shell tabs, Claude Code tabs (`kind` `shell` and `claude` in `panes/studio/terminal.ts`) and the Chat tab (`chat`). Change it there when the dock moves or gains a tab.
+- `extensions` is null: form.ext makes extensions and hosts none.
+- Run: sync wrote the file; `python3 -I scripts/manifest.py check agents/manifest.json --app form.ext` in formadaptor accepted it; `--check` exit 0. `tools/list` from `./formext mcp` (stdio) gave the same 33 names in the same order, the same 19 read-only and the same 14 others. In a copy outside the tree, renaming `move` and dropping `read_only=False` from `move` each made `--check` exit 1 naming `agents/manifest.json`.
+
 ## Unreleased: the Studio's own tabs are not asked {#tab-token}
 
 - refers-to: app/services/consent.py; app/services/claude_code.py; app/services/terminal.py; app/routers/mcp.py; app/cli.py; app/main.py

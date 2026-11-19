@@ -1,0 +1,123 @@
+{
+  "format": "form-agent-manifest",
+  "version": 1,
+  "app": "form.ext",
+  "mcp": {
+    "tools": [
+      "status",
+      "docs",
+      "templates",
+      "family",
+      "source",
+      "source_files",
+      "source_read",
+      "source_search",
+      "skills",
+      "new",
+      "projects",
+      "project",
+      "import",
+      "inspect",
+      "files",
+      "read",
+      "write",
+      "delete",
+      "move",
+      "manifest",
+      "validate",
+      "rules",
+      "preview",
+      "package",
+      "builds",
+      "keys",
+      "sign",
+      "verify",
+      "entry",
+      "apps",
+      "run_in_app",
+      "publish",
+      "submit"
+    ],
+    "read_only": [
+      "status",
+      "docs",
+      "templates",
+      "family",
+      "source_files",
+      "source_read",
+      "source_search",
+      "projects",
+      "project",
+      "inspect",
+      "files",
+      "read",
+      "validate",
+      "rules",
+      "preview",
+      "builds",
+      "verify",
+      "entry",
+      "apps"
+    ],
+    "approval_gated": [
+      "source",
+      "skills",
+      "new",
+      "import",
+      "write",
+      "delete",
+      "move",
+      "manifest",
+      "package",
+      "keys",
+      "sign",
+      "run_in_app",
+      "publish",
+      "submit"
+    ],
+    "transports": [
+      "http",
+      "stdio"
+    ]
+  },
+  "skills": [
+    {
+      "name": "formext-harness",
+      "sub_skills": [
+        "check-and-preview",
+        "harness-director",
+        "host-source",
+        "session-and-connection",
+        "ship",
+        "writing-extensions"
+      ]
+    },
+    {
+      "name": "formext-hosts",
+      "sub_skills": []
+    },
+    {
+      "name": "formext-skillset",
+      "sub_skills": [
+        "agent-substrate",
+        "desktop-and-release",
+        "engine-core",
+        "engine-modules",
+        "interface",
+        "verification"
+      ]
+    }
+  ],
+  "dock": {
+    "present": true,
+    "positions": [
+      "bottom"
+    ],
+    "tabs": [
+      "shell",
+      "claude",
+      "chat"
+    ]
+  },
+  "extensions": null
+}
