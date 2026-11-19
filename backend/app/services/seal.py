@@ -6,7 +6,7 @@ import secrets
 SERVICE = "form.ext"
 ACCOUNT = "settings-seal"
 FIELD = "seal"
-SEALED = ("formportal_root", "formportal_cli")
+SEALED = ("formportal_root", "formportal_cli", "agent_access")
 _CACHE: dict = {"tried": False, "available": False, "key": None}
 
 
@@ -57,8 +57,9 @@ def effective(stored: dict) -> dict:
         return {**out, "seal": "ok", "sealBroken": False}
     if not loosened(stored):
         return {**out, "seal": "unsealed", "sealBroken": False}
+    reset = str(stored.get("agent_access") or "").strip() not in ("", "ask")
     out.update({k: "" for k in SEALED})
-    return {**out, "seal": "broken", "sealBroken": True}
+    return {**out, "seal": "broken", "sealBroken": True, "agentAccessReset": reset}
 
 
 def sign(stored: dict) -> dict:

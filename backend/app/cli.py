@@ -1145,6 +1145,12 @@ def run_op(eng: Engine, name: str, args: dict) -> Any:
     for p in op.params:
         if p.enum and p.name in clean and clean[p.name] not in p.enum:
             raise OpError(f"{p.name} is one of {', '.join(p.enum)}")
+    if op.mcp and not op.read_only and not eng.forwards():
+        from app.services import consent
+
+        refused = consent.check(name, op.title, clean)
+        if refused:
+            raise OpError(refused, {"agentAccess": consent.access()})
     if op.mcp and eng.forwards():
         local = LOCAL_PATHS.get(name)
         if local and isinstance(clean.get(local), str) and clean[local]:

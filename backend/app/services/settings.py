@@ -15,6 +15,7 @@ DEFAULTS: dict[str, Any] = {
     "default_product": "formvis",
     "formportal_root": "",
     "formportal_cli": "",
+    "agent_access": "",
     "editor": {"font_size": 13, "tab_size": 2, "wrap": False},
     "preview": {"theme": "dark", "consent": "ask"},
     "registry": {
@@ -70,7 +71,9 @@ def value(key: str, default: Any = None) -> Any:
 def update(patch: dict, window: bool = False) -> dict:
     if not isinstance(patch, dict):
         raise ValueError("settings must be an object")
-    patch = {k: v for k, v in patch.items() if k not in (seal.FIELD, "sealBroken")}
+    patch = {k: v for k, v in patch.items() if k not in (seal.FIELD, "sealBroken", "agentAccessReset") and (window or k != "agent_access")}
+    if patch.get("agent_access") not in (None, "", "ask", "allowed", "blocked"):
+        raise ValueError("agent_access is ask, allowed or blocked")
     with _lock:
         current = _read()
         stored = _merge(current, patch)

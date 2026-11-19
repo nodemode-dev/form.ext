@@ -14,6 +14,7 @@ import { VERSION } from './version';
 import { openSettings, settingsOpen, loadSettings } from './settings';
 import { mountMenubar } from './menubar';
 import { buildNativeMenus, wantsNativeMenus } from './native-menu';
+import { mountConsent } from './consent';
 import { registerDemos, closeDemo } from '../demo/commands';
 import type { PaneDef, ShellContext, ProjectRef } from './types';
 
@@ -328,6 +329,7 @@ export function boot(): void {
   paintTitleButtons();
   mountToasts(qs(document, '.fx-toasts'));
   mountDialogs(qs(document, '.fx-scrim'), qs<HTMLFormElement>(document, '.fx-dialog'));
+  mountConsent();
   mountPalette(qs(document, '.fx-palette'));
 
   const defs = discover();

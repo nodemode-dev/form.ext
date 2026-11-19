@@ -83,6 +83,12 @@
     <div class="fx-dialog-body"></div>
     <div class="fx-dialog-foot"><button class="btn" type="button" data-role="cancel">Cancel</button><button class="btn primary" type="submit" data-role="ok">OK</button></div>
   </form>
+  <div class="fx-scrim fx-consent-scrim"></div>
+  <div class="fx-dialog fx-consent" role="alertdialog" aria-modal="true" aria-labelledby="fx-consent-title">
+    <div class="fx-dialog-head fx-consent-head"><span class="fx-consent-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg></span><span id="fx-consent-title">Allow an outside agent to change this?</span></div>
+    <div class="fx-dialog-body"><p data-role="lead"></p><p class="fx-consent-note" data-role="note" hidden>The saved agent permission was changed outside form.ext, so it is back to Ask.</p></div>
+    <div class="fx-dialog-foot"><button class="btn" type="button" data-answer="deny">Deny</button><button class="btn" type="button" data-answer="once">Allow once</button><button class="btn primary" type="button" data-answer="always">Always allow</button></div>
+  </div>
   <div class="fx-palette" role="dialog" aria-label="Command palette">
     <div class="fx-palette-input"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input type="text" spellcheck="false" autocomplete="off" aria-label="Search"></div>
     <ul class="fx-palette-list" role="listbox"></ul>

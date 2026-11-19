@@ -57,6 +57,7 @@ def checks(contract) -> dict:
             "window_key_writes": window_key_writes(),
             "window_key_bootstrap": window_key_bootstrap(),
             "seal_catches_edit": seal_catches_edit(),
+            "agent_consent": agent_consent(),
         }
 
 
@@ -130,6 +131,20 @@ def seal_catches_edit() -> bool:
             sys.modules["keyring"] = saved
     return (kept["seal"] == "ok" and kept["formportal_cli"] == "/opt/formportal/bin/formportal" and edited["sealBroken"] and edited["formportal_cli"] == ""
             and missing["seal"] == "unavailable" and missing["formportal_cli"] == "/opt/formportal/bin/formportal")
+
+
+def agent_consent() -> bool:
+    from app.services import consent
+
+    saved = consent.access
+    try:
+        results = {}
+        for mode in ("ask", "blocked", "allowed"):
+            consent.access = lambda mode=mode: mode
+            results[mode] = consent.check("new", "New extension", {}) if consent.windows() == 0 else "window open"
+    finally:
+        consent.access = saved
+    return results == {"ask": consent.NO_WINDOW, "blocked": consent.BLOCKED, "allowed": None}
 
 
 def entry_slash_refused(example, folder) -> bool:
