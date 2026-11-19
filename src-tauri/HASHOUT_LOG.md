@@ -73,3 +73,11 @@ The main window on macOS uses `TitleBarStyle::Overlay` with a hidden title, so t
 - logged: unreleased
 
 `start_engine` sets `FORMEXT_WINDOW_KEY_STDOUT=1`. The engine then prints `formext-window-key: <key>` and, once it listens, `formext-engine: http://127.0.0.1:<port>`, both on standard output and flushed, in that order. The reading loop now takes only standard output, so the key line always arrives before the address line on the one pipe; it keeps the key when it sees it and stops at the address line, as before, so it waits no longer than it did. `open_main` takes the key and adds one `initialization_script` (tauri 2.11.6, `WebviewWindowBuilder::initialization_script(impl Into<String>)`, read in that version's source) that sets `window.__FORMEXT_WINDOW_KEY` only when `location.origin` is the engine's own address. The development window (Vite, no engine started by the shell) gets no key and the page claims it from the engine. Standard output is drained after the window opens and goes to no log. Not compiled here: no WebKit libraries in this sandbox; `rustfmt --check` parses the file (it reports only the existing 120-column formatting).
+
+## A bounded wait for the key line {#key-wait}
+
+- refers-to: src/main.rs :: start_engine
+- kind: decision
+- logged: unreleased
+
+The reading loop in `start_engine` awaited `rx.recv()` with no limit, so an engine that printed nothing and stayed alive kept the splash up forever, and an address line without a key line opened a window that could not write. Now a plain `std::thread` sleeps 10 seconds (the family value) and an `Arc<AtomicBool>` decides which side settles first: if the timer wins it takes the existing `engine_failed` path (dialog, the engine stopped, exit 1); if the loop wins it opens the window only when it has both the address and the key, and otherwise also takes `engine_failed`. The loser does nothing. Only `std` is used, so no dependency was added (tokio is not a direct dependency of this crate). Not compiled here: no WebKit libraries; `rustfmt --check` parses the file.

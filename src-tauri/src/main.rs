@@ -138,6 +138,15 @@ fn start_engine(app: &tauri::App) {
         }
     };
     *app.state::<Backend>().0.lock().unwrap() = Some(child);
+    let settled = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let timer_settled = settled.clone();
+    let timer_handle = handle.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_secs(10));
+        if !timer_settled.swap(true, std::sync::atomic::Ordering::SeqCst) {
+            engine_failed(&timer_handle);
+        }
+    });
     tauri::async_runtime::spawn(async move {
         let pattern = regex::Regex::new(r"formext-engine: http://127\.0\.0\.1:(\d+)").unwrap();
         let key_pattern = regex::Regex::new(r"formext-window-key: ([A-Za-z0-9_-]{32,})").unwrap();
@@ -157,12 +166,15 @@ fn start_engine(app: &tauri::App) {
                 break;
             }
         }
-        match port {
-            Some(port) => {
-                open_main(&handle, &format!("http://127.0.0.1:{port}"), key.as_deref());
+        if settled.swap(true, std::sync::atomic::Ordering::SeqCst) {
+            return;
+        }
+        match (port, key) {
+            (Some(port), Some(key)) => {
+                open_main(&handle, &format!("http://127.0.0.1:{port}"), Some(key.as_str()));
                 tauri::async_runtime::spawn(async move { while rx.recv().await.is_some() {} });
             }
-            None => engine_failed(&handle),
+            _ => engine_failed(&handle),
         }
     });
 }
