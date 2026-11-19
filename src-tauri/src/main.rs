@@ -139,14 +139,6 @@ fn start_engine(app: &tauri::App) {
     };
     *app.state::<Backend>().0.lock().unwrap() = Some(child);
     let settled = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
-    let timer_settled = settled.clone();
-    let timer_handle = handle.clone();
-    std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_secs(10));
-        if !timer_settled.swap(true, std::sync::atomic::Ordering::SeqCst) {
-            engine_failed(&timer_handle);
-        }
-    });
     tauri::async_runtime::spawn(async move {
         let pattern = regex::Regex::new(r"formext-engine: http://127\.0\.0\.1:(\d+)").unwrap();
         let key_pattern = regex::Regex::new(r"formext-window-key: ([A-Za-z0-9_-]{32,})").unwrap();
@@ -161,8 +153,20 @@ fn start_engine(app: &tauri::App) {
             if key.is_none() {
                 key = key_pattern.captures(&text).map(|c| c[1].to_string());
             }
-            if let Some(found) = pattern.captures(&text).and_then(|c| c[1].parse::<u16>().ok()) {
-                port = Some(found);
+            if port.is_none() {
+                port = pattern.captures(&text).and_then(|c| c[1].parse::<u16>().ok());
+                if port.is_some() && key.is_none() {
+                    let timer_settled = settled.clone();
+                    let timer_handle = handle.clone();
+                    std::thread::spawn(move || {
+                        std::thread::sleep(std::time::Duration::from_secs(10));
+                        if !timer_settled.swap(true, std::sync::atomic::Ordering::SeqCst) {
+                            engine_failed(&timer_handle);
+                        }
+                    });
+                }
+            }
+            if port.is_some() && key.is_some() {
                 break;
             }
         }
