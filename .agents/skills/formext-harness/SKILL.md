@@ -7,7 +7,7 @@ description: "Makes extensions for the Form apps with form.ext through its forme
 
 form.ext is the Form family's extension studio. Its engine keeps extension projects in its data folder, checks them against the Form Extension Contract (API 1), previews them in a simulated host, builds deterministic `.formpkg` packages, signs them with Ed25519 publisher keys, writes FormPortal's `dev.json` so the real app loads the project live, and prepares the formai.studio submission. The MCP server, named `formext`, exposes all of that as tools; `./formext cli` is the same surface on the command line (each tool is a command with the same name, dashes for underscores).
 
-When the form.ext window is open, the tools talk to its engine and every change appears in the window as it happens. When it is closed, the tools run the engine's routes inside the server process against the same data folder. `status` says which.
+When the form.ext window is open, the tools talk to its engine and every change appears in the window as it happens. When it is closed, the tools run the engine's routes inside the server process against the same data folder, and only the 19 tools that read still run: with the default Ask, the 14 that change something are refused, because there is no window to ask in. Tell the person to open form.ext (it then asks them, and they choose Deny, Allow once or Always allow), or to choose Allowed in Settings, Developer, Outside agents; only the window can change that setting. Blocked refuses every change. `status` says which engine you are talking to.
 
 ## The model
 
