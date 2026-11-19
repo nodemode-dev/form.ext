@@ -4,11 +4,38 @@ Living log for `frontend/src/panes/studio/` (formerly `edit/`), the Studio modul
 
 Current build version: v0.5.0
 
+## The Terminal tab holds the family's shared panel {#family-panel}
+
+- refers-to: zones.ts · ../../dock-adapter.ts · ../../styles/dock-tokens.css · ../../dock/ · ../../shell/shell.ts · ../../shell/settings.ts · ../../../index.html · ../../styles/shell.css
+- kind: decision
+- logged: unreleased · 2026-11-19
+
+The Studio's own `TerminalDock`, its Chat pane and the shell's own question for outside agents are replaced by the Form family's shared module in `src/dock/` (version 2.1.0, 15 files copied byte for byte from FormVis; `MANIFEST.json` there lists their hashes and nothing in this repository edits them). `src/dock-adapter.ts` is the only file that knows both sides: it turns the module's `DockAdapter` functions into this engine's routes and sockets, and `src/styles/dock-tokens.css` maps every `--dock-*` token onto this app's tokens.
+
+Placement is the module's hosted mode. The panel stays where it was, in `[data-bbody="terminal"]`, a peer of Problems, Host calls and Output; the bottom panel still owns open (Terminal chosen and not folded), its one fold chevron, the two stored keys `formext.studio.bottom` and `formext.studio.fold`, and the 200 to 340 px height rule (moved from `terminal.css` to `dock-tokens.css`). The module therefore stores nothing, draws no grip, no side switch and no hide button, and there is no right-hand position. `zones.ts` `syncTerminal()` tells the module `shown()` or `hidden()`; "shown" now also needs the Studio to be the pane in front (`activePane() === 'studio'`, re-read on `pane.open`), so a window resting on Home with the Terminal tab remembered asks the engine nothing and loads no terminal emulator until the Studio is opened. The module's `toggle()` comes back as `request(open)`: open is `showTerminal()` (switch to the Studio, choose the tab, unfold), close is `fold(true)`. Because the bottom panel is built and sized by script while `#app` is still hidden, the pre-paint script needed no new line.
+
+Commands keep their ids: `terminal.toggle` is `dock.toggle()`, `terminal.claude` and `terminal.chat` are `dock.show(...)`, `terminal.new` adds a shell when the panel is open or already has tabs and otherwise just opens it (the first open starts one shell by itself). Mod+J is caught by the module's own capture listener through `isDockChord` (this app's Mod: Cmd on macOS, Ctrl elsewhere, and not while a dialog, the palette or Preferences is open), so the command table never sees it and it toggles once. On macOS Ctrl+J typed in a shell now reaches the shell as a line feed; before, it was swallowed and did nothing. `passKey` lets Mod+K, Mod+comma, Mod+Shift+H, Mod+Shift+P, Mod+Shift+L and Mod+Shift+O out of a terminal and the ask line, as the old key handler did; every other key typed in the panel stays in it.
+
+What the adapter adds to the module's defaults, each because this app did it before: every open carries the open project's id; the first socket message is the window hello; a tab's tooltip is its folder; the exit line "[shell exited. Restart runs it again.]" is still printed; Chat's first line names the folder and says whether formMCP was found (`status().lead`); terminals keep the 4.5 contrast floor (`--dock-term-contrast`); the three placeholders and the Chat tooltip keep this app's words. New for the person: Codex and Cursor buttons when those programs are installed (engine routes from v0.5.0), a "More agents" menu with their install lines, Outside agents and Show me around, and a struck-through tab when its program has ended.
+
+The question for outside agents is the module's dialog (a modal `<dialog>` in the top layer, so it is above every other dialog of the app). The adapter reads `GET /api/agents/requests` on `window.admitted` and `agents.ask`, hands over each request once with the engine's `agent`, `what`, `answers`, `always` and `expires` (seconds turned into milliseconds), and withdraws on `agents.answered` and for every id a later read no longer lists. Escape denies, as before. The two sentences the old dialog carried in its text are passed as notes. First focus is on Deny where it was on Allow once; the title names the agent when the engine knows it.
+
+Removed, last present at 3b3560b: `terminal.ts` (453 lines), `chat.ts` (361), `terminal.css` (56), `../../shell/consent.ts` (107), the `.fx-consent` markup in `index.html` (6 lines) and its four rules in `shell.css`. The lines whose behaviour had to be carried over by hand:
+
+```ts
+const WINDOW_KEYS = new Set(['KeyJ', 'KeyK', 'Comma', 'Shift+KeyH', 'Shift+KeyP', 'Shift+KeyL', 'Shift+KeyO']);
+term.attachCustomKeyEventHandler((e) => !(e.type === 'keydown' && (e.ctrlKey || e.metaKey) && !e.altKey && WINDOW_KEYS.has(`${e.shiftKey ? 'Shift+' : ''}${e.code}`)));
+this.ask.addEventListener('keydown', (e) => { if (!e.ctrlKey && !e.metaKey) e.stopPropagation(); });
+function syncTerminal(): void { dock.show(bottom.dataset.active === 'terminal' && !bottom.classList.contains('folded')); }
+if (ctl.type === 'exit') entry.term.write(`\r\n\x1b[2m[${entry.kind === 'claude' ? 'Claude Code' : 'shell'} exited. Restart runs it again.]\x1b[0m\r\n`);
+return `An outside agent connected to form.ext asks to run ${ask.title} (${ask.tool})${where}. Allow once lets this one call run. Always allow lets outside agents change projects without asking; you can change that in Settings, Developer, Outside agents.`;
+```
+
 ## Terminal dock {#terminal}
 
 - refers-to: terminal.ts · chat.ts · terminal.css · zones.ts · index.ts · ../../shell/icons.ts · ../../shell/menus.ts
 - kind: decision
-- logged: v0.2.0 · 2026-11-08
+- logged: v0.2.0 · 2026-11-08 · replaced by #family-panel
 
 The Terminal tab sits after Output in the bottom panel (`[data-bbody="terminal"]` exists in the final layout, hidden until chosen). `TerminalDock` owns a tab strip for shells, Claude Code and Chat, each backed by an engine session over a WebSocket (text frames for output, a binary frame carrying JSON for the exit). xterm and the fit addon load on first use, so the Studio's chunk does not grow; the theme is read from `--bar`, `--ink` and the accent tokens with a 4.5 contrast floor. The panel grows to 340 px only when the Terminal tab is active and unfolded, set from `bottom.dataset.active` before the tab paints, so switching tabs moves nothing else. Shortcuts: Mod+J toggles, and the commands (new, Claude Code, Chat) are in View. xterm and the ask input would swallow the window shortcuts, so the terminal passes Mod combos up and the ask input stops propagation only for keys it uses. Icons are the family's `agent`, `agentChat` and `terminal`; the sparkle is not used. The chat tab shows the project folder and whether formMCP was found in its first line.
 Last updated: 2026-11-08 · v0.2.0 studio

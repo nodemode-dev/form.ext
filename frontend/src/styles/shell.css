@@ -167,10 +167,6 @@
 .fx-dialog-body { padding: 0 var(--sp-4) var(--sp-4); overflow: auto; color: var(--ink-soft); display: flex; flex-direction: column; gap: var(--sp-3); }
 .fx-dialog-body p { white-space: pre-wrap; }
 .fx-dialog-foot { display: flex; justify-content: flex-end; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4); border-top: 1px solid var(--edge); }
-.fx-consent-head { display: flex; align-items: center; gap: var(--sp-2); }
-.fx-consent-icon { display: inline-flex; flex: none; color: var(--accent-color); }
-.fx-consent-note { color: var(--warning); }
-.fx-consent-note[hidden] { display: none; }
 
 .fx-palette {
   position: fixed;
