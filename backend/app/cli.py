@@ -1138,10 +1138,10 @@ BY_NAME = {op.name: op for op in OPS}
 LOCAL_PATHS = {"import": "path", "inspect": "path", "write": "source", "package": "out", "submit": "checkout"}
 
 
-def allowed_tools() -> list[str]:
+def allowed_tools(server: str = "formext") -> list[str]:
     from app.services import agents
 
-    return [f"mcp__formext__{op.name}" for op in OPS if op.mcp and op.read_only and not op.asks] + [f"mcp__{agents.HUB}__{name}" for name in agents.HUB_READS]
+    return [f"mcp__{server}__{op.name}" for op in OPS if op.mcp and op.read_only and not op.asks] + [f"mcp__{agents.HUB}__{name}" for name in agents.HUB_READS]
 
 
 def run_op(eng: Engine, name: str, args: dict) -> Any:

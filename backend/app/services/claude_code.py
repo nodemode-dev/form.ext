@@ -28,6 +28,7 @@ MODES = {"ask": "manual", "auto-edits": "acceptEdits", "plan": "plan"}
 INSTALL = "irm https://claude.ai/install.ps1 | iex" if sys.platform == "win32" else "curl -fsSL https://claude.ai/install.sh | bash"
 MISSING = f"Claude Code is not installed. Install it with: {INSTALL}"
 PERMISSION_WAIT = 600
+TAB_SERVER = "formext_tab"
 LOG_KEEP = 3000
 _cache: dict = {"at": 0.0, "value": None}
 
@@ -42,7 +43,7 @@ def note(folder: str, project: str | None) -> str:
     return (
         "You are Claude Code inside form.ext, the Form family's extension studio, in its Terminal panel under the editor. "
         f"Your working directory is {folder} ({where}). "
-        "Make, check, preview, package and run Form extensions with the formext MCP server's tools: start with status, then docs for the contract and for the host app, "
+        f"Make, check, preview, package and run Form extensions with the {TAB_SERVER} MCP server's tools (form.ext's own tools, connected for this tab): start with status, then docs for the contract and for the host app, "
         "and use the formext-harness and formext-hosts skills. " + source + "To understand a host app and to drive it, load that app's own skill (see formext-hosts) and, when the formmcp server is available, "
         "its app_tools and call_app. Ask the person before run_in_app, publish and delete."
     )
@@ -120,7 +121,8 @@ def info(fresh: bool = False) -> dict:
 def tab_config(port: int) -> tuple[str, str]:
     token = secrets.token_urlsafe(32)
     servers = agents.mcp_servers(terminal.engine_url(port))
-    servers["formext"]["env"]["FORMEXT_INAPP_TOKEN"] = token
+    servers = {(TAB_SERVER if name == "formext" else name): entry for name, entry in servers.items()}
+    servers[TAB_SERVER]["env"]["FORMEXT_INAPP_TOKEN"] = token
     folder = paths.home() / "AgentTokens"
     folder.mkdir(mode=0o700, parents=True, exist_ok=True)
     path = folder / f"mcp-{secrets.token_hex(8)}.json"
@@ -436,7 +438,7 @@ def terminal_env(port: int) -> dict:
 
 
 def terminal_argv(path: str, mcp_file: str, folder: str, project: str | None, prompt: str | None, resume: str | None) -> list[str]:
-    cmd = [path, "--mcp-config", mcp_file, "--allowedTools", *allowed_tools(), "--append-system-prompt", note(folder, project), *extra_dirs(project)]
+    cmd = [path, "--mcp-config", mcp_file, "--allowedTools", *allowed_tools(TAB_SERVER), "--append-system-prompt", note(folder, project), *extra_dirs(project)]
     if resume:
         cmd += ["--resume", resume]
     if prompt:
