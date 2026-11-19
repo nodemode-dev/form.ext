@@ -1,0 +1,243 @@
+{
+  "format": "formext-hosts",
+  "version": 1,
+  "source": {
+    "registry_version": "0.16.0"
+  },
+  "hosts": [
+    {
+      "id": "formcut",
+      "app": "formcut",
+      "name": "FormCut",
+      "repo": "formcut",
+      "repository": "nodemode-dev/formcut",
+      "licence": "Apache-2.0",
+      "mcp": true,
+      "host_api": "1",
+      "host_api_from": "side",
+      "role": null,
+      "note": null,
+      "skills": [
+        {
+          "name": "formcut-mcp",
+          "commit": "8fc8639e8dbd3291f247c74a452eda59247e3056"
+        }
+      ]
+    },
+    {
+      "id": "formencoder",
+      "app": "formencoder",
+      "name": "FormEncoder",
+      "repo": "formencoder",
+      "repository": "nodemode-dev/formencoder",
+      "licence": "Apache-2.0",
+      "mcp": true,
+      "host_api": "1",
+      "host_api_from": "side",
+      "role": null,
+      "note": null,
+      "skills": [
+        {
+          "name": "formencoder-harness",
+          "commit": "f228f47e1e5234a404a676b462fdc31700c7904a"
+        }
+      ]
+    },
+    {
+      "id": "formlit",
+      "app": "formlit",
+      "name": "FormLit",
+      "repo": "formlit",
+      "repository": "nodemode-dev/formlit",
+      "licence": "Apache-2.0",
+      "mcp": true,
+      "host_api": "1",
+      "host_api_from": "side",
+      "role": null,
+      "note": null,
+      "skills": [
+        {
+          "name": "formlit-driving",
+          "commit": "3d81df7455f43627deee426e8a7ad97adc14201b"
+        }
+      ]
+    },
+    {
+      "id": "formmcp",
+      "app": "formMCP",
+      "name": "formMCP",
+      "repo": "formMCP",
+      "repository": "nodemode-dev/formMCP",
+      "licence": "GPL-3.0-only",
+      "mcp": true,
+      "host_api": "1",
+      "host_api_from": "side",
+      "role": "the family hub",
+      "note": null,
+      "skills": [
+        {
+          "name": "formmcp-harness",
+          "commit": "6c6f54140d59d7c5ca219a9b549bb8ef4f892d2e"
+        }
+      ]
+    },
+    {
+      "id": "formmd",
+      "app": "form.md",
+      "name": "Form.md",
+      "repo": "form.md",
+      "repository": "nodemode-dev/form.md",
+      "licence": "Apache-2.0",
+      "mcp": true,
+      "host_api": "1",
+      "host_api_from": "side",
+      "role": null,
+      "note": "its only skill, contextual-compression, is about compression policy, not driving the app",
+      "skills": []
+    },
+    {
+      "id": "formpdf",
+      "app": "formpdf",
+      "name": "FormPDF",
+      "repo": "formpdf",
+      "repository": "nodemode-dev/formpdf",
+      "licence": "Apache-2.0",
+      "mcp": true,
+      "host_api": "1",
+      "host_api_from": "side",
+      "role": null,
+      "note": null,
+      "skills": [
+        {
+          "name": "formpdf-harness",
+          "commit": "859577b4645b2eecc3e85eabc79579f4f0a1394e"
+        }
+      ]
+    },
+    {
+      "id": "formskills",
+      "app": "formskills",
+      "name": "formskills",
+      "repo": "formskills",
+      "repository": "nodemode-dev/formskills",
+      "licence": "GPL-3.0-only",
+      "mcp": false,
+      "host_api": "1",
+      "host_api_from": "side",
+      "role": null,
+      "note": null,
+      "skills": []
+    },
+    {
+      "id": "formslide",
+      "app": "formdeck",
+      "name": "FormDeck",
+      "repo": "formdeck",
+      "repository": "nodemode-dev/formdeck",
+      "licence": "Apache-2.0",
+      "mcp": true,
+      "host_api": "1",
+      "host_api_from": "side",
+      "role": null,
+      "note": null,
+      "skills": [
+        {
+          "name": "formdeck-harness",
+          "commit": "29786a4defb49f0ccb0304b53e5ff19cab8f8579"
+        }
+      ]
+    },
+    {
+      "id": "formtray",
+      "app": "formtray",
+      "name": "FormTray",
+      "repo": "formtray",
+      "repository": "nodemode-dev/formtray",
+      "licence": "Apache-2.0",
+      "mcp": false,
+      "host_api": "1",
+      "host_api_from": "side",
+      "role": null,
+      "note": null,
+      "skills": []
+    },
+    {
+      "id": "formvfx",
+      "app": "formvfx",
+      "name": "FormVFX",
+      "repo": "formvfx",
+      "repository": "nodemode-dev/formvfx",
+      "licence": "Apache-2.0",
+      "mcp": true,
+      "host_api": "1",
+      "host_api_from": "side",
+      "role": null,
+      "note": null,
+      "skills": [
+        {
+          "name": "formvfx-harness",
+          "commit": "b6dc607cf968c8234515b5ca59f53d3fadc12f46"
+        }
+      ]
+    },
+    {
+      "id": "formvis",
+      "app": "formvis",
+      "name": "FormVis",
+      "repo": "formvis",
+      "repository": "nodemode-dev/formvis",
+      "licence": "Apache-2.0",
+      "mcp": true,
+      "host_api": "1",
+      "host_api_from": "spec",
+      "role": null,
+      "note": null,
+      "skills": [
+        {
+          "name": "formvis-driving",
+          "commit": "9a84f697ba5fee5a620b7188038decd0b11c2e5e"
+        }
+      ]
+    },
+    {
+      "id": "formwav",
+      "app": "formwav",
+      "name": "FormWav",
+      "repo": "formwav",
+      "repository": "nodemode-dev/formwav",
+      "licence": "Apache-2.0",
+      "mcp": true,
+      "host_api": "1",
+      "host_api_from": "side",
+      "role": null,
+      "note": null,
+      "skills": [
+        {
+          "name": "formwav-harness",
+          "commit": "aa95abef437b54c14743788c4301c694ea2d4c40"
+        }
+      ]
+    }
+  ],
+  "family": [
+    {
+      "id": "formai",
+      "app": "formportal",
+      "name": "FormPortal",
+      "repo": "formportal",
+      "repository": "nodemode-dev/formportal",
+      "licence": "GPL-3.0-only",
+      "mcp": true,
+      "host_api": null,
+      "host_api_from": "side",
+      "role": "installs and updates the apps",
+      "note": null,
+      "skills": [
+        {
+          "name": "formportal-harness",
+          "commit": "997d17431616e345f0525d495224605da536a39b"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,681 @@
+{
+  "format": "formai-family",
+  "format_version": 1,
+  "generated": "2026-11-19T01:40:42Z",
+  "source": {
+    "repository": "nodemode-dev/formcompiler",
+    "registry_version": "0.16.0"
+  },
+  "content_sha256": "2553862c870f48517d4cd4e9145f8861a3cdef57cf67a500df04868f54dd0430",
+  "apps": [
+    {
+      "id": "formai",
+      "public": true,
+      "app": "formportal",
+      "repo": "formportal",
+      "repository": "nodemode-dev/formportal",
+      "site": "formai",
+      "name": "FormPortal",
+      "kind": "portal",
+      "summary": "One place to install, open and update every Form app.",
+      "licence": "GPL-3.0-only",
+      "state": "public",
+      "launcher": "formportal",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.64.1",
+        "tag": "v0.64.1",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formportal/releases/tag/v0.64.1",
+        "skills": [
+          "formportal-harness"
+        ]
+      }
+    },
+    {
+      "id": "format",
+      "public": true,
+      "app": "format",
+      "repo": "format",
+      "repository": "nodemode-dev/format",
+      "site": "format",
+      "name": "Format",
+      "kind": "chat",
+      "summary": "A chat and agent workspace for the Claude API, with a terminal, artifacts and documents.",
+      "licence": "Apache-2.0",
+      "state": "prelaunch",
+      "launcher": "format",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.26.3",
+        "tag": "v0.26.3",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/format/releases/tag/v0.26.3",
+        "skills": [
+          "format-harness"
+        ]
+      }
+    },
+    {
+      "id": "formbench",
+      "public": false
+    },
+    {
+      "id": "formcel",
+      "public": true,
+      "app": "formcel",
+      "repo": "formcel",
+      "repository": "nodemode-dev/formcel",
+      "site": "formcel",
+      "name": "FormCel",
+      "kind": "spreadsheet",
+      "summary": "Spreadsheets on your own machine, with Excel files in and out.",
+      "licence": "Apache-2.0",
+      "state": "prelaunch",
+      "launcher": "formcel",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.43.0",
+        "tag": "v0.43.0",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formcel/releases/tag/v0.43.0",
+        "skills": [
+          "formcel-harness"
+        ]
+      }
+    },
+    {
+      "id": "formcut",
+      "public": true,
+      "app": "formcut",
+      "repo": "formcut",
+      "repository": "nodemode-dev/formcut",
+      "site": "formcut",
+      "name": "FormCut",
+      "kind": "video",
+      "summary": "Video editing on your own machine: cut, grade, caption and export.",
+      "licence": "Apache-2.0",
+      "state": "live",
+      "launcher": "formcut",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "2.15.8",
+        "tag": "v2.15.8",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formcut/releases/tag/v2.15.8",
+        "skills": [
+          "formcut-harness"
+        ]
+      }
+    },
+    {
+      "id": "formdam",
+      "public": true,
+      "app": "formDAM",
+      "repo": "formDAM",
+      "repository": "nodemode-dev/formDAM",
+      "site": "formdam",
+      "name": "FormDAM",
+      "kind": "library",
+      "summary": "A library for every photo, video and asset you keep.",
+      "licence": "Apache-2.0",
+      "state": "live",
+      "launcher": "formDAM",
+      "agents": {
+        "mcp": false,
+        "skills": ""
+      },
+      "release": {
+        "version": "1.29.0",
+        "tag": "v1.29.0",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formDAM/releases/tag/v1.29.0"
+      }
+    },
+    {
+      "id": "formdesign",
+      "public": true,
+      "app": "formdesign",
+      "repo": "formdesign",
+      "repository": "nodemode-dev/formdesign",
+      "site": "formdesign",
+      "name": "FormDesign",
+      "kind": "layout",
+      "summary": "Page layout and PDF work in one app: lay out, publish, read, sign and edit.",
+      "licence": "Apache-2.0",
+      "state": "live",
+      "launcher": "formdesign",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.87.0",
+        "tag": "v0.87.0",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formdesign/releases/tag/v0.87.0",
+        "skills": [
+          "formdesign-harness"
+        ]
+      }
+    },
+    {
+      "id": "formencoder",
+      "public": true,
+      "app": "formencoder",
+      "repo": "formencoder",
+      "repository": "nodemode-dev/formencoder",
+      "site": "formencoder",
+      "name": "FormEncoder",
+      "kind": "encoder",
+      "summary": "Convert, compress and export media in batches, with presets.",
+      "licence": "Apache-2.0",
+      "state": "public",
+      "launcher": "formencoder",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.8.2",
+        "tag": "v0.8.2",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formencoder/releases/tag/v0.8.2",
+        "skills": [
+          "formencoder-harness"
+        ]
+      }
+    },
+    {
+      "id": "formext",
+      "public": true,
+      "app": "form.ext",
+      "repo": "form.ext",
+      "repository": "nodemode-dev/form.ext",
+      "site": "formext",
+      "name": "form.ext",
+      "kind": "extensions",
+      "summary": "The extension studio: make, preview, check, package and publish extensions for every Form app.",
+      "licence": "GPL-3.0-only",
+      "state": "live",
+      "launcher": "formext",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.4.1",
+        "tag": "v0.4.1",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/form.ext/releases/tag/v0.4.1",
+        "skills": [
+          "form.ext-harness"
+        ]
+      }
+    },
+    {
+      "id": "formfabric",
+      "public": false
+    },
+    {
+      "id": "formlit",
+      "public": true,
+      "app": "formlit",
+      "repo": "formlit",
+      "repository": "nodemode-dev/formlit",
+      "site": "formlit",
+      "name": "FormLit",
+      "kind": "photo",
+      "summary": "Photo library and raw development on your own machine.",
+      "licence": "Apache-2.0",
+      "state": "live",
+      "launcher": "formlit",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.51.2",
+        "tag": "v0.51.2",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formlit/releases/tag/v0.51.2",
+        "skills": [
+          "formlit-harness"
+        ]
+      }
+    },
+    {
+      "id": "formmcp",
+      "public": true,
+      "app": "formMCP",
+      "repo": "formMCP",
+      "repository": "nodemode-dev/formMCP",
+      "site": "formmcp",
+      "name": "formMCP",
+      "kind": "connect",
+      "summary": "One MCP connection from Claude Code, Codex and Cursor to every Form app.",
+      "licence": "GPL-3.0-only",
+      "state": "prelaunch",
+      "launcher": "formmcp",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.10.4",
+        "tag": "v0.10.4",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formMCP/releases/tag/v0.10.4",
+        "skills": [
+          "formmcp-harness"
+        ]
+      }
+    },
+    {
+      "id": "formmd",
+      "public": true,
+      "app": "form.md",
+      "repo": "form.md",
+      "repository": "nodemode-dev/form.md",
+      "site": "formmd",
+      "name": "Form.md",
+      "kind": "notes",
+      "summary": "Notes, docs and databases built on plain Markdown files.",
+      "licence": "Apache-2.0",
+      "state": "live",
+      "launcher": "form-md",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.53.0",
+        "tag": "v0.53.0",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/form.md/releases/tag/v0.53.0",
+        "skills": [
+          "form.md-harness"
+        ]
+      }
+    },
+    {
+      "id": "formnet",
+      "public": false
+    },
+    {
+      "id": "formpath",
+      "public": true,
+      "app": "formpath",
+      "repo": "formpath",
+      "repository": "nodemode-dev/formpath",
+      "site": "formpath",
+      "name": "FormPath",
+      "kind": "vector",
+      "summary": "Vector illustration: paths, shapes, type and artboards.",
+      "licence": "Apache-2.0",
+      "state": "live",
+      "launcher": "formpath",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.54.1",
+        "tag": "v0.54.1",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formpath/releases/tag/v0.54.1",
+        "skills": [
+          "formpath-harness"
+        ]
+      }
+    },
+    {
+      "id": "formpdf",
+      "public": true,
+      "app": "formpdf",
+      "repo": "formpdf",
+      "repository": "nodemode-dev/formpdf",
+      "site": "formpdf",
+      "name": "FormPDF",
+      "kind": "pdf",
+      "summary": "A PDF editor that runs on your computer: view, comment, fill, sign and edit.",
+      "licence": "Apache-2.0",
+      "state": "prelaunch",
+      "launcher": "formpdf",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.60.3",
+        "tag": "v0.60.3",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formpdf/releases/tag/v0.60.3",
+        "skills": [
+          "formpdf-harness"
+        ]
+      }
+    },
+    {
+      "id": "formpromo",
+      "public": false
+    },
+    {
+      "id": "formrec",
+      "public": false
+    },
+    {
+      "id": "formref",
+      "public": true,
+      "app": "formref",
+      "repo": "formref",
+      "repository": "nodemode-dev/formref",
+      "site": "formref",
+      "name": "FormRef",
+      "kind": "reference",
+      "summary": "Reference boards for images, ideas and creative work.",
+      "licence": "Apache-2.0",
+      "state": "prelaunch",
+      "launcher": "formref",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.39.2",
+        "tag": "v0.39.2",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formref/releases/tag/v0.39.2",
+        "skills": [
+          "formref-harness"
+        ]
+      }
+    },
+    {
+      "id": "formsculpt",
+      "public": false
+    },
+    {
+      "id": "formskills",
+      "public": true,
+      "app": "formskills",
+      "repo": "formskills",
+      "repository": "nodemode-dev/formskills",
+      "site": "formskills",
+      "name": "formskills",
+      "kind": "skill",
+      "summary": "The Form apps' released skills: read them, download them, keep your own edits.",
+      "licence": "GPL-3.0-only",
+      "state": "prelaunch",
+      "launcher": "formskills",
+      "agents": {
+        "mcp": false,
+        "skills": ""
+      },
+      "release": {
+        "version": "0.10.4",
+        "tag": "v0.10.4",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formskills/releases/tag/v0.10.4"
+      }
+    },
+    {
+      "id": "formslide",
+      "public": true,
+      "app": "formdeck",
+      "repo": "formdeck",
+      "repository": "nodemode-dev/formdeck",
+      "site": "formslide",
+      "name": "FormDeck",
+      "kind": "slides",
+      "summary": "Presentations: build slides, present and export.",
+      "licence": "Apache-2.0",
+      "state": "live",
+      "launcher": "formdeck",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.39.0",
+        "tag": "v0.39.0",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formdeck/releases/tag/v0.39.0",
+        "skills": [
+          "formdeck-harness"
+        ]
+      }
+    },
+    {
+      "id": "formsurface",
+      "public": false
+    },
+    {
+      "id": "formtools",
+      "public": true,
+      "app": "formtools",
+      "repo": "formtools",
+      "repository": "nodemode-dev/formtools",
+      "site": "formtools",
+      "name": "FormTools",
+      "kind": "utility",
+      "summary": "Viewers for almost any file, batch image tools, 3D viewing and desktop utilities in one window.",
+      "licence": "Apache-2.0",
+      "state": "prelaunch",
+      "launcher": "formtools",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.8.1",
+        "tag": "v0.8.1",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formtools/releases/tag/v0.8.1",
+        "skills": [
+          "formtools-harness"
+        ]
+      }
+    },
+    {
+      "id": "formtray",
+      "public": true,
+      "app": "formtray",
+      "repo": "formtray",
+      "repository": "nodemode-dev/formtray",
+      "site": "formtray",
+      "name": "FormTray",
+      "kind": "launcher",
+      "summary": "One dock icon for every Form app: switch, launch and arrange the family.",
+      "licence": "Apache-2.0",
+      "state": "prelaunch",
+      "launcher": "formtray",
+      "agents": {
+        "mcp": false,
+        "skills": ""
+      },
+      "release": {
+        "version": "0.16.2",
+        "tag": "v0.16.2",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formtray/releases/tag/v0.16.2"
+      }
+    },
+    {
+      "id": "formtxt",
+      "public": true,
+      "app": "formtxt",
+      "repo": "formtxt",
+      "repository": "nodemode-dev/formtxt",
+      "site": "formtxt",
+      "name": "FormTxt",
+      "kind": "document",
+      "summary": "Documents on your own machine: paginated and pageless, with .docx and .odt round trips.",
+      "licence": "Apache-2.0",
+      "state": "prelaunch",
+      "launcher": "formtxt",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.32.1",
+        "tag": "v0.32.1",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formtxt/releases/tag/v0.32.1",
+        "skills": [
+          "formtxt-harness"
+        ]
+      }
+    },
+    {
+      "id": "formvfx",
+      "public": true,
+      "app": "formvfx",
+      "repo": "formvfx",
+      "repository": "nodemode-dev/formvfx",
+      "site": "formvfx",
+      "name": "FormVFX",
+      "kind": "motion",
+      "summary": "Motion graphics and visual effects on a layered timeline.",
+      "licence": "Apache-2.0",
+      "state": "live",
+      "launcher": "formvfx",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.55.4",
+        "tag": "v0.55.4",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formvfx/releases/tag/v0.55.4",
+        "skills": [
+          "formvfx-harness"
+        ]
+      }
+    },
+    {
+      "id": "formvis",
+      "public": true,
+      "app": "formvis",
+      "repo": "formvis",
+      "repository": "nodemode-dev/formvis",
+      "site": "formvis",
+      "name": "FormVis",
+      "kind": "image",
+      "summary": "Layered image editing: layers, masks, selections, painting and export.",
+      "licence": "Apache-2.0",
+      "state": "live",
+      "launcher": "formvis",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "2.3.5",
+        "tag": "v2.3.5",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formvis/releases/tag/v2.3.5",
+        "skills": [
+          "formvis-harness"
+        ]
+      },
+      "manifest": {
+        "mcp": {
+          "tools": 4,
+          "read_only": 1,
+          "approval_gated": 1,
+          "transports": [
+            "http",
+            "stdio"
+          ]
+        },
+        "skills": {
+          "count": 1,
+          "sub_skills": 3,
+          "names": [
+            "formvis-harness"
+          ]
+        },
+        "dock": {
+          "present": true,
+          "positions": [
+            "right",
+            "bottom"
+          ],
+          "tabs": 2
+        },
+        "extensions": {
+          "host_api": "1"
+        }
+      }
+    },
+    {
+      "id": "formwav",
+      "public": true,
+      "app": "formwav",
+      "repo": "formwav",
+      "repository": "nodemode-dev/formwav",
+      "site": "formwav",
+      "name": "FormWav",
+      "kind": "audio",
+      "summary": "Audio editing: record, edit, repair, mix and export.",
+      "licence": "Apache-2.0",
+      "state": "live",
+      "launcher": "formwav",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "2.26.3",
+        "tag": "v2.26.3",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formwav/releases/tag/v2.26.3",
+        "skills": [
+          "formwav-harness"
+        ]
+      }
+    },
+    {
+      "id": "formweb",
+      "public": true,
+      "app": "formweb",
+      "repo": "formweb",
+      "repository": "nodemode-dev/formweb",
+      "site": "formweb",
+      "name": "FormWeb",
+      "kind": "web",
+      "summary": "Design and publish web pages visually.",
+      "licence": "Apache-2.0",
+      "state": "prelaunch",
+      "launcher": "formweb",
+      "agents": {
+        "mcp": true,
+        "skills": ".claude/skills"
+      },
+      "release": {
+        "version": "0.21.3",
+        "tag": "v0.21.3",
+        "published": "2026-11-17T12:00:00Z",
+        "url": "https://github.com/nodemode-dev/formweb/releases/tag/v0.21.3",
+        "skills": [
+          "formweb-harness"
+        ]
+      }
+    }
+  ]
+}
