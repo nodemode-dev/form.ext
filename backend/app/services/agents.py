@@ -9,6 +9,7 @@ from pathlib import Path
 from app.services import paths
 
 HUB = "formmcp"
+HUB_READS = ("family_apps", "suggest_app", "app_tools", "app_resources", "read_app_resource", "app_prompts", "get_app_prompt", "extensions_list")
 CANDIDATES = (
     ".local/bin/formmcp",
     ".cargo/bin/formmcp",

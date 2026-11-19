@@ -296,6 +296,7 @@ class Op:
     params: list[Param] = field(default_factory=list)
     read_only: bool = True
     destructive: bool = False
+    asks: bool = False
     mcp: bool = True
     cli: bool = True
     say: Callable[[Any], str] | None = None
@@ -942,7 +943,7 @@ def tools_markdown() -> str:
     for op in OPS:
         if not op.mcp:
             continue
-        kind = "read" if op.read_only else ("changes, destructive" if op.destructive else "changes")
+        kind = "read" if op.read_only else ("changes, destructive" if op.destructive else "changes") + (", ask the person first" if op.asks else "")
         lines.append(f"| `{op.name}` | `{op.name.replace('_', '-')}` | {kind} | {op.help} |")
     for op in OPS:
         if not op.mcp:
@@ -1014,7 +1015,7 @@ OPS: list[Op] = [
         Param("install", "boolean", "Install the app's released skills with formskills-cli. Ask the person first."),
         Param("project", help="Install into this project's folder instead of the person's own skills folder."),
         Param("checkout", "boolean", "Have FormSkills read the pulled sources instead of the releases (its dev mode)."),
-    ], read_only=False),
+    ], read_only=False, asks=True),
     Op("new", "New extension", "Make a new extension project from a starter for one host app (or copy a kit example). The starter already works: it reads the app's document and runs a real command.", op_new, [
         Param("name", help="The extension's name, such as Beat Markers; the project id is its slug.", positional=True),
         Param("product", help="The host app id, such as formcut (templates lists them).", flag="--app"),
@@ -1038,7 +1039,7 @@ OPS: list[Op] = [
         Param("base64", help="The whole new content of a binary file, base64."),
         Param("source", help="A local file to copy in.", flag="--from"),
     ], read_only=False, say=lambda d: f"wrote {d.get('path')} ({d.get('size', '?')} bytes)"),
-    Op("delete", "Delete file", "Delete one file or folder of a project.", op_delete, [P_ID, P_PATH], read_only=False, destructive=True, say=lambda d: f"deleted {d.get('path')}"),
+    Op("delete", "Delete file", "Delete one file or folder of a project.", op_delete, [P_ID, P_PATH], read_only=False, destructive=True, asks=True, say=lambda d: f"deleted {d.get('path')}"),
     Op("move", "Move file", "Rename or move a file inside a project.", op_move, [P_ID, Param("source", help="The current path.", required=True, positional=True), Param("target", help="The new path.", required=True, positional=True)], read_only=False),
     Op("manifest", "Manifest", "Read the project's manifest.json, or change it with a JSON merge patch (set; null removes a key). Keep api \"1\", native false and the id unchanged.", op_manifest, [P_ID, Param("set", "object", "A JSON merge patch, such as {\"permissions\": [\"document\"], \"description\": \"...\"}.")], read_only=False, say=lambda d: json.dumps(d.get("manifest"), indent=2)),
     Op("validate", "Check", "Check the project against the contract's schema and package rules and lint it (inline script the CSP blocks, fetch or XMLHttpRequest or WebSocket, eval, oversized files, missing entry, permissions used but not declared or declared but unused). Each problem has file, line, rule and fix.", op_validate, [P_ID], say=_say_validate),
@@ -1071,7 +1072,7 @@ OPS: list[Op] = [
         Param("remove", "boolean", "Take the project out of dev.json."),
         Param("status", "boolean", "Only report whether it is listed and what the host would say."),
         Param("open", "boolean", "Open the app afterwards (when FormPortal installed it)."),
-    ], read_only=False, say=_say_run),
+    ], read_only=False, asks=True, say=_say_run),
     Op("publish", "Publish", "Build, sign with the publisher key (unless unsigned) and make the submission folder for formai.studio: the .formpkg, entry.json, a one-package extensions.json and a README. formportal also sends the package to FormPortal to install.", op_publish, [
         P_ID,
         Param("url", help="The https address the package will be served from (default: its formai.studio address)."),
@@ -1079,17 +1080,23 @@ OPS: list[Op] = [
         Param("passphrase", help="The key's passphrase, when it has one."),
         Param("unsigned", "boolean", "Do not sign."),
         Param("formportal", "boolean", "Also send the package to FormPortal to install."),
-    ], read_only=False, say=_say_publish),
+    ], read_only=False, asks=True, say=_say_publish),
     Op("submit", "Submit to Registry", "Write the project into a folder in form.ext-registry's layout (extensions/[id]/ with package/, the source, package.json when there is one, README.md, LICENSE, CHANGELOG.md and a screenshot slot), and run the registry's own tools/check.py on it from the copy of the registry form.ext keeps (it fetches it; when that fails form.ext's own Check runs, and it says which ran). With pull_request it then forks nodemode-dev/form.ext-registry into the person's GitHub account, pushes the folder on a branch and opens the pull request, through GitHub's gh command line; it refuses while the checks fail or a placeholder text is left. ready reports what the one-step pull request still needs on this computer. Without pull_request it pushes nothing and gives the commands to do it by hand.", op_submit, [
         P_ID,
         Param("checkout", help="Your own clone of nodemode-dev/form.ext-registry to use instead of form.ext's copy (saved as the setting registry.checkout)."),
         Param("pull_request", "boolean", "Also fork, push and open the pull request. Ask the person first: it posts publicly under their GitHub account.", flag="--pull-request"),
         Param("ready", "boolean", "Only report whether git and gh are installed and signed in."),
-    ], read_only=False, say=_say_submit),
+    ], read_only=False, asks=True, say=_say_submit),
     Op("agents_sync", "Sync agent files", "Regenerate the harness skill's references/tools.md from this table and mirror the harness skill into .agents/skills.", op_agents_sync, mcp=False, read_only=False),
 ]
 
 BY_NAME = {op.name: op for op in OPS}
+
+
+def allowed_tools() -> list[str]:
+    from app.services import agents
+
+    return [f"mcp__formext__{op.name}" for op in OPS if op.mcp and op.read_only and not op.asks] + [f"mcp__{agents.HUB}__{name}" for name in agents.HUB_READS]
 
 
 def run_op(eng: Engine, name: str, args: dict) -> Any:

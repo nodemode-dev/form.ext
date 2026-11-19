@@ -15,6 +15,7 @@ import threading
 import time
 from pathlib import Path
 
+from app.cli import allowed_tools
 from app.services import agents, paths, sources, terminal
 from app.services.workspace import WorkspaceError, workspace
 
@@ -418,7 +419,7 @@ def terminal_env(port: int) -> dict:
 
 
 def terminal_argv(path: str, port: int, folder: str, project: str | None, prompt: str | None, resume: str | None) -> list[str]:
-    cmd = [path, "--mcp-config", mcp_config(port), "--allowedTools", "mcp__formext", "mcp__formmcp", "--append-system-prompt", note(folder, project), *extra_dirs(project)]
+    cmd = [path, "--mcp-config", mcp_config(port), "--allowedTools", *allowed_tools(), "--append-system-prompt", note(folder, project), *extra_dirs(project)]
     if resume:
         cmd += ["--resume", resume]
     if prompt:

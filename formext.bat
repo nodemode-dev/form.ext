@@ -58,7 +58,9 @@ goto :eof
 :claude
 where claude >nul 2>nul || ( echo [formext] Claude Code is not installed. Install it with: irm https://claude.ai/install.ps1 ^| iex & exit /b 1 )
 set "CLAUDE_PROJECT_DIR=%~dp0"
-claude --mcp-config "%~dp0.mcp.json" --allowedTools mcp__formext mcp__formmcp
+for /f "delims=" %%t in ('""%PYEXE%" backend\formext_engine.py mcp --allowed-tools"') do set "ALLOWED=%%t"
+if not defined ALLOWED exit /b 1
+claude --mcp-config "%~dp0.mcp.json" --allowedTools %ALLOWED%
 goto :eof
 :doctor
 echo   node       & node -v
