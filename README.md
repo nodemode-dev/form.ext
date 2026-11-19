@@ -172,6 +172,16 @@ The window, the command line and the MCP server call one engine, so an agent and
 
 Two MCP servers are registered: `formext` (this studio) and `formmcp`, the Form family hub that reaches every installed Form app's own tools. formMCP is a separate app: when it is not installed, `formmcp` shows as failed or unavailable in your agent and everything else works; install it with FormPortal and run `./formext agents install` again. The skills include `formext-harness` (the build loop), `formext-hosts` (what an extension can do in each of the twelve apps, which host skill explains the app, how to test live) and the host skills copied from the apps themselves, recorded with their source commits in [`.claude/skills/HOSTS.md`](.claude/skills/HOSTS.md). With these, "make a FormWav extension that does X" can be built, checked, previewed, packaged and run in the app by Claude Code, Codex or Cursor. An agent can also read the app's real source (`source`, `source_files`, `source_read`, `source_search`), and `submit` with `pull_request` opens the registry pull request once the person agrees.
 
+### Outside agents
+
+An outside agent is any program that reaches form.ext from outside the app: Claude Code, Codex or Cursor through `./formext mcp`, any other MCP client through the engine, and `./formext cli` itself. Of the 33 MCP tools, the 19 that only read always run. The 14 that change something follow one setting, **Settings, Developer, Outside agents**:
+
+- **Ask** (the default): the form.ext window asks you, naming the tool and the project, with Deny, Allow once and Always allow (which switches the setting to Allowed). With no form.ext window open the change is refused; a question nobody answers is refused after two minutes.
+- **Allowed**: outside agents change projects without asking.
+- **Blocked**: every change from an outside agent is refused.
+
+Only the form.ext window can change this setting. An agent, the command line or an edit of `settings.json` cannot: a hand edit puts it back to Ask, and the window says so once. The Studio's own Claude Code and Chat tabs are not outside agents and are never asked; each tab gets its own pass from the engine when you open it, and the pass stops working when the tab closes.
+
 ### Terminal
 
 The Studio's bottom panel has a Terminal tab (View, Terminal, or Mod+J) next to Problems, Host calls and Output. The engine owns the sessions: a real shell in the open project's folder, an xterm view, a Claude Code tab that starts `claude` with formext and formMCP connected and the skills available, and a Chat tab that runs `claude -p` with streamed output, tool chips and permission cards. If Claude Code is not installed the tab says so and shows the install command. The routes answer on 127.0.0.1 only and refuse any other Host or Origin, and only the form.ext window can change anything through the engine: open or type into a shell, answer a permission card, save settings or change a project. Agents and the command line go through the MCP server. In the Claude Code tab, tools that only read run without asking; every other formext and formMCP tool asks first.

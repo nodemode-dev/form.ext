@@ -20,7 +20,7 @@ let returnFocus: Element | null = null;
 
 function text(ask: Ask): string {
   const where = ask.project ? ` in the project ${ask.project}` : '';
-  return `An outside agent connected to form.ext asks to run ${ask.title} (${ask.tool})${where}. Allow once lets this one call run. Always allow lets outside agents change projects without asking; you can change that in Settings, Agents.`;
+  return `An outside agent connected to form.ext asks to run ${ask.title} (${ask.tool})${where}. Allow once lets this one call run. Always allow lets outside agents change projects without asking; you can change that in Settings, Developer, Outside agents.`;
 }
 
 function show(ask: Ask): void {

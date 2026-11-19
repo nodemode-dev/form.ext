@@ -18,7 +18,9 @@ INSTRUCTIONS = (
     "The loop: templates, new, source, read and write the files, manifest, validate until it has no errors, preview, package, then run_in_app to load it in the real app, sign and publish; "
     "submit prepares the registry folder and runs the registry's checks, and submit {pull_request: true} opens the pull request for the person. "
     "Paths are relative to the project folder (package/ui/app.js); files gives package_prefix. "
-    "Ask the person before run_in_app (it writes FormPortal's dev.json), publish with formportal (it installs), submit with pull_request (it posts publicly under their GitHub account), skills with install, and delete."
+    "Ask the person before run_in_app (it writes FormPortal's dev.json), publish with formportal (it installs), submit with pull_request (it posts publicly under their GitHub account), skills with install, and delete. "
+    "Tools that change something also follow the person's choice for outside agents in the form.ext window: Ask (the window asks them; with no window open the call is refused), Allowed or Blocked. "
+    "Only the person can change it, in Settings, Developer, Outside agents; when a call is refused, say so and do not retry."
 )
 
 

@@ -9,9 +9,9 @@ from app.services.bus import bus
 
 MODES = ("ask", "allowed", "blocked")
 WAIT = 120.0
-BLOCKED = "Outside agents are blocked in form.ext's Settings, Agents, so this call was refused. Tell the person where to change it and stop; do not retry."
+BLOCKED = "Outside agents are blocked in form.ext's Settings, Developer, Outside agents, so this call was refused. Tell the person where to change it and stop; do not retry."
 DENIED = "The person did not allow this in the form.ext window, so it was refused. Do not retry unless they ask you to."
-NO_WINDOW = "form.ext asks the person before an outside agent changes anything, and no form.ext window is open to ask. Ask them to open form.ext, or to choose Allowed in Settings, Agents."
+NO_WINDOW = "form.ext asks the person before an outside agent changes anything, and no form.ext window is open to ask. Ask them to open form.ext, or to choose Allowed in Settings, Developer, Outside agents."
 TIMED_OUT = "Nobody answered in the form.ext window in time, so this call was refused. Ask the person to look at the form.ext window, then retry."
 
 _lock = threading.Lock()
