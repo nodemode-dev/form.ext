@@ -13,12 +13,16 @@ BLOCKED = "Outside agents are blocked in form.ext's Settings, Developer, Outside
 DENIED = "The person did not allow this in the form.ext window, so it was refused. Do not retry unless they ask you to."
 NO_WINDOW = "form.ext asks the person before an outside agent changes anything, and no form.ext window is open to ask. Ask them to open form.ext, or to choose Allowed in Settings, Developer, Outside agents."
 TIMED_OUT = "Nobody answered in the form.ext window in time, so this call was refused. Ask the person to look at the form.ext window, then retry."
+ANSWERS = ("deny", "once", "always")
+ALWAYS_COVERS = "all"
+SHOWN = ("id", "tool", "title", "project", "at", "agent", "what", "answers", "always", "expires")
 
 _lock = threading.Lock()
 _pending: dict[str, dict] = {}
 _windows = {"count": 0}
 _tabs: dict[str, str] = {}
 _inapp = contextvars.ContextVar("formext_inapp", default=False)
+_agent = contextvars.ContextVar("formext_agent", default="")
 
 
 def open_tab(token: str, path: str) -> None:
@@ -57,6 +61,27 @@ def end_tab(mark: contextvars.Token) -> None:
     _inapp.reset(mark)
 
 
+def own_tab() -> bool:
+    return _inapp.get()
+
+
+def clean_name(value) -> str:
+    text = " ".join(value.split()) if isinstance(value, str) else ""
+    return "".join(c for c in text if c.isprintable())[:80]
+
+
+def from_agent(value) -> contextvars.Token:
+    return _agent.set(clean_name(value))
+
+
+def end_agent(mark: contextvars.Token) -> None:
+    _agent.reset(mark)
+
+
+def agent() -> str:
+    return _agent.get()
+
+
 def access() -> str:
     from app.services import settings
 
@@ -82,7 +107,7 @@ def windows() -> int:
 def pending() -> list[dict]:
     with _lock:
         items = sorted(_pending.values(), key=lambda r: r["at"])
-        return [{k: r[k] for k in ("id", "tool", "title", "project", "at")} for r in items if r["answer"] is None]
+        return [{k: r[k] for k in SHOWN} for r in items if r["answer"] is None]
 
 
 def answer(request_id: str, choice: str) -> bool:
@@ -98,7 +123,7 @@ def answer(request_id: str, choice: str) -> bool:
     if choice == "always":
         settings.update({"agent_access": "allowed"}, window=True)
     item["done"].set()
-    bus.emit("agents.answered", {"id": request_id})
+    bus.emit("agents.answered", {"id": request_id, "reason": "answered"})
     return True
 
 
@@ -112,17 +137,20 @@ def check(tool: str, title: str, args: dict) -> str | None:
         return BLOCKED
     if windows() < 1:
         return NO_WINDOW
-    item = {"id": secrets.token_urlsafe(12), "tool": tool, "title": title, "project": str(args.get("id") or ""), "at": time.time(), "answer": None, "done": threading.Event()}
+    now, project = time.time(), str(args.get("id") or "")
+    item = {"id": secrets.token_urlsafe(12), "tool": tool, "title": title, "project": project, "at": now, "agent": _agent.get(),
+            "what": f"run {title} ({tool})" + (f" in the project {project}" if project else ""), "answers": list(ANSWERS), "always": ALWAYS_COVERS,
+            "expires": now + WAIT, "answer": None, "done": threading.Event()}
     with _lock:
         _pending[item["id"]] = item
-    bus.emit("agents.ask", None)
+    bus.emit("agents.ask", {"id": item["id"], "expires": item["expires"]})
     try:
         item["done"].wait(WAIT)
     finally:
         with _lock:
             _pending.pop(item["id"], None)
         if item["answer"] is None:
-            bus.emit("agents.answered", {"id": item["id"]})
+            bus.emit("agents.answered", {"id": item["id"], "reason": "expired"})
     if item["answer"] in ("once", "always"):
         return None
     return DENIED if item["answer"] == "deny" else TIMED_OUT

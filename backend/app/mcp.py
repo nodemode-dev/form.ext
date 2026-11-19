@@ -122,6 +122,9 @@ class Server:
             if method == "initialize":
                 asked = str(params.get("protocolVersion") or "")
                 self.protocol = asked if asked in PROTOCOLS else PROTOCOLS[0]
+                client = params.get("clientInfo")
+                if self.out is not None and isinstance(client, dict) and isinstance(client.get("name"), str):
+                    self.engine.agent = client["name"]
                 self.warm()
                 result = {
                     "protocolVersion": self.protocol,

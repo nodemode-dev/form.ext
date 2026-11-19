@@ -149,11 +149,14 @@ class Engine:
         self._health: dict | None = None
         self._lock = threading.RLock()
         self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        self.agent = ""
 
     def _http(self, method: str, url: str, data: bytes | None, timeout: float):
         headers = {"Accept": "application/json", "User-Agent": f"formext-cli/{__version__}"}
         if data:
             headers["Content-Type"] = "application/json"
+        if self.agent and url == f"{self.url}/mcp":
+            headers["X-Formext-Agent"] = urllib.parse.quote(self.agent[:80])
         tab_token = os.environ.get("FORMEXT_INAPP_TOKEN")
         if tab_token and url == f"{self.url}/mcp":
             headers["X-Formext-Inapp"] = tab_token
@@ -1204,6 +1207,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     op = BY_NAME[args.command.replace("-", "_")]
     eng = Engine(getattr(args, "engine", None), "local" if getattr(args, "local", False) else "auto")
+    eng.agent = "the formext command line"
     values = {p.name: getattr(args, p.name, None) for p in op.params}
     try:
         data = run_op(eng, op.name, values)
