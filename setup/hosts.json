@@ -1,9 +1,6 @@
 {
   "format": "formext-hosts",
   "version": 1,
-  "source": {
-    "registry_version": "0.16.0"
-  },
   "hosts": [
     {
       "id": "formcut",

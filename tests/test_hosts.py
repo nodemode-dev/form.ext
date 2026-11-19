@@ -48,6 +48,44 @@ class Hosts(unittest.TestCase):
         spec, side = hosts.read_spec(SPEC), hosts.read_side(hosts.SIDE)
         self.assertEqual(hosts.outputs(spec, side)[0], hosts.outputs(spec, side)[0])
 
+    def test_a_release_that_shows_nothing_new_is_in_step(self):
+        spec = json.loads(SPEC.read_text(encoding="utf-8"))
+        spec["source"]["registry_version"] = "99.98.7"
+        spec["generated"] = "2099-01-02T03:04:05Z"
+        spec["content_sha256"] = "f" * 64
+        spec["apps"].append({"id": "formunseen", "public": False})
+        before = {p: p.read_bytes() for p in (hosts.HOSTS_JSON, hosts.HOSTS_MD, SPEC)}
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "spec.json"
+            path.write_text(json.dumps(spec), encoding="utf-8")
+            got = run("--family", str(path), "--check")
+        self.assertEqual(got.returncode, 0, got.stdout + got.stderr)
+        self.assertEqual(got.stdout, "")
+        self.assertEqual(before, {p: p.read_bytes() for p in before})
+        files, _ = hosts.outputs(hosts.read_spec(SPEC), hosts.read_side(hosts.SIDE))
+        kept = json.loads(SPEC.read_text(encoding="utf-8"))
+        for text in files.values():
+            for value in (kept["source"]["registry_version"], kept["generated"], kept["content_sha256"]):
+                self.assertNotIn(value, text)
+
+    def test_a_renamed_host_is_written_with_the_spec(self):
+        spec = json.loads(SPEC.read_text(encoding="utf-8"))
+        for app in spec["apps"]:
+            if app["id"] == "formwav":
+                app["name"] = "FormWave"
+        before = {p: p.read_bytes() for p in (hosts.HOSTS_JSON, hosts.HOSTS_MD, SPEC)}
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "spec.json"
+            path.write_text(json.dumps(spec), encoding="utf-8")
+            got = run("--family", str(path), "--check")
+        self.assertEqual(got.returncode, 1)
+        self.assertEqual(sorted(got.stdout.split()), sorted(["setup/hosts.json", ".claude/skills/HOSTS.md"]))
+        self.assertEqual(before, {p: p.read_bytes() for p in before})
+        files, _ = hosts.outputs(spec, hosts.read_side(hosts.SIDE))
+        for path, text in files.items():
+            self.assertIn("FormWave", text)
+            self.assertNotEqual(path.read_text(encoding="utf-8"), text)
+
     def test_spec_extensions_win(self):
         spec = json.loads(SPEC.read_text(encoding="utf-8"))
         for app in spec["apps"]:

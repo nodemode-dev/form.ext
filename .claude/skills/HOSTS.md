@@ -1,6 +1,6 @@
 # Host app skills
 
-Written by `python3 -I setup/hosts.py --family setup/family.spec.json` from the family spec (formadaptor's `family.json`) and `setup/hosts.side.json`; do not edit it by hand. The host list is also in `setup/hosts.json`.
+Written by `python3 -I setup/hosts.py --family setup/family.spec.json` from the family spec (formadaptor's `family.json`) and `setup/hosts.side.json`; do not edit it by hand. The host list is also in `setup/hosts.json`. The spec both were last written from is kept as `setup/family.spec.json`; neither file carries its registry version, time or hash, so they change only when something they show changes.
 
 ## Hosts
 

@@ -9,7 +9,9 @@
 Which apps are hosts and their host API come from an app's manifest.extensions in the spec when the spec carries it,
 otherwise from the hand-kept side file setup/hosts.side.json, which also records the host skills copied into
 .claude/skills and their commits. Names, ids, repositories, licences and MCP come from the spec. Private apps are left
-out. Standard library only, no network; run as python3 -I setup/hosts.py.
+out. Neither file carries the spec's registry version, generated time or content hash, so both change only when
+something they show changes; the spec they were last written from is the kept copy setup/family.spec.json. Standard
+library only, no network; run as python3 -I setup/hosts.py.
 """
 
 import json
@@ -104,7 +106,6 @@ def build(spec: dict, side: dict) -> tuple[dict, list[str]]:
     doc = {
         "format": "formext-hosts",
         "version": 1,
-        "source": {"registry_version": (spec.get("source") or {}).get("registry_version")},
         "hosts": hosts,
         "family": family,
     }
@@ -119,7 +120,7 @@ def hosts_md(doc: dict) -> str:
     out = [
         "# Host app skills",
         "",
-        "Written by `python3 -I setup/hosts.py --family setup/family.spec.json` from the family spec (formadaptor's `family.json`) and `setup/hosts.side.json`; do not edit it by hand. The host list is also in `setup/hosts.json`.",
+        "Written by `python3 -I setup/hosts.py --family setup/family.spec.json` from the family spec (formadaptor's `family.json`) and `setup/hosts.side.json`; do not edit it by hand. The host list is also in `setup/hosts.json`. The spec both were last written from is kept as `setup/family.spec.json`; neither file carries its registry version, time or hash, so they change only when something they show changes.",
         "",
         "## Hosts",
         "",
