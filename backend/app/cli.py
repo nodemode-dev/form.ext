@@ -979,7 +979,7 @@ def tools_markdown() -> str:
         f"Outside agents (any MCP client, and `./formext cli`): the {sum(1 for op in OPS if op.mcp and op.read_only)} read tools always run. "
         f"The {sum(1 for op in OPS if op.mcp and not op.read_only)} that change something follow the person's setting in the form.ext window, Settings, Developer, Outside agents: "
         "Ask (the default; the window asks, and with no window open the call is refused), Allowed (runs) or Blocked (refused). "
-        "Only the window can change that setting. The Studio's own Claude Code and Chat tabs are not asked.",
+        "Only the window can change that setting. The Studio's own Claude Code and Chat tabs are not asked under Ask; Blocked refuses their changes too.",
         "",
         "| Tool | Command | Kind | What it does |",
         "| --- | --- | --- | --- |",

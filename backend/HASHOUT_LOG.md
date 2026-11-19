@@ -2,6 +2,17 @@
 
 The living log of the form.ext engine. Read it before editing `backend/`. Core files belong to the engine module; module routers and services (`routers/<module>.py`, `services/<module>.py`) keep their own notes in their own HASHOUT logs.
 
+## Unreleased: Blocked stops every agent, the Studio's own tabs included {#blocked-all}
+
+- refers-to: app/services/consent.py; app/cli.py; formext_engine.py; ../tests/test_agent_consent.py; ../README.md; ../docs/MANUAL.md; ../.docs/wiki/Agents.md; ../.claude/skills/formext-harness/SKILL.md; ../.claude/skills/formext-harness/references/tools.md
+- The family rule (DOCK_SPEC_2, A3, taken as the default while the owner decides): Blocked stops every agent, the app's own tabs included. This replaces the last sentence of the #tab-token entry below ("Under Blocked a tab still runs"). It is one commit on purpose, so it can be taken back alone if the owner decides the other way.
+- `consent.check` reads the setting first. Blocked refuses a call that carries a live tab token with `BLOCKED_TAB`, a sentence written for the tab's own agent (it says the setting stops this tab too, where to change it, and not to retry); an outside agent still gets `BLOCKED`. Under Ask and Allowed a tab token runs without a question, as before. This covers every tab token: Claude Code tabs, the Chat tab, and the Codex and Cursor tabs from #agent-programs.
+- As for outside agents, Blocked refuses the tools that change something; the tools that only read still run. Claude Code's own file edits and shell commands in a tab are Claude Code's and are not form.ext tool calls; this setting does not reach them.
+- The present window shows nothing new unless the person has chosen Blocked: then a change asked for in the Claude Code or Chat tab comes back refused, and the agent says why. The Preferences note still reads correctly ("Blocked refuses every change"); its last sentence about the Studio's own tabs is left for the dock port, which rewrites that panel.
+- Words: the generated tools reference (`tools_markdown` in app/cli.py, written by `./formext agents sync`), the harness skill, README, the manual and the wiki now say that Blocked stops the Studio's own tabs too.
+- `--selfcheck` adds `agent_tabs_blocked`: with a live tab token, Ask and Allowed let a change through and Blocked refuses it with `BLOCKED_TAB`; the token stops counting when its tab closes.
+- Run on 34000: a Claude Code tab opened by the window, its token read from its 0600 file. Under Blocked a change with that token was refused with the new sentence, directly on `/mcp` and through the real stdio bridge holding the token; a read tool still ran. Back under Ask the same token ran a change without a question. The same for a Codex tab's and a Cursor tab's token from the child's environment. Test added after: `test_blocked_refuses_a_live_tab_token_and_ask_lets_it_through` in tests/test_agent_consent.py.
+
 ## Unreleased: a consent request says who asks, what answers it takes and when it lapses {#consent-request}
 
 - refers-to: app/services/consent.py; app/routers/mcp.py; app/cli.py; app/mcp.py; app/services/agent_feed.py; ../tests/test_agent_consent.py

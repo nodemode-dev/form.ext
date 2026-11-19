@@ -55,6 +55,26 @@ class AgentConsent(unittest.TestCase):
         thread.start()
         return box, thread
 
+    def test_blocked_refuses_a_live_tab_token_and_ask_lets_it_through(self):
+        token = "a-live-tab-token-for-this-test"
+        consent.open_tab(token, "")
+        try:
+            answers = {}
+            for mode in ("blocked", "ask", "allowed"):
+                self.mode(mode)
+                mark = consent.from_tab(token)
+                try:
+                    answers[mode] = consent.check("new", "New extension", {})
+                finally:
+                    consent.end_tab(mark)
+            self.assertEqual(answers, {"blocked": consent.BLOCKED_TAB, "ask": None, "allowed": None})
+            self.mode("blocked")
+            self.assertEqual(consent.check("new", "New extension", {}), consent.BLOCKED)
+            self.assertEqual(self.bus.events, [])
+        finally:
+            consent.close_tab(token)
+        self.assertFalse(consent.is_tab(token))
+
     def test_a_request_carries_what_the_dialog_needs_and_deny_refuses(self):
         self.mode("ask")
         box, thread = self.call("probe agent", {"id": "beat-markers"})

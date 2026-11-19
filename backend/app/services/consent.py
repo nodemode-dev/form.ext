@@ -13,6 +13,7 @@ BLOCKED = "Outside agents are blocked in form.ext's Settings, Developer, Outside
 DENIED = "The person did not allow this in the form.ext window, so it was refused. Do not retry unless they ask you to."
 NO_WINDOW = "form.ext asks the person before an outside agent changes anything, and no form.ext window is open to ask. Ask them to open form.ext, or to choose Allowed in Settings, Developer, Outside agents."
 TIMED_OUT = "Nobody answered in the form.ext window in time, so this call was refused. Ask the person to look at the form.ext window, then retry."
+BLOCKED_TAB = "Agents are blocked in form.ext's Settings, Developer, Outside agents, and that stops this tab's changes too, so this call was refused. Tell the person where to change it and stop; do not retry."
 ANSWERS = ("deny", "once", "always")
 ALWAYS_COVERS = "all"
 SHOWN = ("id", "tool", "title", "project", "at", "agent", "what", "answers", "always", "expires")
@@ -128,13 +129,11 @@ def answer(request_id: str, choice: str) -> bool:
 
 
 def check(tool: str, title: str, args: dict) -> str | None:
-    if _inapp.get():
-        return None
     mode = access()
-    if mode == "allowed":
-        return None
     if mode == "blocked":
-        return BLOCKED
+        return BLOCKED_TAB if _inapp.get() else BLOCKED
+    if _inapp.get() or mode == "allowed":
+        return None
     if windows() < 1:
         return NO_WINDOW
     now, project = time.time(), str(args.get("id") or "")

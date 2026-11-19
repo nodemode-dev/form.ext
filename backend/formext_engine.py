@@ -58,6 +58,7 @@ def checks(contract) -> dict:
             "window_key_bootstrap": window_key_bootstrap(),
             "seal_catches_edit": seal_catches_edit(),
             "agent_consent": agent_consent(),
+            "agent_tabs_blocked": agent_tabs_blocked(),
         }
 
 
@@ -145,6 +146,26 @@ def agent_consent() -> bool:
     finally:
         consent.access = saved
     return results == {"ask": consent.NO_WINDOW, "blocked": consent.BLOCKED, "allowed": None}
+
+
+def agent_tabs_blocked() -> bool:
+    from app.services import consent
+
+    saved, token = consent.access, "selfcheck-tab-token"
+    consent.open_tab(token, "")
+    try:
+        results = {}
+        for mode in ("ask", "blocked", "allowed"):
+            consent.access = lambda mode=mode: mode
+            mark = consent.from_tab(token)
+            try:
+                results[mode] = consent.check("new", "New extension", {})
+            finally:
+                consent.end_tab(mark)
+    finally:
+        consent.access = saved
+        consent.close_tab(token)
+    return results == {"ask": None, "blocked": consent.BLOCKED_TAB, "allowed": None} and not consent.is_tab(token)
 
 
 def entry_slash_refused(example, folder) -> bool:

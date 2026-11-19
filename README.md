@@ -178,9 +178,9 @@ An outside agent is any program that reaches form.ext from outside the app: Clau
 
 - **Ask** (the default): the form.ext window asks you, naming the tool and the project, with Deny, Allow once and Always allow (which switches the setting to Allowed). With no form.ext window open the change is refused; a question nobody answers is refused after two minutes.
 - **Allowed**: outside agents change projects without asking.
-- **Blocked**: every change from an outside agent is refused.
+- **Blocked**: every change from an agent is refused, the Studio's own Claude Code and Chat tabs included. Reading still works.
 
-Only the form.ext window can change this setting. An agent, the command line or an edit of `settings.json` cannot: a hand edit puts it back to Ask, and the window says so once. The Studio's own Claude Code and Chat tabs are not outside agents and are never asked; each tab gets its own pass from the engine when you open it, and the pass stops working when the tab closes.
+Only the form.ext window can change this setting. An agent, the command line or an edit of `settings.json` cannot: a hand edit puts it back to Ask, and the window says so once. The Studio's own Claude Code and Chat tabs are not outside agents and are never asked; each tab gets its own pass from the engine when you open it, and the pass stops working when the tab closes. Blocked is the one choice that stops them as well.
 
 ### Terminal
 
