@@ -161,6 +161,7 @@
   box-shadow: var(--shadow-window);
 }
 .fx-dialog.open { display: flex; }
+:root[data-oled] .fx-dialog { background: var(--bg-primary); }
 .fx-dialog.wide { width: min(640px, calc(100vw - 32px)); }
 .fx-dialog-head { padding: var(--sp-4) var(--sp-4) var(--sp-2); font-size: var(--fs-14); font-weight: 600; }
 .fx-dialog-body { padding: 0 var(--sp-4) var(--sp-4); overflow: auto; color: var(--ink-soft); display: flex; flex-direction: column; gap: var(--sp-3); }

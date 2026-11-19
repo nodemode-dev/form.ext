@@ -95,6 +95,19 @@ Components are plain classes: `.btn` (`.primary`, `.danger`, `.ghost`, `.sm`, `.
 
 Studio Dark is the default whatever the system says; the light theme is the top bar's toggle. The choice is `localStorage['formext.theme']`, read by the inline script before any style sheet, which sets `data-theme` and `color-scheme` on the root, and the critical style paints the matching ground (`#111111` or `#ecebe6`), so a reload never flashes the other theme or white.
 
+## AMOLED Black {#amoled}
+- refers-to: index.html :: inline script and critical style · src/styles/tokens.css :: `:root[data-theme="amoled"]`, `:root[data-oled]` · src/shell/theme.ts · src/shell/settings.ts :: themes row · src/styles/settings.css :: `.pf-swatch.ob` · src/shell/shell.ts :: renderTheme · src/styles/shell.css :: `.fx-dialog` · src/panes/home/home.css :: `.home-start`
+- kind: decision
+- logged: unreleased
+
+The family's true-black theme for OLED screens, id `amoled`, label "AMOLED Black", the third swatch in Preferences, Interface, Theme. form.ext is not on the formvis theme system: its picker is two swatches and `ThemeMode`, its tokens are `--bg-*`, `--border-*`, `--text-*` with the shell names (`--ground`, `--pane`, `--float`, `--ink`, `--edge`) derived from them, so the profile is a `:root[data-theme="amoled"]` block of the family table's values in those names (`--bg-primary` and `--bg-secondary` `#000000`, `--bg-tertiary` `#141414`, borders `#262626` and `#3a3a3a`, text `#ededed`, `#a6a6a6`, `#858585`). The accent stays form.ext's orange. `theme.ts` keeps an `OLED` table and sets `data-oled` on the root for an oled mode, touching it only when it changes; `color-scheme` is dark for it. The toggle in the top bar stays light or dark (from AMOLED it goes to light); its icon is now replaced only when it changes, because the switch between two dark modes rebuilt the button's SVG.
+
+Pre-paint: the inline script accepts `amoled`, has its own `OLED` table and sets `data-oled` beside `data-theme`; the critical style paints `html[data-oled]` black. The same style now hides the body-level overlays (`.fx-scrim`, `.fx-dialog`, `.fx-palette`) until `app-ready`: from the dev server their markup showed unstyled for the first frame (the palette's search icon as a white ring across the window, the dialog buttons) before the CSS arrived. That predates AMOLED, but it was the only non-black on the first frame.
+
+`:root[data-oled]` carries the true-black exceptions, on the flag and not the theme id: hover and soft dividers at 10% and 12% white, and the three hard-coded near-blacks found by measuring (every element over 12,000 px2 with a fill that was not black, on Home and in the Studio): `--main` (`#050505`, the window and Studio ground), `--bar` (`#0c0c0c`, title bar, status bar and the Studio panels) and `--terminal` (`#0c0f10`). Two rules hang on it outside the tokens: the Home start card's blue gradient and the dialogs (`.fx-dialog`, so the consent dialog too) are black, with their borders. Left as they are: fields (`#141414`, by the spec) and the Home demo art (an illustration).
+
+Checked against the Vite dev server and an engine from source, headless Chrome 1440 by 900, 4x CPU throttle, 150 ms and 1.6 Mbit/s, cache off: cold load and hard reload with `amoled` saved, every frame from navigation to ready (about 30 each, ready at 37 to 47 s) black at the window's corners and centre and at the corners and centre of each large surface (no sample non-black where the settled window is black; samples that land on text are counted apart). Live switch Studio Dark to AMOLED Black and back: 3309 elements with the same identity, no node added or removed, no box moved. The consent dialog under AMOLED: black with a `#3a3a3a` border, text `#ededed` and `#a6a6a6`, Deny refused the call.
+
 ---
 
 ## Fonts {#fonts}

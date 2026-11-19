@@ -239,8 +239,12 @@ function renderEngine(state: 'up' | 'down' | 'wait', label: string): void {
 
 function renderTheme(): void {
   const btn = qs(document, '[data-action="theme"]');
-  const dark = themeMode() === 'dark';
-  btn.innerHTML = icon(dark ? 'sun' : 'moon');
+  const dark = themeMode() !== 'light';
+  const glyph = dark ? 'sun' : 'moon';
+  if (btn.dataset.glyph !== glyph) {
+    btn.innerHTML = icon(glyph);
+    btn.dataset.glyph = glyph;
+  }
   btn.title = dark ? 'Light theme' : 'Dark theme';
   btn.setAttribute('aria-label', btn.title);
 }

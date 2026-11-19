@@ -69,7 +69,7 @@ const SECTIONS: Section[] = [
         label: 'Theme',
         rows: [
           { kind: 'themes' },
-          { kind: 'note', html: 'Studio Dark or warm light paper, for the whole window. The command Toggle Light and Dark Theme has the shortcut <code>Mod+Shift+L</code>. The simulated app in Preview has its own theme.' },
+          { kind: 'note', html: 'Studio Dark, warm light paper or AMOLED Black (true black for OLED screens), for the whole window. The command Toggle Light and Dark Theme has the shortcut <code>Mod+Shift+L</code>. The simulated app in Preview has its own theme.' },
         ],
       },
     ],
@@ -252,7 +252,7 @@ const folded = new Set<string>(((): string[] => {
 function rowHtml(row: Row, idx: string): string {
   if (row.kind === 'note') return `<p class="pf-note"${row.when ? ` data-when="${esc(row.when)}" hidden` : ''}>${row.html}</p>`;
   if (row.kind === 'themes') {
-    return `<div class="pf-row pf-themes"><span>Theme</span><div class="pf-grid"><button type="button" class="pf-swatch dk" data-theme="dark" title="Studio Dark" aria-label="Studio Dark"><i></i></button><button type="button" class="pf-swatch lt" data-theme="light" title="Warm light paper" aria-label="Warm light paper"><i></i></button></div></div>`;
+    return `<div class="pf-row pf-themes"><span>Theme</span><div class="pf-grid"><button type="button" class="pf-swatch dk" data-theme="dark" title="Studio Dark" aria-label="Studio Dark"><i></i></button><button type="button" class="pf-swatch lt" data-theme="light" title="Warm light paper" aria-label="Warm light paper"><i></i></button><button type="button" class="pf-swatch ob" data-theme="amoled" title="AMOLED Black" aria-label="AMOLED Black"><i></i></button></div></div>`;
   }
   const id = `pf-${idx}`;
   if (row.kind === 'text') {
@@ -333,7 +333,8 @@ function build(): void {
   pages.addEventListener('click', (ev) => {
     const sw = (ev.target as HTMLElement).closest<HTMLElement>('.pf-swatch');
     if (sw) {
-      theme.set(sw.dataset.theme === 'light' ? 'light' : 'dark');
+      const picked = sw.dataset.theme;
+      theme.set(picked === 'light' || picked === 'amoled' ? picked : 'dark');
       queue({ theme: theme.mode() });
       paintThemes();
     }
