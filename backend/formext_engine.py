@@ -54,7 +54,118 @@ def checks(contract) -> dict:
             "registry_pr_lock": registry_lock_serialises(Path(tmp) / ".lock"),
             "registry_pr_push_held": pull_requests_serialise(Path(tmp) / "registry"),
             "registry_pr_lock_gives_up": registry_lock_gives_up(Path(tmp) / "wait.lock"),
+            "window_key_writes": window_key_writes(),
+            "window_key_bootstrap": window_key_bootstrap(),
+            "seal_catches_edit": seal_catches_edit(),
+            "agent_consent": agent_consent(),
+            "agent_tabs_blocked": agent_tabs_blocked(),
         }
+
+
+def _asgi(app, method: str, path: str, headers: list) -> int:
+    import anyio
+
+    state = {"status": 0}
+
+    async def receive():
+        return {"type": "http.request", "body": b"{}", "more_body": False}
+
+    async def send(message):
+        if message["type"] == "http.response.start":
+            state["status"] = message["status"]
+
+    scope = {"type": "http", "asgi": {"version": "3.0"}, "http_version": "1.1", "method": method, "scheme": "http", "path": path, "raw_path": path.encode(),
+             "query_string": b"", "root_path": "", "headers": [(b"host", b"127.0.0.1:8640"), (b"content-type", b"application/json"), *headers],
+             "client": ("127.0.0.1", 0), "server": ("127.0.0.1", 8640), "state": {}}
+    anyio.run(app, scope, receive, send)
+    return state["status"]
+
+
+def window_key_writes() -> bool:
+    import re
+
+    from app.main import app
+    from app.services import window_key
+
+    if set(window_key.OPEN) != {"/mcp", "/api/window/key"}:
+        return False
+    tried = 0
+    for path, operations in app.openapi()["paths"].items():
+        for method in sorted({m.upper() for m in operations} - set(window_key.READS)):
+            if path in window_key.OPEN:
+                continue
+            tried += 1
+            if _asgi(app, method, re.sub(r"\{[^}]+\}", "zz-none", path), []) != 403:
+                return False
+    return tried > 40
+
+
+def window_key_bootstrap() -> bool:
+    from app.main import app
+    from app.services import window_key
+
+    if window_key.stdout_mode() or window_key.STATE["claimed"]:
+        return True
+    first, second = _asgi(app, "POST", "/api/window/key", []), _asgi(app, "POST", "/api/window/key", [])
+    keyed = _asgi(app, "POST", "/api/projects/zz-none/validate", [(window_key.HEADER.encode(), window_key.KEY.encode())])
+    return first == 200 and second == 409 and keyed != 403
+
+
+def seal_catches_edit() -> bool:
+    from app.services import seal
+
+    saved = sys.modules.get("keyring")
+    try:
+        seal.reset()
+        seal._CACHE.update(tried=True, available=True, key=b"s" * 32)
+        signed = seal.sign({"formportal_root": "", "formportal_cli": "/opt/formportal/bin/formportal"})
+        kept = seal.effective(signed)
+        edited = seal.effective({**signed, "formportal_cli": "/tmp/elsewhere"})
+        seal.reset()
+        sys.modules["keyring"] = None
+        missing = seal.effective({"formportal_cli": "/opt/formportal/bin/formportal"})
+    finally:
+        seal.reset()
+        if saved is None:
+            sys.modules.pop("keyring", None)
+        else:
+            sys.modules["keyring"] = saved
+    return (kept["seal"] == "ok" and kept["formportal_cli"] == "/opt/formportal/bin/formportal" and edited["sealBroken"] and edited["formportal_cli"] == ""
+            and missing["seal"] == "unavailable" and missing["formportal_cli"] == "/opt/formportal/bin/formportal")
+
+
+def agent_consent() -> bool:
+    from app.services import consent
+
+    saved = consent.access
+    try:
+        results = {}
+        for mode in ("ask", "blocked", "allowed"):
+            consent.access = lambda mode=mode: mode
+            results[mode] = consent.check("new", "New extension", {}) if consent.windows() == 0 else "window open"
+    finally:
+        consent.access = saved
+    return results == {"ask": consent.NO_WINDOW, "blocked": consent.BLOCKED, "allowed": None}
+
+
+def agent_tabs_blocked() -> bool:
+    from app.services import consent
+
+    saved, token = consent.access, "selfcheck-tab-token"
+    consent.open_tab(token, "")
+    try:
+        results = {}
+        for mode in ("ask", "blocked", "allowed"):
+            consent.access = lambda mode=mode: mode
+            mark = consent.from_tab(token)
+            try:
+                results[mode] = consent.check("new", "New extension", {})
+            finally:
+                consent.end_tab(mark)
+    finally:
+        consent.access = saved
+        consent.close_tab(token)
+    return results == {"ask": None, "blocked": consent.BLOCKED_TAB, "allowed": None} and not consent.is_tab(token)
 
 
 def entry_slash_refused(example, folder) -> bool:
@@ -214,6 +325,8 @@ def watch_parent() -> None:
 
 
 def announce_port(server, data) -> None:
+    from app.services import window_key
+
     def run() -> None:
         for _ in range(600):
             if server.started and server.servers:
@@ -223,6 +336,8 @@ def announce_port(server, data) -> None:
             return
         try:
             port = server.servers[0].sockets[0].getsockname()[1]
+            if window_key.stdout_mode():
+                print(f"{window_key.ADDRESS}http://127.0.0.1:{port}", flush=True)
             (data / PORT_NAME).write_text(json.dumps({"pid": os.getpid(), "port": port}), encoding="utf-8")
         except (OSError, IndexError):
             return
@@ -254,12 +369,13 @@ def serve() -> int:
     import uvicorn
 
     from app.main import app as fastapi_app
-    from app.services import paths
+    from app.services import paths, window_key
 
     host = os.environ.get("FORMEXT_HOST", "127.0.0.1")
     port = int(os.environ.get("FORMEXT_PORT", "8640") or 0)
     server = uvicorn.Server(uvicorn.Config(fastapi_app, host=host, port=port, log_level="info"))
     data = paths.home()
+    window_key.announce()
     announce_port(server, data)
     try:
         server.run()

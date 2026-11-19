@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Request
 
-from app.services import paths, settings
+from app.services import paths, settings, window_key
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
 
@@ -11,6 +11,6 @@ def get_settings():
 
 
 @router.put("")
-def put_settings(body: dict = Body(...)):
-    patch = {k: v for k, v in body.items() if k != "home"}
-    return {**settings.update(patch), "home": str(paths.home())}
+def put_settings(request: Request, body: dict = Body(...)):
+    patch = {k: v for k, v in body.items() if k not in ("home", "seal", "sealBroken")}
+    return {**settings.update(patch, window=window_key.valid(request.headers.get(window_key.HEADER))), "home": str(paths.home())}

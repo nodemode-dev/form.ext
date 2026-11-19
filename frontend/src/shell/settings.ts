@@ -20,7 +20,7 @@ type Row =
   | { kind: 'toggle'; label: string; path: string }
   | { kind: 'slider'; label: string; path: string; min: number; max: number }
   | { kind: 'themes' }
-  | { kind: 'note'; html: string };
+  | { kind: 'note'; html: string; when?: string };
 
 interface Group {
   label: string;
@@ -69,7 +69,7 @@ const SECTIONS: Section[] = [
         label: 'Theme',
         rows: [
           { kind: 'themes' },
-          { kind: 'note', html: 'Studio Dark or warm light paper, for the whole window. The command Toggle Light and Dark Theme has the shortcut <code>Mod+Shift+L</code>. The simulated app in Preview has its own theme.' },
+          { kind: 'note', html: 'Studio Dark, warm light paper or AMOLED Black (true black for OLED screens), for the whole window. The command Toggle Light and Dark Theme has the shortcut <code>Mod+Shift+L</code>. The simulated app in Preview has its own theme.' },
         ],
       },
     ],
@@ -159,7 +159,9 @@ const SECTIONS: Section[] = [
         label: 'Outside agents',
         rows: [
           { kind: 'text', label: 'MCP server', path: '__mcp', ro: true, stack: true },
-          { kind: 'note', html: 'Claude Code, Codex and Cursor use the same engine through the command line and the MCP server, so a change an agent makes appears in the open window at once. There is no switch here: the server is started by the agent.' },
+          { kind: 'select', label: 'Outside agents', path: 'agent_access', options: () => [['', 'Ask'], ['allowed', 'Allowed'], ['blocked', 'Blocked']] },
+          { kind: 'note', html: 'The saved agent permission was changed outside form.ext, so it is back to Ask.', when: 'agentAccessReset' },
+          { kind: 'note', html: 'Claude Code, Codex and Cursor use the same engine through the command line and the MCP server, so a change an agent makes appears in the open window at once. With Ask, form.ext asks you in this window before an agent or the command line changes anything; reading always works, and without an open window the change is refused. Allowed lets them change projects without asking; Blocked refuses every change. The Studio\'s own Claude Code and Chat tabs are not outside agents and are not asked.' },
         ],
       },
     ],
@@ -248,9 +250,9 @@ const folded = new Set<string>(((): string[] => {
 })());
 
 function rowHtml(row: Row, idx: string): string {
-  if (row.kind === 'note') return `<p class="pf-note">${row.html}</p>`;
+  if (row.kind === 'note') return `<p class="pf-note"${row.when ? ` data-when="${esc(row.when)}" hidden` : ''}>${row.html}</p>`;
   if (row.kind === 'themes') {
-    return `<div class="pf-row pf-themes"><span>Theme</span><div class="pf-grid"><button type="button" class="pf-swatch dk" data-theme="dark" title="Studio Dark" aria-label="Studio Dark"><i></i></button><button type="button" class="pf-swatch lt" data-theme="light" title="Warm light paper" aria-label="Warm light paper"><i></i></button></div></div>`;
+    return `<div class="pf-row pf-themes"><span>Theme</span><div class="pf-grid"><button type="button" class="pf-swatch dk" data-theme="dark" title="Studio Dark" aria-label="Studio Dark"><i></i></button><button type="button" class="pf-swatch lt" data-theme="light" title="Warm light paper" aria-label="Warm light paper"><i></i></button><button type="button" class="pf-swatch ob" data-theme="amoled" title="AMOLED Black" aria-label="AMOLED Black"><i></i></button></div></div>`;
   }
   const id = `pf-${idx}`;
   if (row.kind === 'text') {
@@ -331,7 +333,8 @@ function build(): void {
   pages.addEventListener('click', (ev) => {
     const sw = (ev.target as HTMLElement).closest<HTMLElement>('.pf-swatch');
     if (sw) {
-      theme.set(sw.dataset.theme === 'light' ? 'light' : 'dark');
+      const picked = sw.dataset.theme;
+      theme.set(picked === 'light' || picked === 'amoled' ? picked : 'dark');
       queue({ theme: theme.mode() });
       paintThemes();
     }
@@ -375,6 +378,7 @@ function sync(): void {
       paintRange(el);
     } else el.value = v == null ? '' : String(v);
   }
+  for (const el of scrim.querySelectorAll<HTMLElement>('[data-when]')) el.hidden = !getPath(el.dataset.when!);
   paintThemes();
 }
 

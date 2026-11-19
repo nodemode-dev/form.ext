@@ -2,8 +2,8 @@
 
 Living log for the desktop shell (Tauri 2). Source files stay comment-free; what they would have said lives here.
 
-Current build version: v0.4.1
-Last updated: 2026-11-11 · v0.4.1 the version only. Before: v0.4.0 the version only. Before: v0.3.1 the version only. Before: v0.2.1 the version only. Before: v0.2.0 overlay title bar
+Current build version: v0.5.0
+Last updated: 2026-11-19 · v0.5.0 the shell reads the window key from the engine and waits at most 10 seconds for it (#window-key, #key-wait). Before: v0.4.1 the version only. Before: v0.4.0 the version only. Before: v0.3.1 the version only. Before: v0.2.1 the version only. Before: v0.2.0 overlay title bar
 
 ---
 
@@ -65,3 +65,19 @@ The build machine for this round has no WebKitGTK development files, so `cargo c
 - logged: v0.2.0 · 2026-11-08
 
 The main window on macOS uses `TitleBarStyle::Overlay` with a hidden title, so the page's 38 px title row is the title bar. `traffic_lights.rs` is FormVis's: it centres the three lights in that row after every moment AppKit lays the title bar out again (page load, resize, focus, theme, scale) and once more 120 ms later; `set_window_title` sets the title and places them again. The page calls it when the project changes. The menus are built by the page with `@tauri-apps/api/menu`, covered by `core:default`, so no Rust is needed for them. The window and splash ground is #0a0a0a (`reveal::BACKGROUND`) to match the page's critical background. This round's machine has the GTK libraries: `cargo check` passes for the Linux target; the macOS-only code is checked on the owner's Mac. `rustfmt` at the default width reports differences in code that was already there (the crate is written at 120 columns); the new file is clean at 120.
+
+## The window key {#window-key}
+
+- refers-to: src/main.rs
+- kind: decision
+- logged: unreleased
+
+`start_engine` sets `FORMEXT_WINDOW_KEY_STDOUT=1`. The engine then prints `formext-window-key: <key>` and, once it listens, `formext-engine: http://127.0.0.1:<port>`, both on standard output and flushed, in that order. The reading loop now takes only standard output, so the key line always arrives before the address line on the one pipe; it keeps the key when it sees it and stops at the address line, as before, so it waits no longer than it did. `open_main` takes the key and adds one `initialization_script` (tauri 2.11.6, `WebviewWindowBuilder::initialization_script(impl Into<String>)`, read in that version's source) that sets `window.__FORMEXT_WINDOW_KEY` only when `location.origin` is the engine's own address. The development window (Vite, no engine started by the shell) gets no key and the page claims it from the engine. Standard output is drained after the window opens and goes to no log. Not compiled here: no WebKit libraries in this sandbox; `rustfmt --check` parses the file (it reports only the existing 120-column formatting).
+
+## A bounded wait for the key line {#key-wait}
+
+- refers-to: src/main.rs :: start_engine
+- kind: decision
+- logged: unreleased
+
+The engine's start has no time limit, as on `origin/main`: a first launch of the frozen engine can take well over 10 seconds (cold disk, a virus scan, unpacking), and a limit counted from the spawn would show "failed to start" on a healthy app. An earlier version of this change did exactly that and was corrected. The 10 seconds (the family value) start only when the address line has arrived without a key: then a plain `std::thread` sleeps 10 seconds and an `Arc<AtomicBool>` decides which side settles first. If the timer wins it takes the existing `engine_failed` path (dialog, the engine stopped, exit 1) and the loop, if the key turns up later, does nothing. If the loop wins it opens the window with the address and the key. An engine that exits before the address, or after it and before the key, takes `engine_failed` at once. The flag makes the failure path run at most once and never after the window opened. The loop now goes on reading after the address until it has the key, so a key line read out of order still counts; this engine prints the key line first and flushes it (seen by running `formext_engine.py` with `FORMEXT_WINDOW_KEY_STDOUT=1`), so normally the key is in hand before the address. Only `std` is used (tokio is not a direct dependency of this crate). Not compiled here: no WebKit libraries; `rustfmt --check` parses the file. The loop was copied into a scratch crate with tokio 1.53.1 (the version in `Cargo.lock`) and fed fake event streams: key then address opens at once; address then nothing fails at 10 s; nothing for 25 s then key and address opens at 25 s; exit before the address fails at once; key 12 s after the address fails at 10 s and does not open.

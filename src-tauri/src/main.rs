@@ -59,7 +59,7 @@ fn focus_main(handle: &tauri::AppHandle) {
     }
 }
 
-fn open_main(handle: &tauri::AppHandle, url: &str) {
+fn open_main(handle: &tauri::AppHandle, url: &str, key: Option<&str>) {
     *handle.state::<Engine>().0.lock().unwrap() = url.trim_end_matches('/').to_string();
     let (width, height) = handle
         .primary_monitor()
@@ -81,6 +81,11 @@ fn open_main(handle: &tauri::AppHandle, url: &str) {
         .min_inner_size(MIN_SIZE.0, MIN_SIZE.1)
         .center()
         .disable_drag_drop_handler();
+    let origin = url.trim_end_matches('/').to_string();
+    let built = match key {
+        Some(value) => built.initialization_script(format!("if (window.location.origin === {origin:?}) {{ window.__FORMEXT_WINDOW_KEY = {value:?}; }}")),
+        None => built,
+    };
     #[cfg(target_os = "macos")]
     let built = built.title_bar_style(tauri::TitleBarStyle::Overlay).hidden_title(true);
     let built = built
@@ -121,7 +126,7 @@ fn start_engine(app: &tauri::App) {
             }
         },
     };
-    let mut command = command.env("FORMEXT_PORT", "0");
+    let mut command = command.env("FORMEXT_PORT", "0").env("FORMEXT_WINDOW_KEY_STDOUT", "1");
     if let Some(path) = packaged::launcher() {
         command = command.env("FORMEXT_LAUNCHER", path);
     }
@@ -133,26 +138,47 @@ fn start_engine(app: &tauri::App) {
         }
     };
     *app.state::<Backend>().0.lock().unwrap() = Some(child);
+    let settled = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
     tauri::async_runtime::spawn(async move {
-        let pattern = regex::Regex::new(r"http://127\.0\.0\.1:(\d+)").unwrap();
+        let pattern = regex::Regex::new(r"formext-engine: http://127\.0\.0\.1:(\d+)").unwrap();
+        let key_pattern = regex::Regex::new(r"formext-window-key: ([A-Za-z0-9_-]{32,})").unwrap();
         let mut port: Option<u16> = None;
+        let mut key: Option<String> = None;
         while let Some(event) = rx.recv().await {
             let text = match event {
-                CommandEvent::Stdout(bytes) | CommandEvent::Stderr(bytes) => String::from_utf8_lossy(&bytes).into_owned(),
+                CommandEvent::Stdout(bytes) => String::from_utf8_lossy(&bytes).into_owned(),
                 CommandEvent::Terminated(_) => break,
                 _ => continue,
             };
-            if let Some(found) = pattern.captures(&text).and_then(|c| c[1].parse::<u16>().ok()) {
-                port = Some(found);
+            if key.is_none() {
+                key = key_pattern.captures(&text).map(|c| c[1].to_string());
+            }
+            if port.is_none() {
+                port = pattern.captures(&text).and_then(|c| c[1].parse::<u16>().ok());
+                if port.is_some() && key.is_none() {
+                    let timer_settled = settled.clone();
+                    let timer_handle = handle.clone();
+                    std::thread::spawn(move || {
+                        std::thread::sleep(std::time::Duration::from_secs(10));
+                        if !timer_settled.swap(true, std::sync::atomic::Ordering::SeqCst) {
+                            engine_failed(&timer_handle);
+                        }
+                    });
+                }
+            }
+            if port.is_some() && key.is_some() {
                 break;
             }
         }
-        match port {
-            Some(port) => {
-                open_main(&handle, &format!("http://127.0.0.1:{port}"));
+        if settled.swap(true, std::sync::atomic::Ordering::SeqCst) {
+            return;
+        }
+        match (port, key) {
+            (Some(port), Some(key)) => {
+                open_main(&handle, &format!("http://127.0.0.1:{port}"), Some(key.as_str()));
                 tauri::async_runtime::spawn(async move { while rx.recv().await.is_some() {} });
             }
-            None => engine_failed(&handle),
+            _ => engine_failed(&handle),
         }
     });
 }
@@ -185,7 +211,7 @@ fn main() {
             reveal::round_splash(&handle);
             if dev_mode() {
                 let url = std::env::var("FORMEXT_DEV_URL").unwrap_or_else(|_| DEV_URL.to_string());
-                open_main(&handle, &url);
+                open_main(&handle, &url, None);
             } else {
                 start_engine(app);
             }

@@ -40,3 +40,5 @@ jobs:
       - name: Self check (every router imports, the contract kit and the frontend are present)
         working-directory: backend
         run: python formext_engine.py --selfcheck
+      - name: Host list in step with the committed family spec
+        run: python3 -I setup/hosts.py --family setup/family.spec.json --check

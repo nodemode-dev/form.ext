@@ -3,6 +3,7 @@
 .home-hello p { margin: var(--sp-2) 0 0; color: var(--ink-soft); font-size: var(--fs-14); max-width: 70ch; }
 
 .home-start { display: grid; grid-template-columns: minmax(0, 1fr) 190px 200px; gap: var(--sp-5); align-items: stretch; padding: var(--sp-6); border: 1px dashed var(--hue-line); border-radius: 14px; background: linear-gradient(135deg, color-mix(in srgb, var(--hue-ext) 14%, var(--bg-primary)), var(--bg-primary)); }
+:root[data-oled] .home-start { background: var(--bg-primary); }
 .home-start-head { display: flex; align-items: baseline; gap: var(--sp-3); }
 .home-start-head h2 { font-size: 20px; font-weight: 600; }
 .home-start-meta { color: var(--ink-faint); font: 11.5px var(--font-code); letter-spacing: 0.04em; text-transform: uppercase; }

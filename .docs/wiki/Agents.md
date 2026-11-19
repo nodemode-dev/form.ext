@@ -52,7 +52,19 @@ Claude Code started from the Studio gets the pulled source as an extra directory
 
 ## In the app
 
-The Studio's bottom panel has Terminal, Claude Code and Chat tabs. They run in the open project's folder with these servers and skills, over local-only routes (127.0.0.1, session-guarded).
+The Studio's bottom panel has Terminal, Claude Code and Chat tabs. They run in the open project's folder with these servers and skills, over local-only routes (127.0.0.1) that only the form.ext window can use. In the Claude Code tab the formext and formMCP tools that only read run without asking; the others, delete, publish, submit, run_in_app and formMCP's call_app among them, ask first.
+
+## Outside agents
+
+An outside agent is any program that reaches form.ext from outside the app: Claude Code, Codex or Cursor through `./formext mcp`, any other MCP client through the engine, and `./formext cli` itself. Of the 33 MCP tools, the 19 that only read always run. The 14 that change something follow one setting, Settings, Developer, Outside agents:
+
+| Setting | What happens when an outside agent changes something |
+| --- | --- |
+| Ask (the default) | The form.ext window asks, naming the tool and the project: Deny, Allow once, or Always allow (which switches the setting to Allowed). With no window open the call is refused; a question nobody answers is refused after two minutes. |
+| Allowed | It runs without asking. |
+| Blocked | It is refused. So is a change from the Studio's own Claude Code and Chat tabs: Blocked stops every agent. Reading still works. |
+
+Only the form.ext window can change this setting. An agent, the command line or an edit of `settings.json` cannot: a hand edit puts it back to Ask, and the window says so once. The Studio's own Claude Code and Chat tabs are not outside agents and are never asked by this setting: each tab gets its own pass from the engine when the window opens it, and the pass stops working when the tab closes. Under Blocked their changes are refused like everyone else's. Claude Code's own permission prompt in the Claude Code tab (above) still applies.
 
 ## Extensions and agents in the apps
 

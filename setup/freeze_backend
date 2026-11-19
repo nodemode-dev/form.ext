@@ -38,6 +38,7 @@ rm -rf build/pyinstaller dist-engine
   --paths "$ROOT/backend" --paths "$ROOT/contract/host/python" --paths "$ROOT/contract/tools" \
   --hidden-import formext_host --hidden-import formpkg \
   --collect-submodules app --collect-submodules uvicorn --collect-submodules websockets \
+  --collect-submodules keyring --copy-metadata keyring \
   --exclude-module tkinter \
   "$ROOT/backend/formext_engine.py"
 mkdir -p "$ROOT/src-tauri/binaries"

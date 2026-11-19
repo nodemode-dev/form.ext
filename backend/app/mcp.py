@@ -6,7 +6,7 @@ import traceback
 from typing import Any
 
 from app import __version__
-from app.cli import OPS, BY_NAME, Engine, EngineError, OpError, _docs_topics, run_op
+from app.cli import OPS, BY_NAME, Engine, EngineError, OpError, _docs_topics, allowed_tools, run_op
 
 PROTOCOLS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"]
 
@@ -18,7 +18,9 @@ INSTRUCTIONS = (
     "The loop: templates, new, source, read and write the files, manifest, validate until it has no errors, preview, package, then run_in_app to load it in the real app, sign and publish; "
     "submit prepares the registry folder and runs the registry's checks, and submit {pull_request: true} opens the pull request for the person. "
     "Paths are relative to the project folder (package/ui/app.js); files gives package_prefix. "
-    "Ask the person before run_in_app (it writes FormPortal's dev.json), publish with formportal (it installs), submit with pull_request (it posts publicly under their GitHub account), skills with install, and delete."
+    "Ask the person before run_in_app (it writes FormPortal's dev.json), publish with formportal (it installs), submit with pull_request (it posts publicly under their GitHub account), skills with install, and delete. "
+    "Tools that change something also follow the person's choice for outside agents in the form.ext window: Ask (the window asks them; with no window open the call is refused), Allowed or Blocked. "
+    "Only the person can change it, in Settings, Developer, Outside agents; when a call is refused, say so and do not retry."
 )
 
 
@@ -50,7 +52,7 @@ def tools() -> list[dict]:
             "title": op.title,
             "description": op.help,
             "inputSchema": _schema(op),
-            "annotations": {"title": op.title, "readOnlyHint": op.read_only, "destructiveHint": op.destructive, "idempotentHint": op.read_only, "openWorldHint": False},
+            "annotations": {"title": op.title, "readOnlyHint": op.read_only, "destructiveHint": op.destructive or op.asks,"idempotentHint": op.read_only, "openWorldHint": False},
         })
     return out
 
@@ -120,6 +122,9 @@ class Server:
             if method == "initialize":
                 asked = str(params.get("protocolVersion") or "")
                 self.protocol = asked if asked in PROTOCOLS else PROTOCOLS[0]
+                client = params.get("clientInfo")
+                if self.out is not None and isinstance(client, dict) and isinstance(client.get("name"), str):
+                    self.engine.agent = client["name"]
                 self.warm()
                 result = {
                     "protocolVersion": self.protocol,
@@ -184,9 +189,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--engine", metavar="URL", help="talk to the engine at URL (default: a running engine with this data folder, else in-process)")
     parser.add_argument("--local", action="store_true", help="always run the engine's routes in-process")
     parser.add_argument("--list-tools", action="store_true", help="print the tool list as JSON and exit")
+    parser.add_argument("--allowed-tools", action="store_true", help="print the tools Claude Code may run without asking (the ones that only read) and exit")
     args = parser.parse_args(sys.argv[1:] if argv is None else argv)
     if args.list_tools:
         print(json.dumps(tools(), indent=2))
+        return 0
+    if args.allowed_tools:
+        print(" ".join(allowed_tools()))
         return 0
     sys.stdout.flush()
     out = open(sys.stdout.fileno(), "w", encoding="utf-8", closefd=False)

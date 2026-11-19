@@ -4,7 +4,7 @@ import os
 import threading
 from typing import Any
 
-from app.services import paths
+from app.services import paths, seal
 from app.services.bus import bus
 
 DEFAULTS: dict[str, Any] = {
@@ -15,6 +15,7 @@ DEFAULTS: dict[str, Any] = {
     "default_product": "formvis",
     "formportal_root": "",
     "formportal_cli": "",
+    "agent_access": "",
     "editor": {"font_size": 13, "tab_size": 2, "wrap": False},
     "preview": {"theme": "dark", "consent": "ask"},
     "registry": {
@@ -55,7 +56,7 @@ def _write(data: dict) -> None:
 
 def get() -> dict:
     with _lock:
-        return _merge(DEFAULTS, _read())
+        return seal.effective(_merge(DEFAULTS, _read()))
 
 
 def value(key: str, default: Any = None) -> Any:
@@ -67,13 +68,23 @@ def value(key: str, default: Any = None) -> Any:
     return current
 
 
-def update(patch: dict) -> dict:
+def update(patch: dict, window: bool = False) -> dict:
     if not isinstance(patch, dict):
         raise ValueError("settings must be an object")
+    patch = {k: v for k, v in patch.items() if k not in (seal.FIELD, "sealBroken", "agentAccessReset") and (window or k != "agent_access")}
+    if patch.get("agent_access") not in (None, "", "ask", "allowed", "blocked"):
+        raise ValueError("agent_access is ask, allowed or blocked")
     with _lock:
-        stored = _merge(_read(), patch)
+        current = _read()
+        stored = _merge(current, patch)
         stored = {k: v for k, v in stored.items() if v is not None}
+        if window:
+            broken = seal.effective(_merge(DEFAULTS, current)).get("sealBroken")
+            stored = {k: ("" if broken and k in seal.SEALED and k not in patch else v) for k, v in stored.items() if k != seal.FIELD}
+            mark = seal.sign(_merge(DEFAULTS, stored)).get(seal.FIELD)
+            if mark:
+                stored[seal.FIELD] = mark
         _write(stored)
-        merged = _merge(DEFAULTS, stored)
+        merged = seal.effective(_merge(DEFAULTS, stored))
     bus.emit("settings.changed", merged)
     return merged

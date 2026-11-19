@@ -2,8 +2,8 @@
 
 Living log for the interface: the shell, the shared styles and the build files. Source files stay comment-free; what they would have said lives here. Each pane keeps its own `src/panes/<name>/HASHOUT_LOG.md`.
 
-Current build version: v0.4.1
-Last updated: 2026-11-11 · v0.4.1 the demo's `engine/kit.ts` refuses an `entry.ui` ending in `/` (`demo/HASHOUT_LOG.md`). Before: v0.4.0 the host source row in the Studio and Open pull request in Publish (`panes/studio/HASHOUT_LOG.md#source`, `panes/publish/HASHOUT_LOG.md#pull-request`). Before: v0.3.1 the version only. Before: v0.3.0 the demo opens in the app (#in-app-demo). Before: v0.2.1 the README's screenshots and the community files
+Current build version: v0.5.0
+Last updated: 2026-11-19 · v0.5.0 the window key, the question for outside agents and AMOLED Black (#window-key, #agent-consent, #amoled). Before: v0.4.1 the demo's `engine/kit.ts` refuses an `entry.ui` ending in `/` (`demo/HASHOUT_LOG.md`). Before: v0.4.0 the host source row in the Studio and Open pull request in Publish (`panes/studio/HASHOUT_LOG.md#source`, `panes/publish/HASHOUT_LOG.md#pull-request`). Before: v0.3.1 the version only. Before: v0.3.0 the demo opens in the app (#in-app-demo). Before: v0.2.1 the README's screenshots and the community files
 
 ---
 
@@ -95,6 +95,19 @@ Components are plain classes: `.btn` (`.primary`, `.danger`, `.ghost`, `.sm`, `.
 
 Studio Dark is the default whatever the system says; the light theme is the top bar's toggle. The choice is `localStorage['formext.theme']`, read by the inline script before any style sheet, which sets `data-theme` and `color-scheme` on the root, and the critical style paints the matching ground (`#111111` or `#ecebe6`), so a reload never flashes the other theme or white.
 
+## AMOLED Black {#amoled}
+- refers-to: index.html :: inline script and critical style · src/styles/tokens.css :: `:root[data-theme="amoled"]`, `:root[data-oled]` · src/shell/theme.ts · src/shell/settings.ts :: themes row · src/styles/settings.css :: `.pf-swatch.ob` · src/shell/shell.ts :: renderTheme · src/styles/shell.css :: `.fx-dialog` · src/panes/home/home.css :: `.home-start`
+- kind: decision
+- logged: unreleased
+
+The family's true-black theme for OLED screens, id `amoled`, label "AMOLED Black", the third swatch in Preferences, Interface, Theme. form.ext is not on the formvis theme system: its picker is two swatches and `ThemeMode`, its tokens are `--bg-*`, `--border-*`, `--text-*` with the shell names (`--ground`, `--pane`, `--float`, `--ink`, `--edge`) derived from them, so the profile is a `:root[data-theme="amoled"]` block of the family table's values in those names (`--bg-primary` and `--bg-secondary` `#000000`, `--bg-tertiary` `#141414`, borders `#262626` and `#3a3a3a`, text `#ededed`, `#a6a6a6`, `#858585`). The accent stays form.ext's orange. `theme.ts` keeps an `OLED` table and sets `data-oled` on the root for an oled mode, touching it only when it changes; `color-scheme` is dark for it. The toggle in the top bar stays light or dark (from AMOLED it goes to light); its icon is now replaced only when it changes, because the switch between two dark modes rebuilt the button's SVG.
+
+Pre-paint: the inline script accepts `amoled`, has its own `OLED` table and sets `data-oled` beside `data-theme`; the critical style paints `html[data-oled]` black. The same style now hides the body-level overlays (`.fx-scrim`, `.fx-dialog`, `.fx-palette`) until `app-ready`: from the dev server their markup showed unstyled for the first frame (the palette's search icon as a white ring across the window, the dialog buttons) before the CSS arrived. That predates AMOLED, but it was the only non-black on the first frame.
+
+`:root[data-oled]` carries the true-black exceptions, on the flag and not the theme id: hover and soft dividers at 10% and 12% white, and the three hard-coded near-blacks found by measuring (every element over 12,000 px2 with a fill that was not black, on Home and in the Studio): `--main` (`#050505`, the window and Studio ground), `--bar` (`#0c0c0c`, title bar, status bar and the Studio panels) and `--terminal` (`#0c0f10`). Two rules hang on it outside the tokens: the Home start card's blue gradient and the dialogs (`.fx-dialog`, so the consent dialog too) are black, with their borders. Left as they are: fields (`#141414`, by the spec) and the Home demo art (an illustration).
+
+Checked against the Vite dev server and an engine from source, headless Chrome 1440 by 900, 4x CPU throttle, 150 ms and 1.6 Mbit/s, cache off: cold load and hard reload with `amoled` saved, every frame from navigation to ready (about 30 each, ready at 37 to 47 s) black at the window's corners and centre and at the corners and centre of each large surface (no sample non-black where the settled window is black; samples that land on text are counted apart). Live switch Studio Dark to AMOLED Black and back: 3309 elements with the same identity, no node added or removed, no box moved. The consent dialog under AMOLED: black with a `#3a3a3a` border, text `#ededed` and `#a6a6a6`, Deny refused the call.
+
 ---
 
 ## Fonts {#fonts}
@@ -147,3 +160,27 @@ How it switches: Open Demo (Home, Demos; Help, Demo: The Studio with Sample Proj
 Storage: `storage.ts` maps every `formext.*` key except the theme and the rail width to `formext.demo.*` while in demo mode, and the boot script reads `formext.demo.pane`, so the last project, the last pane, open tabs and pane filters of the user are never overwritten and the layout is right on first paint. The page engine's disk is `formext.demo.disk`, inside the same prefix, so Leave the Demo (the Demo button in the title bar, Help, Leave the Demo, or Home's Leave Demo) removes it all with one sweep, drops the flag and reloads into the user's own projects. The flag lives in sessionStorage, so quitting the app also ends the demo. Not covered: the contract kit's host bridge keeps Preview grants and extension storage in its own `localStorage` keys (`formext.store.<id>`), which the kit owns and this repository does not edit; a demo preview of Golden Hour shares that sandbox store with a real preview of an extension with the same id.
 
 No layout shift: the Demo button sits in `.fx-tb-r` in `index.html` at its final size and is shown by `:root[data-demo="studio"]`; the Home Demos card has both button sets in its first markup and CSS picks one. The browser demo build sets `data-demo="page"`, which hides Home's Demos section and makes `demo.studio` its existing Start Over. The registry packages ship as files written by `node scripts/demo-media.mjs` from `demo/packs/packages.js` (13 packages, 207,997 bytes). The MCP server has no window channel, so no MCP tool opens the demo; agents use the palette command in the window.
+
+## The window key {#window-key}
+
+- refers-to: src/shell/window-key.ts · src/shell/api.ts · src/main.ts · src/panes/studio/terminal.ts · src/panes/studio/chat.ts
+- kind: decision
+- logged: unreleased
+
+The engine refuses every POST, PUT, PATCH and DELETE without the header `X-Formext-Window-Key` (backend `HASHOUT_LOG.md#window-key`). `main.ts` starts `loadWindowKey()` beside `boot()` (never in the demo, which has no engine): the desktop shell's `window.__FORMEXT_WINDOW_KEY` first, read once and deleted; otherwise the key this tab kept in `sessionStorage` (`formext.window-key`); otherwise the one-time `POST /api/window/key`, which only a source run (no shell) offers. `request()` in `api.ts`, the one helper every pane uses, waits for that and sends the header on every call; after a 403 on a write in a source run it claims once more and retries once, which recovers when the engine was restarted (a new engine has a new key and an unclaimed bootstrap). A second tab of a source run gets no key and its writes are refused: one window per engine launch.
+
+Sockets: the terminal stream and the Chat stream send `windowHello()` (`{"type": "window", "key"}`) as their first message on open; the engine closes them with 4403 otherwise. `/api/live` carries only events and stays as it was. There are no other raw `fetch`, XHR, `sendBeacon` or `EventSource` calls outside `api.ts` and the demo (whose `demo/inapp.ts` reads its own static files). Nothing is drawn, so nothing moves.
+
+Checked in headless Chrome against Vite and a running engine: the page boots (Home), claims the key once, `PUT /api/settings` and a terminal from the page succeed with the header, the terminal socket echoes a command after the hello, a reload writes with the stored key and claims nothing, and after the engine restarts the first write is refused, reclaimed and retried. Not checked: the packaged window (no shell build here).
+
+## Outside agents ask in the window {#agent-consent}
+
+- refers-to: index.html · src/shell/consent.ts · src/shell/events.ts · src/shell/shell.ts · src/shell/settings.ts · src/styles/shell.css
+- kind: decision
+- logged: unreleased
+
+The engine asks the window before an outside agent or the command line changes anything while Settings, Agents, Outside agents is Ask (backend `HASHOUT_LOG.md#agent-consent`). `events.ts` sends `windowHello()` on the `/api/live` socket once the key has loaded; the engine counts only such a socket as a window. On `window.refused` (a source run whose engine restarted) it reclaims the key once and says hello again. `consent.ts` listens for `window.admitted`, `agents.ask` and `agents.answered`, reads `GET /api/agents/requests` through `api.ts` (with the key) and shows the first request; Deny, Allow once and Always allow post the answer, Escape is Deny, and focus starts on Allow once. The dialog and its scrim are static markup in `index.html`, built once and shown with the `open` class, so nothing behind it is created or moved; it reuses `.fx-dialog` and `.fx-scrim`, so the z-index comes from `--z-dialog` and `--z-dialog-scrim`. The shield is hand-made inline SVG with `currentColor`. form.ext has no i18n table; strings are English in place, as elsewhere in the shell.
+
+A broken seal (the stored choice was edited outside form.ext) shows "The saved agent permission was changed outside form.ext, so it is back to Ask." in two places: a `hidden` paragraph inside the consent dialog, set before the dialog opens, and a settings note row with `when: 'agentAccessReset'`, set in `sync()` before the settings sheet is shown. Settings gains the Outside agents select (`agent_access`: Ask, Allowed, Blocked).
+
+Checked in headless Chrome (1440 by 900, 4x CPU throttle, cache off) against Vite and a running engine: three loads, one bootstrap request in all, a write from the page succeeds after each; `/mcp` `new` answered with Allow once (ran), Deny (refused) and Always allow (ran; the choice became `allowed`); the dialog element was the same node every time and the box of `.fx-main` was the same before, during and after; no console errors. After a hand edit of `settings.json`, the sentence shows in the dialog and in Settings, and the select reads Ask.

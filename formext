@@ -103,7 +103,8 @@ case "$cmd" in
     command -v claude > /dev/null || { echo "[formext] Claude Code is not installed. Install it with: curl -fsSL https://claude.ai/install.sh | bash" >&2; exit 1; }
     cd "$root"
     export CLAUDE_PROJECT_DIR="$root"
-    exec claude --mcp-config "$root/.mcp.json" --allowedTools mcp__formext mcp__formmcp "$@" ;;
+    allowed="$("$(py)" "$root/backend/formext_engine.py" mcp --allowed-tools)"
+    exec claude --mcp-config "$root/.mcp.json" --allowedTools $allowed "$@" ;;
   agents) exec "$(py)" "$root/setup/agents.py" "$@" ;;
   backend) run_backend "$@" ;;
   frontend) run_frontend "$@" ;;

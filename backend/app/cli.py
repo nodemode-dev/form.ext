@@ -127,6 +127,7 @@ async def _asgi_call(app, method: str, path: str, query: str, body: bytes):
         "client": ("127.0.0.1", 0),
         "server": ("127.0.0.1", 8640),
         "state": {},
+        "formext.inprocess": True,
     }
     try:
         await app(scope, receive, send)
@@ -148,11 +149,17 @@ class Engine:
         self._health: dict | None = None
         self._lock = threading.RLock()
         self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        self.agent = ""
 
     def _http(self, method: str, url: str, data: bytes | None, timeout: float):
         headers = {"Accept": "application/json", "User-Agent": f"formext-cli/{__version__}"}
         if data:
             headers["Content-Type"] = "application/json"
+        if self.agent and url == f"{self.url}/mcp":
+            headers["X-Formext-Agent"] = urllib.parse.quote(self.agent[:80])
+        tab_token = os.environ.get("FORMEXT_INAPP_TOKEN")
+        if tab_token and url == f"{self.url}/mcp":
+            headers["X-Formext-Inapp"] = tab_token
         req = urllib.request.Request(url, data=data or None, method=method, headers=headers)
         try:
             with self.opener.open(req, timeout=timeout) as res:
@@ -232,7 +239,7 @@ class Engine:
         self.connect()
         qs = urllib.parse.urlencode({k: (str(v).lower() if isinstance(v, bool) else v) for k, v in (query or {}).items() if v is not None and v != ""})
         data = json.dumps(body).encode("utf-8") if body is not None else b""
-        if self.url:
+        if self.url and self.mode != "inside":
             try:
                 return self._http(method, f"{self.url}{path}{'?' + qs if qs else ''}", data, timeout)
             except OSError as exc:
@@ -272,6 +279,38 @@ class Engine:
     def has(self, router: str) -> bool:
         return router in (self.health().get("routers") or [])
 
+    def forwards(self) -> bool:
+        self.connect()
+        return bool(self.url) and self.mode != "inside"
+
+    def tool(self, name: str, args: dict) -> Any:
+        rpc = {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": name, "arguments": args}}
+        try:
+            status, _, payload = self._http("POST", f"{self.url}/mcp", json.dumps(rpc).encode("utf-8"), 900)
+        except OSError as exc:
+            raise EngineError(0, f"the engine at {self.url} stopped answering ({exc})") from exc
+        try:
+            answer = json.loads(payload)
+        except ValueError:
+            answer = None
+        if status >= 400 or not isinstance(answer, dict):
+            raise EngineError(status, _detail(answer, status), answer)
+        if "error" in answer:
+            raise OpError(str((answer.get("error") or {}).get("message") or "the engine refused the call"))
+        result = answer.get("result") or {}
+        text = "".join(c.get("text", "") for c in result.get("content") or [] if isinstance(c, dict))
+        try:
+            data = json.loads(text)
+        except ValueError:
+            data = text
+        if not result.get("isError"):
+            return data
+        if isinstance(data, dict) and "error" in data:
+            if "status" in data:
+                raise EngineError(int(data["status"]), str(data["error"]), data.get("data"))
+            raise OpError(str(data["error"]), data.get("data"))
+        raise OpError(str(data))
+
 
 @dataclass
 class Param:
@@ -296,6 +335,7 @@ class Op:
     params: list[Param] = field(default_factory=list)
     read_only: bool = True
     destructive: bool = False
+    asks: bool = False
     mcp: bool = True
     cli: bool = True
     say: Callable[[Any], str] | None = None
@@ -936,13 +976,18 @@ def tools_markdown() -> str:
         "",
         "The table lists every tool; a section per tool follows with its arguments.",
         "",
+        f"Outside agents (any MCP client, and `./formext cli`): the {sum(1 for op in OPS if op.mcp and op.read_only)} read tools always run. "
+        f"The {sum(1 for op in OPS if op.mcp and not op.read_only)} that change something follow the person's setting in the form.ext window, Settings, Developer, Outside agents: "
+        "Ask (the default; the window asks, and with no window open the call is refused), Allowed (runs) or Blocked (refused). "
+        "Only the window can change that setting. The Studio's own Claude Code and Chat tabs are not asked under Ask; Blocked refuses their changes too.",
+        "",
         "| Tool | Command | Kind | What it does |",
         "| --- | --- | --- | --- |",
     ]
     for op in OPS:
         if not op.mcp:
             continue
-        kind = "read" if op.read_only else ("changes, destructive" if op.destructive else "changes")
+        kind = "read" if op.read_only else ("changes, destructive" if op.destructive else "changes") + (", ask the person first" if op.asks else "")
         lines.append(f"| `{op.name}` | `{op.name.replace('_', '-')}` | {kind} | {op.help} |")
     for op in OPS:
         if not op.mcp:
@@ -1014,7 +1059,7 @@ OPS: list[Op] = [
         Param("install", "boolean", "Install the app's released skills with formskills-cli. Ask the person first."),
         Param("project", help="Install into this project's folder instead of the person's own skills folder."),
         Param("checkout", "boolean", "Have FormSkills read the pulled sources instead of the releases (its dev mode)."),
-    ], read_only=False),
+    ], read_only=False, asks=True),
     Op("new", "New extension", "Make a new extension project from a starter for one host app (or copy a kit example). The starter already works: it reads the app's document and runs a real command.", op_new, [
         Param("name", help="The extension's name, such as Beat Markers; the project id is its slug.", positional=True),
         Param("product", help="The host app id, such as formcut (templates lists them).", flag="--app"),
@@ -1038,7 +1083,7 @@ OPS: list[Op] = [
         Param("base64", help="The whole new content of a binary file, base64."),
         Param("source", help="A local file to copy in.", flag="--from"),
     ], read_only=False, say=lambda d: f"wrote {d.get('path')} ({d.get('size', '?')} bytes)"),
-    Op("delete", "Delete file", "Delete one file or folder of a project.", op_delete, [P_ID, P_PATH], read_only=False, destructive=True, say=lambda d: f"deleted {d.get('path')}"),
+    Op("delete", "Delete file", "Delete one file or folder of a project.", op_delete, [P_ID, P_PATH], read_only=False, destructive=True, asks=True, say=lambda d: f"deleted {d.get('path')}"),
     Op("move", "Move file", "Rename or move a file inside a project.", op_move, [P_ID, Param("source", help="The current path.", required=True, positional=True), Param("target", help="The new path.", required=True, positional=True)], read_only=False),
     Op("manifest", "Manifest", "Read the project's manifest.json, or change it with a JSON merge patch (set; null removes a key). Keep api \"1\", native false and the id unchanged.", op_manifest, [P_ID, Param("set", "object", "A JSON merge patch, such as {\"permissions\": [\"document\"], \"description\": \"...\"}.")], read_only=False, say=lambda d: json.dumps(d.get("manifest"), indent=2)),
     Op("validate", "Check", "Check the project against the contract's schema and package rules and lint it (inline script the CSP blocks, fetch or XMLHttpRequest or WebSocket, eval, oversized files, missing entry, permissions used but not declared or declared but unused). Each problem has file, line, rule and fix.", op_validate, [P_ID], say=_say_validate),
@@ -1071,7 +1116,7 @@ OPS: list[Op] = [
         Param("remove", "boolean", "Take the project out of dev.json."),
         Param("status", "boolean", "Only report whether it is listed and what the host would say."),
         Param("open", "boolean", "Open the app afterwards (when FormPortal installed it)."),
-    ], read_only=False, say=_say_run),
+    ], read_only=False, asks=True, say=_say_run),
     Op("publish", "Publish", "Build, sign with the publisher key (unless unsigned) and make the submission folder for formai.studio: the .formpkg, entry.json, a one-package extensions.json and a README. formportal also sends the package to FormPortal to install.", op_publish, [
         P_ID,
         Param("url", help="The https address the package will be served from (default: its formai.studio address)."),
@@ -1079,17 +1124,24 @@ OPS: list[Op] = [
         Param("passphrase", help="The key's passphrase, when it has one."),
         Param("unsigned", "boolean", "Do not sign."),
         Param("formportal", "boolean", "Also send the package to FormPortal to install."),
-    ], read_only=False, say=_say_publish),
+    ], read_only=False, asks=True, say=_say_publish),
     Op("submit", "Submit to Registry", "Write the project into a folder in form.ext-registry's layout (extensions/[id]/ with package/, the source, package.json when there is one, README.md, LICENSE, CHANGELOG.md and a screenshot slot), and run the registry's own tools/check.py on it from the copy of the registry form.ext keeps (it fetches it; when that fails form.ext's own Check runs, and it says which ran). With pull_request it then forks nodemode-dev/form.ext-registry into the person's GitHub account, pushes the folder on a branch and opens the pull request, through GitHub's gh command line; it refuses while the checks fail or a placeholder text is left. ready reports what the one-step pull request still needs on this computer. Without pull_request it pushes nothing and gives the commands to do it by hand.", op_submit, [
         P_ID,
         Param("checkout", help="Your own clone of nodemode-dev/form.ext-registry to use instead of form.ext's copy (saved as the setting registry.checkout)."),
         Param("pull_request", "boolean", "Also fork, push and open the pull request. Ask the person first: it posts publicly under their GitHub account.", flag="--pull-request"),
         Param("ready", "boolean", "Only report whether git and gh are installed and signed in."),
-    ], read_only=False, say=_say_submit),
+    ], read_only=False, asks=True, say=_say_submit),
     Op("agents_sync", "Sync agent files", "Regenerate the harness skill's references/tools.md from this table and mirror the harness skill into .agents/skills.", op_agents_sync, mcp=False, read_only=False),
 ]
 
 BY_NAME = {op.name: op for op in OPS}
+LOCAL_PATHS = {"import": "path", "inspect": "path", "write": "source", "package": "out", "submit": "checkout"}
+
+
+def allowed_tools() -> list[str]:
+    from app.services import agents
+
+    return [f"mcp__formext__{op.name}" for op in OPS if op.mcp and op.read_only and not op.asks] + [f"mcp__{agents.HUB}__{name}" for name in agents.HUB_READS]
 
 
 def run_op(eng: Engine, name: str, args: dict) -> Any:
@@ -1104,6 +1156,17 @@ def run_op(eng: Engine, name: str, args: dict) -> Any:
     for p in op.params:
         if p.enum and p.name in clean and clean[p.name] not in p.enum:
             raise OpError(f"{p.name} is one of {', '.join(p.enum)}")
+    if op.mcp and not op.read_only and not eng.forwards():
+        from app.services import consent
+
+        refused = consent.check(name, op.title, clean)
+        if refused:
+            raise OpError(refused, {"agentAccess": consent.access()})
+    if op.mcp and eng.forwards():
+        local = LOCAL_PATHS.get(name)
+        if local and isinstance(clean.get(local), str) and clean[local]:
+            clean[local] = str(Path(clean[local]).expanduser().absolute())
+        return eng.tool(name, clean)
     return op.run(eng, **clean)
 
 
@@ -1144,6 +1207,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     op = BY_NAME[args.command.replace("-", "_")]
     eng = Engine(getattr(args, "engine", None), "local" if getattr(args, "local", False) else "auto")
+    eng.agent = "the formext command line"
     values = {p.name: getattr(args, p.name, None) for p in op.params}
     try:
         data = run_op(eng, op.name, values)

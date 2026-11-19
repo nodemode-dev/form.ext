@@ -7,11 +7,12 @@
                             that teaches an agent (the skillsets for changing form.ext's own code stay in the repository); files
                             are backed up before changing and running it again changes nothing
   status                    what this computer has: the three clients, which servers and skills each one has, and formMCP
-  sync [--check]            regenerate the formext-harness tool reference from the MCP catalogue, mirror every skill under
+  sync [--check]            regenerate the formext-harness tool reference and agents/manifest.json from the MCP catalogue, mirror every skill under
                             .claude/skills to .agents/skills and check the skill files against the upload gates; --check changes
                             nothing and exits 1 when anything drifted or fails (for CI)
 """
 
+import ast
 import json
 import os
 import re
@@ -57,6 +58,41 @@ def servers() -> dict:
 def tools_reference() -> str:
     from app.cli import tools_markdown
     return tools_markdown()
+
+
+REGISTRY_NAME = "form.ext"
+DOCK = {"present": True, "positions": ["bottom"], "tabs": ["shell", "claude", "chat"]}
+MANIFEST = ROOT / "agents" / "manifest.json"
+
+
+def agent_manifest() -> str:
+    from app.cli import OPS
+    from app.mcp import Server
+    tools = [op for op in OPS if op.mcp]
+    transports = []
+    route = ROOT / "backend" / "app" / "routers" / "mcp.py"
+    calls = [d for n in ast.walk(ast.parse(route.read_text(encoding="utf-8"))) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) for d in n.decorator_list if isinstance(d, ast.Call)] if route.is_file() else []
+    if any(isinstance(d.func, ast.Attribute) and d.func.attr == "post" and d.args and isinstance(d.args[0], ast.Constant) and d.args[0].value == "/mcp" for d in calls):
+        transports.append("http")
+    if callable(getattr(Server, "serve", None)):
+        transports.append("stdio")
+    own = [n for n in skill_names() if n not in copied()]
+    skills = [{"name": n, "sub_skills": sorted(p.name for p in (SKILLS / n / "sub-skills").iterdir() if (p / "SUB-SKILL.md").is_file()) if (SKILLS / n / "sub-skills").is_dir() else []} for n in own]
+    doc = {
+        "format": "form-agent-manifest",
+        "version": 1,
+        "app": REGISTRY_NAME,
+        "mcp": {
+            "tools": [op.name for op in tools],
+            "read_only": [op.name for op in tools if op.read_only],
+            "approval_gated": [op.name for op in tools if not op.read_only],
+            "transports": transports,
+        },
+        "skills": skills,
+        "dock": DOCK,
+        "extensions": None,
+    }
+    return json.dumps(doc, indent=2) + "\n"
 
 
 def skill_problems() -> list[str]:
@@ -105,6 +141,12 @@ def sync(check: bool) -> int:
         if not check:
             ref.parent.mkdir(parents=True, exist_ok=True)
             ref.write_text(want, encoding="utf-8")
+    manifest = agent_manifest()
+    if not MANIFEST.exists() or MANIFEST.read_text(encoding="utf-8") != manifest:
+        drift.append(str(MANIFEST.relative_to(ROOT)))
+        if not check:
+            MANIFEST.parent.mkdir(parents=True, exist_ok=True)
+            MANIFEST.write_text(manifest, encoding="utf-8")
     names = skill_names()
     for name in names:
         mirror = MIRRORS / name

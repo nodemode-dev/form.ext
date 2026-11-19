@@ -1,3 +1,5 @@
+import { keyHeaders, reclaimWindowKey, windowHello } from './window-key';
+
 type Listener = (data: any) => void;
 
 const listeners = new Map<string, Set<Listener>>();
@@ -55,9 +57,13 @@ export function connect(): void {
     return;
   }
   socket = ws;
+  const hello = () => {
+    if (ws.readyState === WebSocket.OPEN) ws.send(windowHello());
+  };
   ws.onopen = () => {
     retry = 0;
     setConnected(true);
+    void keyHeaders().then(hello);
   };
   ws.onmessage = (ev) => {
     let msg: { name?: string; data?: unknown };
@@ -66,6 +72,7 @@ export function connect(): void {
     } catch {
       return;
     }
+    if (msg && msg.name === 'window.refused') void reclaimWindowKey().then((ok) => ok && hello());
     if (msg && typeof msg.name === 'string') emit(msg.name, msg.data);
   };
   ws.onclose = () => {

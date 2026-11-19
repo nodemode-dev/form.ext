@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <img alt="version 0.4.1" src="https://img.shields.io/badge/version-0.4.1-4f6bff?style=flat-square">
+  <img alt="version 0.5.0" src="https://img.shields.io/badge/version-0.5.0-4f6bff?style=flat-square">
   <img alt="Python FastAPI engine" src="https://img.shields.io/badge/Python-FastAPI%20engine-3776ab?style=flat-square&logo=python&logoColor=white">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-interface-3178c6?style=flat-square">
   <img alt="Tauri 2" src="https://img.shields.io/badge/Tauri-2-24C8DB?style=flat-square">
@@ -70,7 +70,7 @@
   <tr>
     <td colspan="2" valign="top">
       <h3>Home, one click away</h3>
-      The Home button in the top bar (Mod+Shift+H) and the sidebar's Home, Recent, Registry and Docs open the Start page from anywhere: make an extension for any of the twelve apps, open a folder, import a <code>.formpkg</code>, or pick up a recent project. Light and dark follow the theme button or Mod+Shift+L.
+      The Home button in the top bar (Mod+Shift+H) and the sidebar's Home, Recent, Registry and Docs open the Start page from anywhere: make an extension for any of the twelve apps, open a folder, import a <code>.formpkg</code>, or pick up a recent project. The theme button or Mod+Shift+L switches between dark and light; Preferences, Interface, Theme also offers AMOLED Black, a true-black theme for OLED screens.
     </td>
   </tr>
   <tr>
@@ -166,15 +166,25 @@ The window, the command line and the MCP server call one engine, so an agent and
 ./formext claude            # Claude Code in this repo, already connected to formext (and formMCP when found)
 ./formext agents install    # the same MCP servers and skills for your account: Claude Code, Codex and Cursor
 ./formext agents status     # what is installed, which servers, how many skills, whether formMCP is found
-./formext agents sync       # regenerate the tool reference and mirror .claude/skills to .agents/skills
+./formext agents sync       # regenerate the tool reference and agents/manifest.json, and mirror .claude/skills to .agents/skills
 ./formext agents sync --check   # exits 1 on any drift, for CI
 ```
 
 Two MCP servers are registered: `formext` (this studio) and `formmcp`, the Form family hub that reaches every installed Form app's own tools. formMCP is a separate app: when it is not installed, `formmcp` shows as failed or unavailable in your agent and everything else works; install it with FormPortal and run `./formext agents install` again. The skills include `formext-harness` (the build loop), `formext-hosts` (what an extension can do in each of the twelve apps, which host skill explains the app, how to test live) and the host skills copied from the apps themselves, recorded with their source commits in [`.claude/skills/HOSTS.md`](.claude/skills/HOSTS.md). With these, "make a FormWav extension that does X" can be built, checked, previewed, packaged and run in the app by Claude Code, Codex or Cursor. An agent can also read the app's real source (`source`, `source_files`, `source_read`, `source_search`), and `submit` with `pull_request` opens the registry pull request once the person agrees.
 
+### Outside agents
+
+An outside agent is any program that reaches form.ext from outside the app: Claude Code, Codex or Cursor through `./formext mcp`, any other MCP client through the engine, and `./formext cli` itself. Of the 33 MCP tools, the 19 that only read always run. The 14 that change something follow one setting, **Settings, Developer, Outside agents**:
+
+- **Ask** (the default): the form.ext window asks you, naming the tool and the project, with Deny, Allow once and Always allow (which switches the setting to Allowed). With no form.ext window open the change is refused; a question nobody answers is refused after two minutes.
+- **Allowed**: outside agents change projects without asking.
+- **Blocked**: every change from an agent is refused, the Studio's own Claude Code and Chat tabs included. Reading still works.
+
+Only the form.ext window can change this setting. An agent, the command line or an edit of `settings.json` cannot: a hand edit puts it back to Ask, and the window says so once. The Studio's own Claude Code and Chat tabs are not outside agents and are never asked; each tab gets its own pass from the engine when you open it, and the pass stops working when the tab closes. Blocked is the one choice that stops them as well.
+
 ### Terminal
 
-The Studio's bottom panel has a Terminal tab (View, Terminal, or Mod+J) next to Problems, Host calls and Output. The engine owns the sessions: a real shell in the open project's folder, an xterm view, a Claude Code tab that starts `claude` with formext and formMCP connected and the skills available, and a Chat tab that runs `claude -p` with streamed output, tool chips and permission cards. If Claude Code is not installed the tab says so and shows the install command. The routes answer on 127.0.0.1 only and refuse any other Host or Origin.
+The Studio's bottom panel has a Terminal tab (View, Terminal, or Mod+J) next to Problems, Host calls and Output. The engine owns the sessions: a real shell in the open project's folder, an xterm view, a Claude Code tab that starts `claude` with formext and formMCP connected and the skills available, and a Chat tab that runs `claude -p` with streamed output, tool chips and permission cards. If Claude Code is not installed the tab says so and shows the install command. The routes answer on 127.0.0.1 only and refuse any other Host or Origin, and only the form.ext window can change anything through the engine: open or type into a shell, answer a permission card, save settings or change a project. Agents and the command line go through the MCP server. In the Claude Code tab, tools that only read run without asking; every other formext and formMCP tool asks first.
 
 ## Under the hood
 

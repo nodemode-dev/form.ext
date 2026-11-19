@@ -1,3 +1,5 @@
+import { keyHeaders, reclaimWindowKey } from './window-key';
+
 export class ApiError extends Error {
   status: number;
   detail: unknown;
@@ -73,7 +75,12 @@ export async function request<T>(method: string, p: string, body?: unknown, init
   if (!headers.has('accept')) headers.set('accept', 'application/json, text/plain, */*');
   let res: Response;
   try {
+    for (const [name, value] of Object.entries(await keyHeaders())) headers.set(name, value);
     res = await fetch(apiUrl(p), { ...init, method, headers, body: payload });
+    if (res.status === 403 && method !== 'GET' && (await reclaimWindowKey())) {
+      for (const [name, value] of Object.entries(await keyHeaders())) headers.set(name, value);
+      res = await fetch(apiUrl(p), { ...init, method, headers, body: payload });
+    }
   } catch (err) {
     throw new ApiError(0, messageOf(0, null, ''), err);
   }

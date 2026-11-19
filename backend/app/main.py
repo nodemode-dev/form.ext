@@ -11,8 +11,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, Response
 
 from app import __version__, routers
-from app.services import paths
+from app.services import consent, paths
 from app.services.bus import bus
+from app.services.window_key import WindowKeyGuard
 from app.services.workspace import WorkspaceError, watcher
 
 log = logging.getLogger("formext")
@@ -38,9 +39,11 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         watcher.stop()
+        consent.close_tabs()
 
 
 app = FastAPI(title="form.ext engine", version=__version__, lifespan=lifespan)
+app.add_middleware(WindowKeyGuard)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,

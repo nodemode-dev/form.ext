@@ -130,6 +130,8 @@
   --swatch-dark: #111111;
   --swatch-light: #f4f3ee;
   --swatch-light-edge: #c4bfb1;
+  --swatch-oled: #000000;
+  --swatch-oled-edge: #3a3a3a;
   --footage-ink: #ffffff;
   --footage-soft: rgb(255 255 255 / 0.78);
   --footage-faint: rgb(255 255 255 / 0.5);
@@ -204,6 +206,27 @@
   --hue-wav: #00806a;
   --hue-hub: #14161b;
   --hue-depth: 42%;
+}
+
+:root[data-theme="amoled"] {
+  color-scheme: dark;
+
+  --bg-primary: #000000;
+  --bg-secondary: #000000;
+  --bg-tertiary: #141414;
+  --border-color: #262626;
+  --border-light: #3a3a3a;
+  --text-primary: #ededed;
+  --text-secondary: #a6a6a6;
+  --text-muted: #858585;
+}
+
+:root[data-oled] {
+  --bg-hover: rgba(255, 255, 255, 0.1);
+  --border-soft: rgba(255, 255, 255, 0.12);
+  --terminal: #000000;
+  --main: #000000;
+  --bar: #000000;
 }
 
 [data-product="formlit"] { --hue: color-mix(in oklab, #5cb8ff calc(100% - var(--hue-depth)), #000); }

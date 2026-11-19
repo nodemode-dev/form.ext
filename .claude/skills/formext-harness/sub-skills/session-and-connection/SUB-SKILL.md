@@ -11,7 +11,7 @@ The server (`./formext mcp`) and the command line (`./formext cli`) call the eng
 
 1. `--engine URL` or `FORMEXT_URL` when given.
 2. Otherwise a running engine whose data folder is the same as theirs: the desktop app's (its port is in `engine.port` in the data folder) or `./formext boot`'s on 127.0.0.1:8640 (`FORMEXT_PORT` moves it).
-3. Otherwise the engine's routes run inside the server process (`--local` forces this). Nothing is lost: the data folder is the same, and an open window picks up the files from disk. Live events (the window refreshing at once) need the running engine.
+3. Otherwise the engine's routes run inside the server process (`--local` forces this). The data folder is the same, and an open window picks up the files from disk; live events (the window refreshing at once) need the running engine. With no window open, only the 19 tools that read run. The 14 that change something are refused under the default Ask, because there is no window to ask in; the refusal says so and is not an error to retry. Ask the person to open form.ext, or to choose Allowed in Settings, Developer, Outside agents (only the window can change it). Under Blocked every change is refused.
 
 `status` reports `engine.mode` (`http` or `in-process`), the URL, the data folder and which modules the engine has (check, new, preview, package, run, publish, sources). A module marked no is not in that build: its tools fail with a sentence naming the missing router.
 
@@ -39,5 +39,6 @@ Use a scratch `FORMEXT_HOME` and `FORMPORTAL_ROOT` for experiments, so the perso
 
 - "no such project": `projects` lists the ids; a project made with another data folder is not visible.
 - "is not in this engine yet": the build lacks that module; tell the person which one.
+- "no form.ext window is open to ask", "blocked", "did not allow" or "nobody answered": the outside-agents setting refused a change; say what the message says and stop. Do not retry unless the person asks.
 - "stopped answering": the window closed during the call; call again.
 - A tool that is not listed: the client loaded an old tool list; restart the MCP server.
