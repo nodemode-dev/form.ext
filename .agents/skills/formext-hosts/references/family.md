@@ -40,7 +40,7 @@ Read this when a task crosses tools: which one tells you what an app allows, whi
 - form.ext's `.mcp.json` lists a `formmcp` server next to `formext`, and Claude Code started from the Studio adds the `formmcp` server when formMCP is installed (`./formext agents status` says).
 - Its tools: `family_apps`, `suggest_app`, `app_tools`, `call_app`, `app_resources`, `read_app_resource`, `app_prompts`, `get_app_prompt`, `extensions_list`, `extension_command`, `demo_open`.
 - Typical test: `app_tools` for the app, then `call_app` for its tools, then `extensions_list` and `extension_command` for the extension. Load `formmcp-harness` first.
-- It does not list form.ext itself, and it does not handle skills. Its family list has 24 apps; formskills and formtray appear with no MCP server.
+- It does not list form.ext itself, and it does not handle skills. `family_apps` lists every Form app it knows, with whether each has an MCP server and is installed; formskills and formtray appear with no MCP server.
 
 ## How FormSkills is connected
 

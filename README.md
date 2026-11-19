@@ -70,7 +70,7 @@
   <tr>
     <td colspan="2" valign="top">
       <h3>Home, one click away</h3>
-      The Home button in the top bar (Mod+Shift+H) and the sidebar's Home, Recent, Registry and Docs open the Start page from anywhere: make an extension for any of the twelve apps, open a folder, import a <code>.formpkg</code>, or pick up a recent project. Light and dark follow the theme button or Mod+Shift+L.
+      The Home button in the top bar (Mod+Shift+H) and the sidebar's Home, Recent, Registry and Docs open the Start page from anywhere: make an extension for any of the twelve apps, open a folder, import a <code>.formpkg</code>, or pick up a recent project. The theme button or Mod+Shift+L switches between dark and light; Preferences, Interface, Theme also offers AMOLED Black, a true-black theme for OLED screens.
     </td>
   </tr>
   <tr>
@@ -166,7 +166,7 @@ The window, the command line and the MCP server call one engine, so an agent and
 ./formext claude            # Claude Code in this repo, already connected to formext (and formMCP when found)
 ./formext agents install    # the same MCP servers and skills for your account: Claude Code, Codex and Cursor
 ./formext agents status     # what is installed, which servers, how many skills, whether formMCP is found
-./formext agents sync       # regenerate the tool reference and mirror .claude/skills to .agents/skills
+./formext agents sync       # regenerate the tool reference and agents/manifest.json, and mirror .claude/skills to .agents/skills
 ./formext agents sync --check   # exits 1 on any drift, for CI
 ```
 
