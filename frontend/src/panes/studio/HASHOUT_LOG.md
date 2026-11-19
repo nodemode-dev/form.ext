@@ -2,13 +2,13 @@
 
 Living log for `frontend/src/panes/studio/` (formerly `edit/`), the Studio module (FX5). Source files stay comment-free; what they would have said lives here.
 
-Current build version: v0.5.0
+Current build version: v0.6.0
 
 ## The Terminal tab holds the family's shared panel {#family-panel}
 
 - refers-to: zones.ts · ../../dock-adapter.ts · ../../styles/dock-tokens.css · ../../dock/ · ../../shell/shell.ts · ../../shell/settings.ts · ../../../index.html · ../../styles/shell.css
 - kind: decision
-- logged: unreleased · 2026-11-19
+- logged: v0.6.0 · 2026-11-19
 
 The Studio's own `TerminalDock`, its Chat pane and the shell's own question for outside agents are replaced by the Form family's shared module in `src/dock/` (version 2.1.0, 15 files copied byte for byte from FormVis; `MANIFEST.json` there lists their hashes and nothing in this repository edits them). `src/dock-adapter.ts` is the only file that knows both sides: it turns the module's `DockAdapter` functions into this engine's routes and sockets, and `src/styles/dock-tokens.css` maps every `--dock-*` token onto this app's tokens.
 

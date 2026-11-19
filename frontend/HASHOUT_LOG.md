@@ -2,8 +2,8 @@
 
 Living log for the interface: the shell, the shared styles and the build files. Source files stay comment-free; what they would have said lives here. Each pane keeps its own `src/panes/<name>/HASHOUT_LOG.md`.
 
-Current build version: v0.5.0
-Last updated: 2026-11-19 · v0.5.0 the window key, the question for outside agents and AMOLED Black (#window-key, #agent-consent, #amoled). Before: v0.4.1 the demo's `engine/kit.ts` refuses an `entry.ui` ending in `/` (`demo/HASHOUT_LOG.md`). Before: v0.4.0 the host source row in the Studio and Open pull request in Publish (`panes/studio/HASHOUT_LOG.md#source`, `panes/publish/HASHOUT_LOG.md#pull-request`). Before: v0.3.1 the version only. Before: v0.3.0 the demo opens in the app (#in-app-demo). Before: v0.2.1 the README's screenshots and the community files
+Current build version: v0.6.0
+Last updated: 2026-11-19 · v0.6.0 the Form family's shared terminal panel and its question for outside agents (#family-panel). Before: v0.5.0 the window key, the question for outside agents and AMOLED Black (#window-key, #agent-consent, #amoled). Before: v0.4.1 the demo's `engine/kit.ts` refuses an `entry.ui` ending in `/` (`demo/HASHOUT_LOG.md`). Before: v0.4.0 the host source row in the Studio and Open pull request in Publish (`panes/studio/HASHOUT_LOG.md#source`, `panes/publish/HASHOUT_LOG.md#pull-request`). Before: v0.3.1 the version only. Before: v0.3.0 the demo opens in the app (#in-app-demo). Before: v0.2.1 the README's screenshots and the community files
 
 ---
 
@@ -177,7 +177,7 @@ Checked in headless Chrome against Vite and a running engine: the page boots (Ho
 
 - refers-to: src/dock/ · src/dock-adapter.ts · src/styles/dock-tokens.css · src/panes/studio/zones.ts · ../setup/agents.py · ../tests/test_dock_module.py
 - kind: decision
-- logged: unreleased · 2026-11-19
+- logged: v0.6.0 · 2026-11-19
 
 `src/dock/` is the Form family's shared terminal panel, module 2.1.0, copied whole from FormVis and never edited here: `./formext agents sync` (and `sync --check`, and `tests/test_dock_module.py`) fail, naming the file, when a file there differs from `MANIFEST.json`, is missing or is extra, when the manifest names another module version than `setup/agents.py` `DOCK_VERSION`, or when a file in the folder imports from outside it. When the module does not fit, `src/dock-adapter.ts` absorbs it. The Studio's Terminal tab hosts the panel and the reasons for every choice are in `src/panes/studio/HASHOUT_LOG.md#family-panel`.
 

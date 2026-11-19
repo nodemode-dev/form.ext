@@ -38,7 +38,7 @@ Open http://localhost:5640. `./formext build` then `./formext serve` runs the bu
 
 The title row has a Home button and the app name, and File, Home (Mod+Shift+H) returns to Start from anywhere.
 
-**Terminal and Claude Code.** In the Studio's bottom panel the Terminal tab (View, Terminal, or Mod+J) opens a real shell in the project's folder. Claude Code opens `claude` there with the formext and formMCP servers and the skills available, so you can ask for "a FormWav extension that does X" and have it built, checked, previewed, packaged and run in the app. Chat does the same as a conversation with permission cards. `./formext claude` starts it from the repository, and `./formext agents install` sets Claude Code, Codex and Cursor up for your account. formMCP is a separate app; without it the formmcp server shows as unavailable and the rest works.
+**Terminal and Claude Code.** In the Studio's bottom panel the Terminal tab (View, Terminal, or Mod+J) opens a real shell in the project's folder. Claude Code opens `claude` there with the formext and formMCP servers and the skills available, so you can ask for "a FormWav extension that does X" and have it built, checked, previewed, packaged and run in the app. Chat does the same as a conversation with permission cards. Codex and Cursor each have a button there when the program is installed, and open in a tab of their own. `./formext claude` starts it from the repository, and `./formext agents install` sets Claude Code, Codex and Cursor up for your account. formMCP is a separate app; without it the formmcp server shows as unavailable and the rest works.
 
 The first five minutes:
 
