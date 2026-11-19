@@ -52,7 +52,7 @@ Claude Code started from the Studio gets the pulled source as an extra directory
 
 ## In the app
 
-The Studio's bottom panel has Terminal, Claude Code and Chat tabs. They run in the open project's folder with these servers and skills, over local-only routes (127.0.0.1, session-guarded).
+The Studio's bottom panel has Terminal, Claude Code and Chat tabs. They run in the open project's folder with these servers and skills, over local-only routes (127.0.0.1) that only the form.ext window can use. In the Claude Code tab the formext and formMCP tools that only read run without asking; the others, delete, publish, submit, run_in_app and formMCP's call_app among them, ask first.
 
 ## Extensions and agents in the apps
 

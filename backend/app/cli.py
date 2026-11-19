@@ -127,6 +127,7 @@ async def _asgi_call(app, method: str, path: str, query: str, body: bytes):
         "client": ("127.0.0.1", 0),
         "server": ("127.0.0.1", 8640),
         "state": {},
+        "formext.inprocess": True,
     }
     try:
         await app(scope, receive, send)
@@ -232,7 +233,7 @@ class Engine:
         self.connect()
         qs = urllib.parse.urlencode({k: (str(v).lower() if isinstance(v, bool) else v) for k, v in (query or {}).items() if v is not None and v != ""})
         data = json.dumps(body).encode("utf-8") if body is not None else b""
-        if self.url:
+        if self.url and self.mode != "inside":
             try:
                 return self._http(method, f"{self.url}{path}{'?' + qs if qs else ''}", data, timeout)
             except OSError as exc:
@@ -271,6 +272,38 @@ class Engine:
 
     def has(self, router: str) -> bool:
         return router in (self.health().get("routers") or [])
+
+    def forwards(self) -> bool:
+        self.connect()
+        return bool(self.url) and self.mode != "inside"
+
+    def tool(self, name: str, args: dict) -> Any:
+        rpc = {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": name, "arguments": args}}
+        try:
+            status, _, payload = self._http("POST", f"{self.url}/mcp", json.dumps(rpc).encode("utf-8"), 900)
+        except OSError as exc:
+            raise EngineError(0, f"the engine at {self.url} stopped answering ({exc})") from exc
+        try:
+            answer = json.loads(payload)
+        except ValueError:
+            answer = None
+        if status >= 400 or not isinstance(answer, dict):
+            raise EngineError(status, _detail(answer, status), answer)
+        if "error" in answer:
+            raise OpError(str((answer.get("error") or {}).get("message") or "the engine refused the call"))
+        result = answer.get("result") or {}
+        text = "".join(c.get("text", "") for c in result.get("content") or [] if isinstance(c, dict))
+        try:
+            data = json.loads(text)
+        except ValueError:
+            data = text
+        if not result.get("isError"):
+            return data
+        if isinstance(data, dict) and "error" in data:
+            if "status" in data:
+                raise EngineError(int(data["status"]), str(data["error"]), data.get("data"))
+            raise OpError(str(data["error"]), data.get("data"))
+        raise OpError(str(data))
 
 
 @dataclass
@@ -1091,6 +1124,7 @@ OPS: list[Op] = [
 ]
 
 BY_NAME = {op.name: op for op in OPS}
+LOCAL_PATHS = {"import": "path", "inspect": "path", "write": "source", "package": "out", "submit": "checkout"}
 
 
 def allowed_tools() -> list[str]:
@@ -1111,6 +1145,11 @@ def run_op(eng: Engine, name: str, args: dict) -> Any:
     for p in op.params:
         if p.enum and p.name in clean and clean[p.name] not in p.enum:
             raise OpError(f"{p.name} is one of {', '.join(p.enum)}")
+    if op.mcp and eng.forwards():
+        local = LOCAL_PATHS.get(name)
+        if local and isinstance(clean.get(local), str) and clean[local]:
+            clean[local] = str(Path(clean[local]).expanduser().absolute())
+        return eng.tool(name, clean)
     return op.run(eng, **clean)
 
 

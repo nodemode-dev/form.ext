@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisco
 from pydantic import BaseModel, Field
 
 from app.routers.terminal import LOCAL, origin_ok, release_socket, server_port, take_socket
-from app.services import claude_code, terminal
+from app.services import claude_code, terminal, window_key
 
 router = APIRouter(prefix="/api/claude", tags=["agent"])
 
@@ -78,6 +78,10 @@ async def stream(ws: WebSocket) -> None:
         return
     terminal.bind(asyncio.get_running_loop())
     await ws.accept()
+    if not await window_key.admit(ws):
+        release_socket()
+        await ws.close(code=4403)
+        return
     queue: asyncio.Queue = asyncio.Queue()
     claude_code.AGENT.subscribers.add(queue)
 

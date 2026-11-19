@@ -3,6 +3,7 @@ import type { FitAddon } from '@xterm/addon-fit';
 import type { Terminal } from '@xterm/xterm';
 import { icon, errorMessage, ApiError } from '../../shell';
 import type { ShellContext } from '../../shell';
+import { windowHello } from '../../shell/window-key';
 import { ChatPane } from './chat';
 
 interface TerminalInfo {
@@ -297,7 +298,10 @@ export class TerminalDock {
     const socket = socketTo(`/terminal/${entry.id}/stream`);
     socket.binaryType = 'arraybuffer';
     entry.socket = socket;
-    socket.addEventListener('open', () => this.sendSize(entry));
+    socket.addEventListener('open', () => {
+      socket.send(windowHello());
+      this.sendSize(entry);
+    });
     socket.addEventListener('message', (msg) => {
       entry.seen = true;
       if (typeof msg.data === 'string') {

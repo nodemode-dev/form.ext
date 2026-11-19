@@ -24,6 +24,7 @@ form.ext is licensed under the GNU General Public License v3.0 (`LICENSE`, SPDX 
 | pydantic 2.14.3, pydantic-core 2.50.4, annotated-types 0.8.0, annotated-doc 0.0.5, typing-inspection 0.4.5, typing-extensions 4.16.0 | request models for FastAPI | MIT (typing-extensions PSF-2.0) |
 | anyio 4.16.0, idna 3.20 | async I/O (also the command line's in-process calls), host names | MIT, BSD-3-Clause |
 | cryptography 50.0.2 (48.0.1 on Intel Macs, the last with a wheel for them), with the OpenSSL its wheels link statically, cffi 2.1.1 and pycparser 3.12 | Ed25519 publisher keys and package signatures (package module) | Apache-2.0 OR BSD-3-Clause (cryptography); Apache-2.0 (OpenSSL 3); MIT-0 (cffi); BSD-3-Clause (pycparser) |
+| keyring 25.7.0 by Jason R. Coombs, with jaraco.classes 3.4.0, jaraco.context 6.1.2, jaraco.functools 4.6.0 and more-itertools 11.2.1 (on Linux jeepney 0.9.0 and SecretStorage 3.5.0, on Windows pywin32-ctypes) | keeps the key that seals the FormPortal settings in the system keychain | MIT (keyring, jaraco, more-itertools, jeepney); BSD-3-Clause (SecretStorage, pywin32-ctypes) |
 | ptyprocess 0.7.0 (macOS and Linux) | the Studio's Terminal tab: engine-owned pseudo-terminals for shells and Claude Code | ISC |
 | pywinpty 3.0.5 (Windows) | the same Terminal tab on Windows (ConPTY) | MIT |
 | CPython 3.12, embedded by PyInstaller in the one-file engine sidecar | runs the engine | PSF-2.0 |

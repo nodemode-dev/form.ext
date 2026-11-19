@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 
-from app.services import claude_code, terminal
+from app.services import claude_code, terminal, window_key
 
 LOOPBACK = {"localhost", "127.0.0.1", "::1", "tauri.localhost"}
 MAX_SOCKETS = 24
@@ -145,6 +145,10 @@ async def attach(ws: WebSocket, sid: str) -> None:
         return
     terminal.bind(asyncio.get_running_loop())
     await ws.accept()
+    if not await window_key.admit(ws):
+        release_socket()
+        await ws.close(code=4403)
+        return
     try:
         session = terminal.get(sid)
     except KeyError:

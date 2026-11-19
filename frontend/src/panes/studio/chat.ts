@@ -1,5 +1,6 @@
 import { ApiError, icon } from '../../shell';
 import type { ShellContext } from '../../shell';
+import { windowHello } from '../../shell/window-key';
 
 type Mode = 'ask' | 'auto-edits' | 'plan';
 
@@ -181,7 +182,10 @@ export class ChatPane {
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
     const socket = new WebSocket(`${proto}//${location.host}/api/claude/stream`);
     this.socket = socket;
-    socket.addEventListener('open', () => this.wipe());
+    socket.addEventListener('open', () => {
+      socket.send(windowHello());
+      this.wipe();
+    });
     socket.addEventListener('message', (msg) => {
       try {
         this.onEvent(JSON.parse(String(msg.data)) as Event);

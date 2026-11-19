@@ -174,7 +174,7 @@ Two MCP servers are registered: `formext` (this studio) and `formmcp`, the Form 
 
 ### Terminal
 
-The Studio's bottom panel has a Terminal tab (View, Terminal, or Mod+J) next to Problems, Host calls and Output. The engine owns the sessions: a real shell in the open project's folder, an xterm view, a Claude Code tab that starts `claude` with formext and formMCP connected and the skills available, and a Chat tab that runs `claude -p` with streamed output, tool chips and permission cards. If Claude Code is not installed the tab says so and shows the install command. The routes answer on 127.0.0.1 only and refuse any other Host or Origin.
+The Studio's bottom panel has a Terminal tab (View, Terminal, or Mod+J) next to Problems, Host calls and Output. The engine owns the sessions: a real shell in the open project's folder, an xterm view, a Claude Code tab that starts `claude` with formext and formMCP connected and the skills available, and a Chat tab that runs `claude -p` with streamed output, tool chips and permission cards. If Claude Code is not installed the tab says so and shows the install command. The routes answer on 127.0.0.1 only and refuse any other Host or Origin, and only the form.ext window can change anything through the engine: open or type into a shell, answer a permission card, save settings or change a project. Agents and the command line go through the MCP server. In the Claude Code tab, tools that only read run without asking; every other formext and formMCP tool asks first.
 
 ## Under the hood
 

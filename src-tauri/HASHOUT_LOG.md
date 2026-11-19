@@ -65,3 +65,11 @@ The build machine for this round has no WebKitGTK development files, so `cargo c
 - logged: v0.2.0 · 2026-11-08
 
 The main window on macOS uses `TitleBarStyle::Overlay` with a hidden title, so the page's 38 px title row is the title bar. `traffic_lights.rs` is FormVis's: it centres the three lights in that row after every moment AppKit lays the title bar out again (page load, resize, focus, theme, scale) and once more 120 ms later; `set_window_title` sets the title and places them again. The page calls it when the project changes. The menus are built by the page with `@tauri-apps/api/menu`, covered by `core:default`, so no Rust is needed for them. The window and splash ground is #0a0a0a (`reveal::BACKGROUND`) to match the page's critical background. This round's machine has the GTK libraries: `cargo check` passes for the Linux target; the macOS-only code is checked on the owner's Mac. `rustfmt` at the default width reports differences in code that was already there (the crate is written at 120 columns); the new file is clean at 120.
+
+## The window key {#window-key}
+
+- refers-to: src/main.rs
+- kind: decision
+- logged: unreleased
+
+`start_engine` sets `FORMEXT_WINDOW_KEY_STDOUT=1`. The engine then prints `formext-window-key: <key>` and, once it listens, `formext-engine: http://127.0.0.1:<port>`, both on standard output and flushed, in that order. The reading loop now takes only standard output, so the key line always arrives before the address line on the one pipe; it keeps the key when it sees it and stops at the address line, as before, so it waits no longer than it did. `open_main` takes the key and adds one `initialization_script` (tauri 2.11.6, `WebviewWindowBuilder::initialization_script(impl Into<String>)`, read in that version's source) that sets `window.__FORMEXT_WINDOW_KEY` only when `location.origin` is the engine's own address. The development window (Vite, no engine started by the shell) gets no key and the page claims it from the engine. Standard output is drained after the window opens and goes to no log. Not compiled here: no WebKit libraries in this sandbox; `rustfmt --check` parses the file (it reports only the existing 120-column formatting).

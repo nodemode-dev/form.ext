@@ -5,6 +5,7 @@ import './styles/components.css';
 import './styles/shell.css';
 import './styles/settings.css';
 import { boot } from './shell/shell';
+import { loadWindowKey } from './shell/window-key';
 import { demoMode, leaveDemo } from './demo/mode';
 
 if (demoMode()) {
@@ -15,4 +16,7 @@ if (demoMode()) {
     },
     () => leaveDemo(),
   );
-} else boot();
+} else {
+  void loadWindowKey();
+  boot();
+}
