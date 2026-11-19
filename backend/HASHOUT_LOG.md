@@ -2,6 +2,16 @@
 
 The living log of the form.ext engine. Read it before editing `backend/`. Core files belong to the engine module; module routers and services (`routers/<module>.py`, `services/<module>.py`) keep their own notes in their own HASHOUT logs.
 
+## Unreleased: the host list from the family spec {#hosts}
+
+- refers-to: ../setup/hosts.py; ../setup/hosts.side.json; ../setup/hosts.json; ../setup/family.spec.json; ../.claude/skills/HOSTS.md; ../tests/test_hosts.py; ../.github/workflows/ci.yml
+- formadaptor's generator contract (its docs/TARGETS.md): `python3 -I setup/hosts.py --family PATH` writes `setup/hosts.json` and `.claude/skills/HOSTS.md`, and copies the given spec to `setup/family.spec.json` only when one of them changed; `--check` writes nothing and exits 0, 1 printing each differing file, or 2 for a spec or side file it cannot read. Standard library, no network, the same bytes for the same spec. CI runs `--check` against the committed spec copy.
+- formadaptor's targets.json names `HOSTS.md` and `core/data/hosts.json`; form.ext has no `core/` and its HOSTS.md is `.claude/skills/HOSTS.md` (where `setup/agents.py` `copied()` reads the copied skill names from the table rows that start with a backticked name; the hosts table does not). So the files are `.claude/skills/HOSTS.md`, `setup/hosts.json` and `setup/family.spec.json`; targets.json should say so.
+- Public apps only: an app is written only when its spec entry has `public: true`; a side-file app that is private or missing is left out and named on stderr.
+- What the spec cannot give yet goes in `setup/hosts.side.json`, keyed by spec id: whether an app hosts extensions and its host API, a role for an app whose skill is copied but which hosts nothing (FormPortal, spec id `formai`), the copied skills with their commits (the spec carries no commits) and a note for a host with no skill. A spec entry whose `manifest` has `extensions` wins over the side file for host and host API (null there means not a host). stderr names which apps' facts came from which. Names, ids, repositories, licences and MCP come from the spec.
+- Not done here: refreshing the copied skills. That needs each host's released skills archive, which the spec does not carry.
+- Run: against formadaptor's sample spec, `--check` exit 1 naming both files, write, `--check` exit 0, a second write "already in step" and no spec copy; a missing file and a non-family JSON exit 2; formtray made private: exit 1 naming both files, nothing written, formtray left out; `manifest.extensions` on formcut: host API from the spec; two runs gave the same bytes. `./formext agents sync --check` still in step (the ten copied skills are still found in HOSTS.md).
+
 ## Unreleased: agents/manifest.json {#agent-manifest}
 
 - refers-to: ../setup/agents.py; ../agents/manifest.json; ../tests/test_agent_manifest.py; app/cli.py; app/mcp.py; app/routers/mcp.py
