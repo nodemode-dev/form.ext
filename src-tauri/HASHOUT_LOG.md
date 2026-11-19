@@ -2,8 +2,8 @@
 
 Living log for the desktop shell (Tauri 2). Source files stay comment-free; what they would have said lives here.
 
-Current build version: v0.4.1
-Last updated: 2026-11-11 · v0.4.1 the version only. Before: v0.4.0 the version only. Before: v0.3.1 the version only. Before: v0.2.1 the version only. Before: v0.2.0 overlay title bar
+Current build version: v0.5.0
+Last updated: 2026-11-19 · v0.5.0 the shell reads the window key from the engine and waits at most 10 seconds for it (#window-key, #key-wait). Before: v0.4.1 the version only. Before: v0.4.0 the version only. Before: v0.3.1 the version only. Before: v0.2.1 the version only. Before: v0.2.0 overlay title bar
 
 ---
 

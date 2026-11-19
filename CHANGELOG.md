@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.5.0 · 2026-11-19
+
+Changes are made in the form.ext window or asked there first, and there is a true-black theme.
+
+- **Only the window changes things:** the engine takes changes only from the form.ext window: saving settings, opening a terminal or typing into one, answering a Chat permission card and every change to a project. Changes from outside the app's window are refused. Agents and the command line reach a running engine through its MCP endpoint, where the next point applies.
+- **Outside agents ask first:** an agent or the command line that wants to change something asks in the form.ext window. Settings, Developer, Outside agents is Ask (the default), Allowed or Blocked. Under Ask the window shows Deny, Allow once and Always allow; with no window open the change is refused at once, and a question nobody answers is refused after two minutes. Reading always works. Only the window can change this setting; a change made to it outside the app turns it back to Ask, and the app says so once. Anyone who scripts form.ext with no window open chooses Allowed in the window first.
+- **The Studio's own tabs:** the Claude Code and Chat tabs in the Studio's terminal panel are not asked that question under Ask or Allowed. Each tab gets its own pass when it opens, and the pass stops working when the tab closes. Blocked stops their changes too, so Blocked stops every agent's changes; reading still works. In those tabs Claude Code runs the tools that only read without asking, and asks before any other.
+- **Sealed settings:** the FormPortal folder, the FormPortal command line and the Outside agents choice are sealed with a key kept in the system keychain. A change made outside the app reads as the default until it is saved again in Settings. Without a keychain they work as before. New dependency: keyring 25.7.0 (MIT).
+- **New theme, AMOLED Black:** a true-black window for OLED screens, with panels told apart by their outlines.
+- **Desktop:** the app waits as long as the engine needs to start, as before. If the engine starts but the window never gets what it needs to save, the app says the engine failed to start after 10 seconds instead of opening a window that cannot save.
+- **For agents:** `agents/manifest.json` says what form.ext offers agents (33 MCP tools, 19 that only read, 14 that ask first, and 3 skills). `./formext agents sync` writes it and `--check` fails when it is out of date.
+- **Hosts:** the list of apps that load extensions (`setup/hosts.json`) and `.claude/skills/HOSTS.md` are written from the family's list of apps by `setup/hosts.py`, and CI checks them. They change only when something they show changes.
+- **Engine, for a later release:** the engine can start Codex and Cursor's agent in a terminal tab, say in one call whether Claude Code, Codex and Cursor are installed, say which agent is asking and when a question was answered or ran out of time, and let a window follow what outside agents are calling. The window does not use these yet: form.ext keeps its own terminal panel in this release.
+- **Docs:** README, the wiki, the manual, the tool reference and the skills describe Ask, Allowed and Blocked and what a closed window means for an agent. The release page lists every place that holds the version.
+- Checked here: the engine run from source with stand-ins for the window, the keychain, Claude Code, Codex and Cursor, under Ask, Allowed and Blocked, through the MCP endpoint and the command line; the question and AMOLED Black in Chrome under 4x CPU and network throttling; the engine self check, the tests in `tests/`, the agents and hosts checks and the frontend type check.
+- Known: the browser demo in `demo/` was not rebuilt for this release, so it still shows the 0.4.1 interface and says 0.4.1.
+- Not verified yet: the desktop shell (not compiled on the build machine, so the release build is its first compile), the frozen desktop engine, a real keychain, the real Claude Code, Codex and Cursor, Windows and macOS.
+
 ## v0.4.1 · 2026-11-11
 
 - Fixed: two registry pull requests at once broke each other (one failed with "nothing to commit", the other could push the wrong folder), because both used the same working clone. The clone, commit and push steps now take a lock, in the engine and across processes, so the second waits for the first.
