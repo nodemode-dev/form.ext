@@ -2,6 +2,14 @@
 
 The living log of the form.ext engine. Read it before editing `backend/`. Core files belong to the engine module; module routers and services (`routers/<module>.py`, `services/<module>.py`) keep their own notes in their own HASHOUT logs.
 
+## Unreleased: no test can start a real agent program {#tests-stand-ins}
+
+- refers-to: ../tests/stand_ins.py; ../tests/test_agent_consent.py; ../tests/test_agent_manifest.py; ../tests/test_agent_programs.py; ../tests/test_dock_module.py; ../tests/test_hosts.py
+- Why: the finder of #agent-finder looks in the home folder and asks the person's shell, so a test run on a computer with a real `claude`, `codex`, `cursor-agent` or `agy` would find it and ask it for its version, or start it in a tab.
+- The suite is unittest and has no conftest, so the guard is a module, `tests/stand_ins.py`, that every test file imports before anything of the app. On import it makes a scratch folder and points `HOME`, `USERPROFILE` and `FORMEXT_HOME` into it, sets PATH to its own `bin` (stand-ins named claude, codex, cursor-agent, agent and agy that write one line per start) and the system's `/usr/bin:/bin:/usr/sbin:/sbin`, sets `SHELL` to a stand-in that runs `-c` scripts with `/bin/sh`, removes the variables the finder reads for install folders (`NPM_CONFIG_PREFIX`, `npm_config_prefix`, `PNPM_HOME`, `VOLTA_HOME`, `BUN_INSTALL`, `NVM_SYMLINK`) and every `FORMEXT_*_BIN`, and empties the finder's system folders. When the run ends it removes the folder and prints `agent program stand-ins started N time(s)` with the distinct lines.
+- A new test file starts with `import stand_ins`. A test that needs a program puts its own stand-in on PATH, as tests/test_agent_programs.py does, and calls `agent_lookup.forget()` first, because the finder keeps the shell's PATH.
+- Run: the whole suite with a decoy folder of the five names first on PATH and a decoy `SHELL`, both writing to their own files: 28 tests OK, 0 lines from the decoys, 0 starts of the decoy shell, and the guard's own line said 0.
+
 ## Unreleased: the agent programs are found by the family's finder, and there are four {#agent-finder}
 
 - refers-to: app/services/agent_lookup.py; app/services/claude_code.py; app/services/agent_programs.py; ../setup/agents.py; ../.gitattributes; ../tests/test_agent_programs.py; ../tests/test_agent_manifest.py

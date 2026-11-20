@@ -8,6 +8,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import stand_ins
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 
