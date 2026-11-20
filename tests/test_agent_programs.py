@@ -5,18 +5,22 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import stand_ins
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 ENGINE = all(importlib.util.find_spec(name) for name in ("ptyprocess", "fastapi")) and os.name != "nt"
-STAND_INS = {"claude": "9.9.9 (Claude Code stand-in)", "codex": "codex-cli 0.99.1", "cursor-agent": "2026.11.01-standin"}
+STAND_INS = {"claude": "9.9.9 (Claude Code stand-in)", "codex": "codex-cli 0.99.1", "cursor-agent": "2026.11.01-standin", "agy": "agy 1.2.3-standin"}
 
 
 @unittest.skipUnless(ENGINE, "needs the engine's packages (run with the backend's Python) and a POSIX shell")
 class AgentPrograms(unittest.TestCase):
     def setUp(self):
-        from app.services import agent_programs, terminal
+        from app.services import agent_lookup, agent_programs, terminal
 
         self.programs, self.terminal = agent_programs, terminal
+        agent_lookup.forget()
+        self.addCleanup(agent_lookup.forget)
         self.tmp = tempfile.TemporaryDirectory()
         self.bin = Path(self.tmp.name) / "bin"
         self.bin.mkdir()
@@ -41,21 +45,37 @@ class AgentPrograms(unittest.TestCase):
             script.chmod(0o755)
         os.environ["PATH"] = f"{self.bin}{os.pathsep}/usr/bin{os.pathsep}/bin"
 
-    def test_status_names_the_three_programs_found_with_versions(self):
+    def test_status_names_the_four_programs_found_with_versions(self):
         self.stand_ins()
         got = self.programs.status(fresh=True)
-        self.assertEqual(list(got), ["claude", "codex", "cursor"])
-        self.assertEqual(got["codex"], {"title": "Codex", "installed": True, "path": str(self.bin / "codex"), "version": "0.99.1", "signedIn": None, "install": "npm install -g @openai/codex"})
+        self.assertEqual(list(got), ["claude", "codex", "cursor", "antigravity"])
+        codex = got["codex"]
+        self.assertEqual((codex["title"], codex["installed"], codex["path"], codex["version"], codex["signedIn"], codex["install"]),
+                         ("Codex", True, str(self.bin / "codex"), "0.99.1", None, "npm install -g @openai/codex"))
+        self.assertEqual((codex["finding"], codex["how"], codex["looked"], codex["error"]), ("runs", "path", [], ""))
         self.assertEqual((got["cursor"]["path"], got["cursor"]["version"]), (str(self.bin / "cursor-agent"), "2026.11.01-standin"))
+        self.assertEqual((got["antigravity"]["title"], got["antigravity"]["path"], got["antigravity"]["version"], got["antigravity"]["signedIn"]),
+                         ("Antigravity", str(self.bin / "agy"), "1.2.3-standin", None))
         self.assertEqual((got["claude"]["installed"], got["claude"]["version"], got["claude"]["signedIn"]), (True, "9.9.9", True))
+        self.assertNotIn("formmcp", got["claude"])
 
-    def test_status_says_codex_and_cursor_are_missing_with_the_line_to_install_them(self):
+    def test_status_says_a_program_is_missing_with_where_it_looked_and_the_line_to_install_it(self):
         os.environ["PATH"] = f"/usr/bin{os.pathsep}/bin"
-        self.terminal.login_shell = lambda: ["/bin/sh", "-c", "exit 1", "--"]
         got = self.programs.status(fresh=True)
-        for kind in ("codex", "cursor"):
-            self.assertEqual((got[kind]["installed"], got[kind]["path"], got[kind]["version"]), (False, None, None))
+        for kind in ("claude", "codex", "cursor", "antigravity"):
+            self.assertEqual((got[kind]["installed"], got[kind]["path"], got[kind]["version"], got[kind]["finding"]), (False, None, None, "missing"))
             self.assertTrue(got[kind]["install"])
+            self.assertIn("was not found. Looked in: PATH (/usr/bin:/bin); ~/.local/bin", got[kind]["said"])
+            self.assertIn(got[kind]["install"], got[kind]["said"])
+        with self.assertRaises(LookupError) as refused:
+            self.programs.open_terminal("codex", 34099)
+        self.assertEqual(str(refused.exception), got["codex"]["said"])
+
+    def test_a_program_that_is_there_but_does_not_start_is_not_installed_and_says_why(self):
+        self.stand_ins()
+        (self.bin / "codex").write_text("#!/bin/sh\necho 'codex: cannot find node' >&2\nexit 3\n")
+        got = self.programs.status(fresh=True)["codex"]
+        self.assertEqual((got["installed"], got["path"], got["finding"], got["error"]), (False, str(self.bin / "codex"), "broken", "codex: cannot find node"))
         with self.assertRaises(LookupError):
             self.programs.open_terminal("codex", 34099)
 

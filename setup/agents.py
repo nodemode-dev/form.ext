@@ -65,6 +65,40 @@ DOCK = {"present": True, "positions": ["bottom"], "tabs": ["shell", "claude", "c
 DOCK_DIR = ROOT / "frontend" / "src" / "dock"
 DOCK_VERSION = "2.1.0"
 MANIFEST = ROOT / "agents" / "manifest.json"
+LOOKUP = ROOT / "backend" / "app" / "services" / "agent_lookup.py"
+LOOKUP_HASHES = {"1.0.0": "252ea9bb9419d4990f174f91914f09800497bc69e98f849f5643bbf4217cc3f3", "1.0.1": "62667f9b68b7d101e1896ce617240424e33b7e498c560bc79d45f0ab26c77d51"}
+OVERRIDES = {"claude": ("FORMEXT_CLAUDE_BIN",)}
+
+
+def lookup_problems() -> list[str]:
+    import hashlib
+
+    rel = LOOKUP.relative_to(ROOT).as_posix()
+    try:
+        raw = LOOKUP.read_bytes()
+    except OSError:
+        return [f"{rel}: missing (the shared finder for the agent programs)"]
+    said = re.search(rb'^VERSION = "([^"\r\n]+)"\r?$', raw, re.M)
+    version = said.group(1).decode("ascii", "replace") if said else "unknown"
+    if LOOKUP_HASHES.get(version) != hashlib.sha256(raw).hexdigest():
+        return [f"{rel}: does not match the hash recorded for version {version} (the shared finder changes only as a whole new version)"]
+    return []
+
+
+def lookup():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("formext_agent_lookup", LOOKUP)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def claude_program(home: Path):
+    finder = lookup()
+    found = finder.check(finder.find("claude", override_vars=OVERRIDES["claude"], home=home))
+    return finder, found
 
 
 def dock_problems(folder: Path = DOCK_DIR) -> list[str]:
@@ -188,7 +222,7 @@ def sync(check: bool) -> int:
             drift.append(str(stale.relative_to(ROOT)) + " (removed skill)")
             if not check:
                 shutil.rmtree(stale, ignore_errors=True)
-    problems = skill_problems() + ["dock module: " + p for p in dock_problems()]
+    problems = skill_problems() + ["dock module: " + p for p in dock_problems()] + lookup_problems()
     if check:
         print("agents: in step" if not drift else "agents: drifted: " + ", ".join(drift) + " (run ./formext agents sync)")
         for line in problems:
@@ -225,20 +259,22 @@ def _hub_note(said: list) -> None:
 
 def install_claude(home: Path, dry: bool, said: list) -> None:
     said.append("Claude Code:")
-    claude = shutil.which("claude")
+    finder, found = claude_program(home)
+    claude = found.path if found.state == "runs" else None
     if claude:
+        env = finder.child_env(claude, home=home)
         for name, (cmd, args) in servers().items():
-            have = subprocess.run([claude, "mcp", "get", name], capture_output=True, text=True, cwd=str(home))
+            have = finder.run([claude, "mcp", "get", name], env, 60)
             if have.returncode == 0 and cmd in have.stdout:
                 said.append(f"  MCP server {name} already set (user scope)")
                 continue
             said.append(f"  claude mcp add --scope user {name} -- {cmd} {' '.join(args)}")
             if not dry:
                 if have.returncode == 0:
-                    subprocess.run([claude, "mcp", "remove", name, "--scope", "user"], capture_output=True)
-                subprocess.run([claude, "mcp", "add", "--scope", "user", name, "--", cmd, *args], check=True, capture_output=True)
+                    finder.run([claude, "mcp", "remove", name, "--scope", "user"], env, 60)
+                finder.run([claude, "mcp", "add", "--scope", "user", name, "--", cmd, *args], env, 60).check_returncode()
     else:
-        said.append(f"  the claude command is not installed here; once it is, run: claude mcp add --scope user formext -- {LAUNCH} mcp")
+        said.append(f"  {finder.sentence(found, finder.install('claude'))} Once it runs: claude mcp add --scope user formext -- {LAUNCH} mcp")
     _hub_note(said)
     _copy_skills(home / ".claude" / "skills", dry, said)
 
@@ -297,12 +333,13 @@ def status() -> int:
     print(f"form.ext at {ROOT}")
     print(f"formMCP: {' '.join(found) if found else 'not installed (the family hub that reaches every installed Form app; https://github.com/nodemode-dev/formmcp)'}")
     print(f"skills in this repository: {len(user_skills())} for agents ({len(skill_names())} with the skillsets)")
-    claude = shutil.which("claude")
+    finder, program = claude_program(home)
+    claude = program.path if program.state == "runs" else None
     print("Claude Code:")
-    print(f"  program: {claude or 'not installed (https://claude.com/claude-code)'}")
+    print(f"  program: {claude or finder.sentence(program, finder.install('claude'))}")
     for name in want:
         if claude:
-            got = subprocess.run([claude, "mcp", "get", name], capture_output=True, text=True, cwd=str(home))
+            got = finder.run([claude, "mcp", "get", name], finder.child_env(claude, home=home), 60)
             print(f"  MCP {name}: {'set (user scope)' if got.returncode == 0 else 'not set'}")
         else:
             print(f"  MCP {name}: unknown without the claude command")

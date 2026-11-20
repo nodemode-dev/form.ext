@@ -1,1 +1,2 @@
 *.bat text eol=crlf
+backend/app/services/agent_lookup.py text eol=lf
