@@ -2,8 +2,8 @@
 
 The Publish pane belongs to the ship module, whose living log is `frontend/src/panes/run/HASHOUT_LOG.md` (sections `#publish`, `#registry` and `#panes`, with `backend/app/services/publish.py` and `backend/app/routers/publish.py`).
 
-Current build version: v0.7.0
-Last updated: 2026-11-19 · v0.7.0 the version only. Before: v0.6.0 the version only. Before: v0.5.0 the version only. Before: v0.4.1 the version only (two pull requests at once now wait for each other in the engine, `backend/HASHOUT_LOG.md#pr-lock`). Before: v0.4.0 Open pull request (#pull-request). Before: v0.2.0 a sheet of the Studio
+Current build version: v0.8.0
+Last updated: 2026-11-19 · v0.8.0 the version only. Before: v0.7.0 the version only. Before: v0.6.0 the version only. Before: v0.5.0 the version only. Before: v0.4.1 the version only (two pull requests at once now wait for each other in the engine, `backend/HASHOUT_LOG.md#pr-lock`). Before: v0.4.0 Open pull request (#pull-request). Before: v0.2.0 a sheet of the Studio
 
 ---
 
