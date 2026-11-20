@@ -4,7 +4,7 @@ use std::time::Duration;
 
 pub const APP: &str = "form.ext";
 pub const SHELL_ENV: &str = "FORMEXT_SHELL_PID";
-pub const ADDRESS_WAIT: Duration = Duration::from_secs(120);
+pub const ADDRESS_WAIT: Duration = Duration::from_secs(90);
 pub const KEY_WAIT: Duration = Duration::from_secs(10);
 pub const EXIT_WAIT: Duration = Duration::from_secs(1);
 pub const EXIT_STEP: Duration = Duration::from_millis(50);
@@ -170,7 +170,7 @@ mod tests {
 
     #[test]
     fn a_wait_that_runs_out_says_how_long_and_for_what() {
-        assert!(sentence(&Failure::TimedOut(Wait::Address)).contains("waited 120 seconds for its engine to say which address it serves on"));
+        assert!(sentence(&Failure::TimedOut(Wait::Address)).contains("waited 90 seconds for its engine to say which address it serves on"));
         assert!(sentence(&Failure::TimedOut(Wait::Key)).contains("waited 10 seconds for its engine to hand over the key for the window"));
     }
 

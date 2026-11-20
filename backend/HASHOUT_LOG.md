@@ -2,6 +2,14 @@
 
 The living log of the form.ext engine. Read it before editing `backend/`. Core files belong to the engine module; module routers and services (`routers/<module>.py`, `services/<module>.py`) keep their own notes in their own HASHOUT logs.
 
+## v0.9.0: the Windows engine is packaged without a console window {#windowed}
+
+- refers-to: ../setup/freeze_backend; formext_engine.py; ../src-tauri/HASHOUT_LOG.md#address-wait
+- The owner's decision for the family: a Windows engine has no console window of its own, as FormWeb's has today. `setup/freeze_backend` gives PyInstaller `--noconsole` on Windows unless `FORMEXT_ENGINE_WINDOWED=0`; on macOS and Linux nothing changes and the variable is not read. The name follows the script's other variables (`FORMEXT_TARGET`). The shell already starts the engine with `CREATE_NO_WINDOW` and reads its standard output through a pipe.
+- A windowed engine starts with `sys.stdout` and `sys.stderr` as None when no one hands it streams. The entry already puts the null device in their place (wave 4), so `--selfcheck` and the other modes that print still finish; the self check at the end of the freeze is judged by its exit code only.
+- Seen on Linux: the script run with a stand-in Python and a stand-in `uname` that answers `MINGW64_NT-10.0`: Windows unset and `=1` give PyInstaller 43 arguments with one `--noconsole`, `=0` gives 42 and none; Linux gives 42 and none in all three. `bash -n` passes. `formext_engine.py --selfcheck >&- 2>&-` exits 0.
+- Not run: no Windows build has shown it, and that the windowed engine's address line still reaches the shell through the pipe is for a Windows machine to show.
+
 ## v0.9.0: an engine that has ended but was not yet collected counts as gone on macOS {#ended-not-collected}
 
 - refers-to: app/services/startup.py; ../tests/test_startup.py

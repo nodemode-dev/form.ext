@@ -30,6 +30,8 @@ fi
 data=(--add-data "$ROOT/frontend/dist${sep}frontend_dist" --add-data "$ROOT/contract${sep}contract" --add-data "$ROOT/backend/app/registry_keys.txt${sep}app")
 [ -d "$ROOT/templates" ] && data+=(--add-data "$ROOT/templates${sep}templates")
 [ -d "$ROOT/docs" ] && data+=(--add-data "$ROOT/docs${sep}docs")
+extra=()
+if [ "$os" = windows ] && [ "${FORMEXT_ENGINE_WINDOWED:-1}" != 0 ]; then extra+=(--noconsole); fi
 cd "$ROOT/backend"
 rm -rf build/pyinstaller dist-engine
 "$py" -m PyInstaller --noconfirm --clean --onefile --name formext-engine \
@@ -40,6 +42,7 @@ rm -rf build/pyinstaller dist-engine
   --collect-submodules app --collect-submodules uvicorn --collect-submodules websockets \
   --collect-submodules keyring --copy-metadata keyring \
   --exclude-module tkinter \
+  ${extra[@]+"${extra[@]}"} \
   "$ROOT/backend/formext_engine.py"
 mkdir -p "$ROOT/src-tauri/binaries"
 out="$ROOT/src-tauri/binaries/formext-engine-${triple}${ext}"
