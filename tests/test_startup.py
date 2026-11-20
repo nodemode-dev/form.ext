@@ -135,6 +135,24 @@ class Lock(Scratch):
         self.assertTrue(first > 0 and abs(first - second) <= self.startup.SLACK)
         self.assertEqual(self.startup.created(4_000_000), 0.0)
 
+    def test_a_holder_that_has_ended_and_was_not_collected_counts_as_gone_where_there_is_no_proc(self):
+        engine, shell, mine = stand_in(), stand_in(), stand_in()
+        saved = self.startup.PROC
+        try:
+            self.lock.write_text(json.dumps(record(self.startup, engine, shell)))
+            stop(shell)
+            self.startup.PROC = str(self.tmp / "no-proc")
+            self.assertFalse(self.startup.finished(engine.pid))
+            began = time.monotonic()
+            self.assertEqual(self.startup.claim(self.tmp, mine.pid)[1], engine.pid)
+            self.assertLess(time.monotonic() - began, self.startup.END_WAIT)
+            self.assertTrue(self.startup.finished(engine.pid))
+            self.startup.PROC = saved
+            self.assertFalse(self.startup.finished(engine.pid))
+        finally:
+            self.startup.PROC = saved
+            stop(engine, shell, mine)
+
 
 @unittest.skipUnless(ENGINE, "needs the engine's packages (run with the backend's Python) and a POSIX shell")
 class Entry(Scratch):

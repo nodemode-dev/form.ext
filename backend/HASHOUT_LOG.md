@@ -2,6 +2,14 @@
 
 The living log of the form.ext engine. Read it before editing `backend/`. Core files belong to the engine module; module routers and services (`routers/<module>.py`, `services/<module>.py`) keep their own notes in their own HASHOUT logs.
 
+## v0.9.0: an engine that has ended but was not yet collected counts as gone on macOS {#ended-not-collected}
+
+- refers-to: app/services/startup.py; ../tests/test_startup.py
+- What was seen, in FormCut: the macOS job of its pull request failed with "could not stop an engine that was left running". `end` had ended the holder, but `gone_by` kept seeing it. `_alive_posix` asks `kill(pid, 0)`, which still answers for a process that has ended and that its parent has not collected, and it tells such a process apart only by reading `/proc`, which macOS does not have. form.ext carries the same file, so the same start would be refused here when the leftover engine's own parent is alive and slow to collect it.
+- The change, as FormCut made it: `finished(pid)` asks `ps -o stat= -p <pid>` where there is no `/proc` (never on Windows, never on Linux) and answers true for a state that starts with `Z`. `gone_by` stops waiting when the process is not alive or is finished. `alive` is unchanged, so the two second watch on the app starts no program.
+- Seen on Linux with `PROC` pointed at a folder that does not exist: with `finished` answering false, `claim` on a lock whose holder is a child of the caller and whose shell has gone waited ten seconds and raised "formext could not stop an engine that was left running on [folder]"; with the change the same `claim` returns the holder's process id in under five seconds. Test after: `test_a_holder_that_has_ended_and_was_not_collected_counts_as_gone_where_there_is_no_proc` in tests/test_startup.py (12 in the file now).
+- Not run on macOS.
+
 ## v0.8.0: the engine starts and stops cleanly beside its app, on Windows too {#windows-start}
 
 - refers-to: app/services/startup.py; app/services/runtime.py; formext_engine.py; ../tests/test_startup.py; ../src-tauri/HASHOUT_LOG.md#windows-start
