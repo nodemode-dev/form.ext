@@ -173,6 +173,20 @@ Sockets: the terminal stream and the Chat stream send `windowHello()` (`{"type":
 
 Checked in headless Chrome against Vite and a running engine: the page boots (Home), claims the key once, `PUT /api/settings` and a terminal from the page succeed with the header, the terminal socket echoes a command after the hello, a reload writes with the stored key and claims nothing, and after the engine restarts the first write is refused, reclaimed and retried. Not checked: the packaged window (no shell build here).
 
+## The shared panel at module 2.2.0, and Antigravity as the fourth agent tab {#panel-four}
+
+- refers-to: src/dock/ · src/dock-adapter.ts · ../setup/agents.py · ../agents/manifest.json · ../tests/test_dock_module.py · ../backend/HASHOUT_LOG.md#antigravity-tab
+- kind: decision
+- logged: unreleased · 2026-11-19
+
+`src/dock/` is now module 2.2.0, copied whole from FormVis (commit ddc893ae; 15 files and `MANIFEST.json`, each hash checked against the manifest; `agents.ts` is new) and still never edited here. `setup/agents.py` `DOCK_VERSION` says 2.2.0. This supersedes "module 2.1.0" in #family-panel below; the rest of that entry holds. In 2.2.0 the panel takes its agent kinds from the adapter, so a fourth program is the adapter's to name.
+
+The adapter is `DockAdapter<'antigravity'>`: `tabs().builtin` lists `antigravity` after `cursor`, `agentStatus()` passes the engine's `antigravity` answer on (`signedIn` stays null), the terminal record is `DockTerminal<'antigravity'>`, and `terminal.open('antigravity', ...)` goes to the same `POST /api/terminal/agent` as Codex and Cursor. `StudioDock.dock` is `Dock<'antigravity'>`. `keyHeaders: () => ({})` was left as it is (2.2.0 makes it optional). The optional steps of the module's moving notes (automation ids, `status` on a record, `note`) were not taken.
+
+`agents/manifest.json` lists the tab (`dock.tabs`), written by `./formext agents sync`; `tests/test_dock_module.py` now expects 15 files in the module's manifest and the tab list with `antigravity`, because both are what this change makes true.
+
+Checked: `tsc --noEmit` with the repository's `tsconfig.json` on a copy of `frontend/` outside the tree, 0 errors. Not looked at in a browser, and no build was made: the button, the row in the menu and the tab were not seen in a window. The engine side was run (backend log).
+
 ## The shared terminal panel and its question dialog {#family-panel}
 
 - refers-to: src/dock/ · src/dock-adapter.ts · src/styles/dock-tokens.css · src/panes/studio/zones.ts · ../setup/agents.py · ../tests/test_dock_module.py

@@ -95,6 +95,27 @@ class AgentPrograms(unittest.TestCase):
             self.terminal.close(info["id"])
             self.assertFalse(consent.is_tab(token))
 
+    def test_an_antigravity_tab_gets_its_entry_in_its_own_folder_and_loses_it_when_it_closes(self):
+        import json
+
+        from app.services import consent, paths
+
+        self.stand_ins()
+        folder = paths.home() / "agent-tabs" / "antigravity"
+        held = folder / ".agents" / "mcp_config.json"
+        held.parent.mkdir(parents=True)
+        held.write_text(json.dumps({"mcpServers": {"other": {"command": "/bin/true"}}, "theme": "kept"}), encoding="utf-8")
+        info = self.programs.open_terminal("antigravity", 34099, 80, 20, "some-project")
+        self.assertEqual((info["kind"], info["title"], info["alive"], info["cwd"]), ("antigravity", "Antigravity", True, str(folder)))
+        token = self.terminal.SESSIONS[info["id"]].env["FORMEXT_INAPP_TOKEN"]
+        during = json.loads(held.read_text(encoding="utf-8"))
+        self.assertEqual(during["mcpServers"]["formext_tab"], {"serverUrl": "http://127.0.0.1:34099/mcp", "headers": {"X-Formext-Inapp": token}})
+        self.assertEqual((during["mcpServers"]["other"], during["theme"], held.stat().st_mode & 0o777), ({"command": "/bin/true"}, "kept", 0o600))
+        self.assertTrue(consent.is_tab(token))
+        self.terminal.close(info["id"])
+        self.assertEqual(json.loads(held.read_text(encoding="utf-8")), {"mcpServers": {"other": {"command": "/bin/true"}}, "theme": "kept"})
+        self.assertFalse(consent.is_tab(token))
+
     def test_status_and_starting_a_program_are_for_the_window_only(self):
         import formext_engine
         from app.main import app

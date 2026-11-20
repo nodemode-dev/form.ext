@@ -39,7 +39,7 @@ class DockModule(unittest.TestCase):
         self.assertEqual(self.agents.dock_problems(), [])
         manifest = json.loads((self.agents.DOCK_DIR / "MANIFEST.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["version"], self.agents.DOCK_VERSION)
-        self.assertEqual(len(manifest["files"]), 14)
+        self.assertEqual(len(manifest["files"]), 15)
 
     def test_a_changed_file_is_named(self):
         folder = self.copy()
@@ -66,7 +66,7 @@ class DockModule(unittest.TestCase):
 
     def test_the_manifest_lists_the_tabs_the_panel_offers(self):
         dock = json.loads((ROOT / "agents" / "manifest.json").read_text(encoding="utf-8"))["dock"]
-        self.assertEqual(dock, {"present": True, "positions": ["bottom"], "tabs": ["shell", "claude", "codex", "cursor", "chat"]})
+        self.assertEqual(dock, {"present": True, "positions": ["bottom"], "tabs": ["shell", "claude", "codex", "cursor", "antigravity", "chat"]})
 
 
 class TabEntry(unittest.TestCase):

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""./formext agents: making extensions in plain language with Claude Code, Codex and Cursor.
+"""./formext agents: making extensions in plain language with Claude Code, Codex, Cursor and Antigravity.
 
-  install [--user] [--dry-run] [claude|codex|cursor ...]
-                            set the three up for this user account (all by default; --user says so): the formext MCP server
+  install [--user] [--dry-run] [claude|codex|cursor|antigravity ...]
+                            set the four up for this user account (all by default; --user says so): the formext MCP server
                             (./formext mcp at this folder's absolute path), the formMCP hub when it is installed, and every skill
                             that teaches an agent (the skillsets for changing form.ext's own code stay in the repository); files
-                            are backed up before changing and running it again changes nothing
-  status                    what this computer has: the three clients, which servers and skills each one has, and formMCP
+                            are backed up before changing and running it again changes nothing. Antigravity gets the MCP servers
+                            only, in ~/.gemini/config/mcp_config.json; a server of the same name that form.ext did not write is
+                            left alone
+  status                    what this computer has: the four clients, which servers and skills each one has, and formMCP
   sync [--check]            regenerate the formext-harness tool reference and agents/manifest.json from the MCP catalogue, mirror every skill under
                             .claude/skills to .agents/skills and check the skill files against the upload gates; --check changes
                             nothing and exits 1 when anything drifted or fails (for CI)
@@ -31,7 +33,7 @@ MIRRORS = ROOT / ".agents" / "skills"
 LAUNCH = str(ROOT / "formext") if (ROOT / "formext").is_file() else os.environ.get("FORMEXT_LAUNCHER") or os.environ.get("APPIMAGE") or str(ROOT / "formext")
 HOSTS = ROOT / ".claude" / "skills" / "HOSTS.md"
 EMOJI = re.compile("[" + "-".join(chr(c) for c in (0x1F000, 0x1FAFF)) + chr(0x2600) + "-" + chr(0x27BF) + chr(0x2B00) + "-" + chr(0x2BFF) + chr(0xFE0F) + chr(0x200D) + "]")
-CLIENTS = ("claude", "codex", "cursor")
+CLIENTS = ("claude", "codex", "cursor", "antigravity")
 
 
 def skill_names() -> list[str]:
@@ -61,9 +63,9 @@ def tools_reference() -> str:
 
 
 REGISTRY_NAME = "form.ext"
-DOCK = {"present": True, "positions": ["bottom"], "tabs": ["shell", "claude", "codex", "cursor", "chat"]}
+DOCK = {"present": True, "positions": ["bottom"], "tabs": ["shell", "claude", "codex", "cursor", "antigravity", "chat"]}
 DOCK_DIR = ROOT / "frontend" / "src" / "dock"
-DOCK_VERSION = "2.1.0"
+DOCK_VERSION = "2.2.0"
 MANIFEST = ROOT / "agents" / "manifest.json"
 LOOKUP = ROOT / "backend" / "app" / "services" / "agent_lookup.py"
 LOOKUP_HASHES = {"1.0.0": "252ea9bb9419d4990f174f91914f09800497bc69e98f849f5643bbf4217cc3f3", "1.0.1": "62667f9b68b7d101e1896ce617240424e33b7e498c560bc79d45f0ab26c77d51"}
@@ -322,6 +324,44 @@ def install_cursor(home: Path, dry: bool, said: list) -> None:
     _copy_skills(home / ".agents" / "skills", dry, said)
 
 
+def antigravity_files(home: Path) -> tuple[Path, Path]:
+    return home / ".gemini" / "config" / "mcp_config.json", home / ".gemini" / "antigravity-cli" / "mcp_config.json"
+
+
+def install_antigravity(home: Path, dry: bool, said: list) -> None:
+    said.append("Antigravity:")
+    cfg, older = antigravity_files(home)
+    if older.exists() and not cfg.exists():
+        said.append(f"  an older file was seen at {older} and left alone; the documented file is {cfg}")
+    try:
+        data = json.loads(cfg.read_text(encoding="utf-8") or "{}") if cfg.exists() else {}
+    except ValueError:
+        data = None
+    if not isinstance(data, dict) or not isinstance(data.get("mcpServers", {}), dict):
+        said.append(f"  {cfg} is not an MCP servers file form.ext can read; left alone")
+        return
+    changed = False
+    for name, (cmd, args) in servers().items():
+        entry = {"command": cmd, "args": args}
+        have = data.get("mcpServers", {}).get(name)
+        if have == entry:
+            said.append(f"  MCP server {name} already in {cfg}")
+        elif have is not None and not (isinstance(have, dict) and have.get("args") == args and Path(str(have.get("command") or "")).name == Path(cmd).name):
+            said.append(f"  {cfg} has a server named {name} that form.ext did not write; left alone")
+        else:
+            said.append(f"  MCP server {name} -> {cfg}")
+            data.setdefault("mcpServers", {})[name] = entry
+            changed = True
+    if changed and not dry:
+        _backup(cfg, dry)
+        cfg.parent.mkdir(parents=True, exist_ok=True)
+        part = cfg.with_name(cfg.name + f".part-{os.getpid()}")
+        part.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        os.replace(part, cfg)
+    _hub_note(said)
+    said.append("  skills: Antigravity gets the MCP servers only")
+
+
 def _installed_skills(root: Path) -> int:
     return sum(1 for n in user_skills() if (root / n).is_dir() and _files(root / n) == _files(SKILLS / n))
 
@@ -356,6 +396,14 @@ def status() -> int:
     for name in want:
         print(f"  MCP {name}: {'set' if name in data.get('mcpServers', {}) else 'not set'} in {cur}")
     print("  skills: Cursor reads ~/.agents/skills, counted above")
+    gem = antigravity_files(home)[0]
+    try:
+        held = json.loads(gem.read_text(encoding="utf-8") or "{}").get("mcpServers", {}) if gem.exists() else {}
+    except (ValueError, AttributeError):
+        held = {}
+    print("Antigravity:")
+    for name in want:
+        print(f"  MCP {name}: {'set' if isinstance(held, dict) and name in held else 'not set'} in {gem}")
     print("This repository's own configuration (.mcp.json, .codex/config.toml, .cursor/mcp.json) is used when an agent starts in this folder.")
     return 0
 
@@ -376,11 +424,11 @@ def main(argv: list[str]) -> int:
         which = [a for a in rest if not a.startswith("--")] or list(CLIENTS)
         bad = [w for w in which if w not in CLIENTS]
         if bad:
-            print(f"agents: unknown client {', '.join(bad)} (claude, codex or cursor)", file=sys.stderr)
+            print(f"agents: unknown client {', '.join(bad)} (claude, codex, cursor or antigravity)", file=sys.stderr)
             return 2
         home, said = Path(os.environ.get("HOME", str(Path.home()))), []
         for w in which:
-            {"claude": install_claude, "codex": install_codex, "cursor": install_cursor}[w](home, dry, said)
+            {"claude": install_claude, "codex": install_codex, "cursor": install_cursor, "antigravity": install_antigravity}[w](home, dry, said)
         print(("Would do (dry run):\n" if dry else "") + "\n".join(said))
         if not dry:
             print("\nRestart the clients. Then ask for an extension, for example: make a FormWav extension that lists the session's markers.")
