@@ -48,7 +48,7 @@
     <td width="25%" valign="top"><h3>Every Form app</h3>Starters for all twelve hosts, each a panel, a command or both, that read the app's document and run a real command from day one.</td>
     <td width="25%" valign="top"><h3>Try before the app</h3>Preview runs the extension in a simulated host for its app, with the contract's own bridge, a realistic document, events and consent.</td>
     <td width="25%" valign="top"><h3>The contract, checked</h3>Check reads the manifest and the code the way a host and its sandbox will, and says what to change, line by line.</td>
-    <td width="25%" valign="top"><h3>Agent-ready</h3>The window, a command line and an MCP server share one engine, so Claude Code, Codex and Cursor make extensions the way a person does.</td>
+    <td width="25%" valign="top"><h3>Agent-ready</h3>The window, a command line and an MCP server share one engine, so Claude Code, Codex, Cursor and Antigravity make extensions the way a person does.</td>
   </tr>
 </table>
 
@@ -106,7 +106,7 @@
       <img src="assets/formext-terminal.webp" alt="The Studio's Terminal tab open under the editor: a shell in the Golden Hour project folder listing the package, the Claude Code and Chat buttons, and the Ask Claude Code field" width="100%">
       <br><sub>Mod+J opens the Terminal in the project's folder.</sub>
       <h3>Terminal and Claude Code</h3>
-      A real shell in the open project's folder, a Claude Code tab with formext and formMCP already connected, Codex and Cursor tabs when those programs are installed, and a Chat tab on <code>claude -p</code> with tool chips and permission cards. Ask Claude Code to work on this extension from the field below.
+      A real shell in the open project's folder, a Claude Code tab with formext and formMCP already connected, Codex, Cursor and Antigravity tabs when those programs are installed, and a Chat tab on <code>claude -p</code> with tool chips and permission cards. Ask Claude Code to work on this extension from the field below.
     </td>
     <td width="50%" valign="top">
       <img src="assets/formext-preferences.webp" alt="Preferences on the Interface section: the Studio Dark and warm light theme swatches, the code editor's font size, tab size and wrapping, and the simulated app's theme" width="100%">
@@ -164,17 +164,17 @@ The window, the command line and the MCP server call one engine, so an agent and
 
 ```sh
 ./formext claude            # Claude Code in this repo, already connected to formext (and formMCP when found)
-./formext agents install    # the same MCP servers and skills for your account: Claude Code, Codex and Cursor
+./formext agents install    # the same MCP servers and skills for your account: Claude Code, Codex, Cursor and Antigravity
 ./formext agents status     # what is installed, which servers, how many skills, whether formMCP is found
 ./formext agents sync       # regenerate the tool reference and agents/manifest.json, and mirror .claude/skills to .agents/skills
 ./formext agents sync --check   # exits 1 on any drift, for CI
 ```
 
-Two MCP servers are registered: `formext` (this studio) and `formmcp`, the Form family hub that reaches every installed Form app's own tools. formMCP is a separate app: when it is not installed, `formmcp` shows as failed or unavailable in your agent and everything else works; install it with FormPortal and run `./formext agents install` again. The skills include `formext-harness` (the build loop), `formext-hosts` (what an extension can do in each of the twelve apps, which host skill explains the app, how to test live) and the host skills copied from the apps themselves, recorded with their source commits in [`.claude/skills/HOSTS.md`](.claude/skills/HOSTS.md). With these, "make a FormWav extension that does X" can be built, checked, previewed, packaged and run in the app by Claude Code, Codex or Cursor. An agent can also read the app's real source (`source`, `source_files`, `source_read`, `source_search`), and `submit` with `pull_request` opens the registry pull request once the person agrees.
+Two MCP servers are registered: `formext` (this studio) and `formmcp`, the Form family hub that reaches every installed Form app's own tools. formMCP is a separate app: when it is not installed, `formmcp` shows as failed or unavailable in your agent and everything else works; install it with FormPortal and run `./formext agents install` again. The skills include `formext-harness` (the build loop), `formext-hosts` (what an extension can do in each of the twelve apps, which host skill explains the app, how to test live) and the host skills copied from the apps themselves, recorded with their source commits in [`.claude/skills/HOSTS.md`](.claude/skills/HOSTS.md). With these, "make a FormWav extension that does X" can be built, checked, previewed, packaged and run in the app by Claude Code, Codex, Cursor or Antigravity. An agent can also read the app's real source (`source`, `source_files`, `source_read`, `source_search`), and `submit` with `pull_request` opens the registry pull request once the person agrees.
 
 ### Outside agents
 
-An outside agent is any program that reaches form.ext from outside the app: Claude Code, Codex or Cursor through `./formext mcp`, any other MCP client through the engine, and `./formext cli` itself. Of the 33 MCP tools, the 19 that only read always run. The 14 that change something follow one setting, **Settings, Developer, Outside agents**:
+An outside agent is any program that reaches form.ext from outside the app: Claude Code, Codex, Cursor or Antigravity through `./formext mcp`, any other MCP client through the engine, and `./formext cli` itself. Of the 33 MCP tools, the 19 that only read always run. The 14 that change something follow one setting, **Settings, Developer, Outside agents**:
 
 - **Ask** (the default): the form.ext window asks you, naming the tool and the project, with Deny, Allow once and Always allow (which switches the setting to Allowed). With no form.ext window open the change is refused; a question nobody answers is refused after two minutes.
 - **Allowed**: outside agents change projects without asking.
@@ -184,7 +184,7 @@ Only the form.ext window can change this setting. An agent, the command line or 
 
 ### Terminal
 
-The Studio's bottom panel has a Terminal tab (View, Terminal, or Mod+J) next to Problems, Host calls and Output. The engine owns the sessions: a real shell in the open project's folder, an xterm view, a Claude Code tab that starts `claude` with formext and formMCP connected and the skills available, Codex and Cursor tabs when those programs are installed, and a Chat tab that runs `claude -p` with streamed output, tool chips and permission cards. If Claude Code is not installed the tab says so and shows the install command. The routes answer on 127.0.0.1 only and refuse any other Host or Origin, and only the form.ext window can change anything through the engine: open or type into a shell, answer a permission card, save settings or change a project. Agents and the command line go through the MCP server. In the Claude Code tab, tools that only read run without asking; every other formext and formMCP tool asks first.
+The Studio's bottom panel has a Terminal tab (View, Terminal, or Mod+J) next to Problems, Host calls and Output. The engine owns the sessions: a real shell in the open project's folder, an xterm view, a Claude Code tab that starts `claude` with formext and formMCP connected and the skills available, Codex, Cursor and Antigravity tabs when those programs are installed, and a Chat tab that runs `claude -p` with streamed output, tool chips and permission cards. If Claude Code is not installed the tab says so and shows the install command. The routes answer on 127.0.0.1 only and refuse any other Host or Origin, and only the form.ext window can change anything through the engine: open or type into a shell, answer a permission card, save settings or change a project. Agents and the command line go through the MCP server. In the Claude Code tab, tools that only read run without asking; every other formext and formMCP tool asks first.
 
 ## Under the hood
 

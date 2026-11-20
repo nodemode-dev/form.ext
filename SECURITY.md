@@ -42,7 +42,7 @@ than it should:
   leaks a private key, or signs with it without you asking.
 - **Run in App and Send to FormPortal**: anything that installs or enables an extension in a Form app without you
   asking, or with permissions other than those you were shown.
-- **Agents and the MCP server** (`./formext mcp`, Claude Code, Codex and Cursor): a tool reaching beyond the projects
+- **Agents and the MCP server** (`./formext mcp`, Claude Code, Codex, Cursor and Antigravity): a tool reaching beyond the projects
   folder, or acting on an app without the step you would take in the window.
 
 Bugs that need someone to already control your machine, or to run a modified build of form.ext, are ordinary bugs:
