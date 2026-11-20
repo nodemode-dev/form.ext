@@ -2,8 +2,8 @@
 
 Living log for the interface: the shell, the shared styles and the build files. Source files stay comment-free; what they would have said lives here. Each pane keeps its own `src/panes/<name>/HASHOUT_LOG.md`.
 
-Current build version: v0.8.0
-Last updated: 2026-11-19 · v0.8.0 the version only. Before: v0.7.0 the shared panel at module 2.2.0 and Antigravity as the fourth agent tab (#panel-four). Before: v0.6.0 the Form family's shared terminal panel and its question for outside agents (#family-panel). Before: v0.5.0 the window key, the question for outside agents and AMOLED Black (#window-key, #agent-consent, #amoled). Before: v0.4.1 the demo's `engine/kit.ts` refuses an `entry.ui` ending in `/` (`demo/HASHOUT_LOG.md`). Before: v0.4.0 the host source row in the Studio and Open pull request in Publish (`panes/studio/HASHOUT_LOG.md#source`, `panes/publish/HASHOUT_LOG.md#pull-request`). Before: v0.3.1 the version only. Before: v0.3.0 the demo opens in the app (#in-app-demo). Before: v0.2.1 the README's screenshots and the community files
+Current build version: v0.9.0
+Last updated: 2026-11-20 · v0.9.0 the shared panel at module 2.2.1 (#panel-221). Before: v0.8.0 the version only. Before: v0.7.0 the shared panel at module 2.2.0 and Antigravity as the fourth agent tab (#panel-four). Before: v0.6.0 the Form family's shared terminal panel and its question for outside agents (#family-panel). Before: v0.5.0 the window key, the question for outside agents and AMOLED Black (#window-key, #agent-consent, #amoled). Before: v0.4.1 the demo's `engine/kit.ts` refuses an `entry.ui` ending in `/` (`demo/HASHOUT_LOG.md`). Before: v0.4.0 the host source row in the Studio and Open pull request in Publish (`panes/studio/HASHOUT_LOG.md#source`, `panes/publish/HASHOUT_LOG.md#pull-request`). Before: v0.3.1 the version only. Before: v0.3.0 the demo opens in the app (#in-app-demo). Before: v0.2.1 the README's screenshots and the community files
 
 ---
 
