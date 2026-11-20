@@ -19,6 +19,13 @@ pub fn engine_folder() -> Option<std::path::PathBuf> {
         .find(|program| program.is_file())
 }
 
+pub fn engine_program() -> Option<std::path::PathBuf> {
+    engine_folder().or_else(|| {
+        let beside = std::env::current_exe().ok()?.with_file_name(ENGINE);
+        beside.is_file().then_some(beside)
+    })
+}
+
 pub fn command_line() -> Option<i32> {
     let mut args = std::env::args_os().skip(1);
     let first = args.next()?;
