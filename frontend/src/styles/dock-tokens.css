@@ -1,0 +1,65 @@
+:root {
+  --dock-bg: var(--bar);
+  --dock-bar-bg: var(--bar);
+  --dock-raised: var(--raise);
+  --dock-hover: var(--bg-hover);
+  --dock-input-bg: var(--main);
+  --dock-border: var(--edge);
+  --dock-edge: var(--edge);
+  --dock-divider: var(--edge);
+  --dock-tab-border: var(--edge-strong);
+  --dock-outline: var(--edge-strong);
+  --dock-scrim: var(--bg-scrim);
+  --dock-text: var(--ink);
+  --dock-text-dim: var(--ink-soft);
+  --dock-text-muted: var(--ink-faint);
+  --dock-tab-text: var(--ink-soft);
+  --dock-accent: var(--accent-color);
+  --dock-accent-line: var(--accent-color);
+  --dock-accent-ink: var(--accent-color);
+  --dock-danger: var(--fault);
+  --dock-danger-text: var(--fault);
+  --dock-space-1: var(--sp-1);
+  --dock-space-2: var(--sp-2);
+  --dock-space-3: var(--sp-3);
+  --dock-space-4: var(--sp-4);
+  --dock-radius-xs: var(--radius-xs);
+  --dock-radius-sm: var(--radius-sm);
+  --dock-radius: var(--radius);
+  --dock-radius-md: var(--radius-md);
+  --dock-tab-radius: var(--radius);
+  --dock-head-h: var(--ctl-lg);
+  --dock-tab-h: var(--ctl-sm);
+  --dock-ibtn: var(--ctl-sm);
+  --dock-ask-h: var(--ctl-xl);
+  --dock-chat-bar-h: var(--ctl-lg);
+  --dock-ctl-h: var(--ctl-sm);
+  --dock-icon: 15px;
+  --dock-icon-sm: 13px;
+  --dock-icon-xs: 11px;
+  --dock-icon-note: 12px;
+  --dock-icon-send: 14px;
+  --dock-stage-pad: var(--sp-1) 0 0 var(--sp-2);
+  --dock-ask-ctl-h: var(--ctl-md);
+  --dock-tab-accent: currentColor;
+  --dock-fs-xs: var(--fs-11);
+  --dock-fs-sm: var(--fs-12);
+  --dock-fs-md: var(--fs-13);
+  --dock-font-mono: var(--font-code);
+  --dock-term-bg: var(--bar);
+  --dock-term-fg: var(--ink);
+  --dock-term-cursor: var(--accent-color);
+  --dock-term-selection: var(--accent-color-dim);
+  --dock-term-font-size: 13px;
+  --dock-term-line-height: 1.25;
+  --dock-term-contrast: 4.5;
+}
+
+.st-bbody[data-bbody="terminal"] { display: flex; flex-direction: column; overflow: hidden; }
+.st-bottom[data-active="terminal"]:not(.folded) { height: 340px; }
+.st-bbody[data-bbody="terminal"] > .ft-dock { flex: 1 1 auto; min-height: 0; }
+
+.fx-dock-ibtn { display: inline-grid; place-items: center; flex: none; width: var(--ctl-sm); height: var(--ctl-sm); padding: 0; border: 0; border-radius: var(--radius); background: transparent; color: var(--ink-soft); cursor: pointer; }
+.fx-dock-ibtn:hover:not(:disabled) { background: var(--bg-hover); color: var(--ink); }
+.fx-dock-ibtn:disabled { opacity: 0.4; cursor: default; }
+.fx-dock-note { color: var(--ink-faint); }

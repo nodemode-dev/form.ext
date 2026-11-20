@@ -116,6 +116,8 @@
     "tabs": [
       "shell",
       "claude",
+      "codex",
+      "cursor",
       "chat"
     ]
   },

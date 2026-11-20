@@ -61,8 +61,36 @@ def tools_reference() -> str:
 
 
 REGISTRY_NAME = "form.ext"
-DOCK = {"present": True, "positions": ["bottom"], "tabs": ["shell", "claude", "chat"]}
+DOCK = {"present": True, "positions": ["bottom"], "tabs": ["shell", "claude", "codex", "cursor", "chat"]}
+DOCK_DIR = ROOT / "frontend" / "src" / "dock"
+DOCK_VERSION = "2.1.0"
 MANIFEST = ROOT / "agents" / "manifest.json"
+
+
+def dock_problems(folder: Path = DOCK_DIR) -> list[str]:
+    import hashlib
+
+    listing = folder / "MANIFEST.json"
+    if not listing.is_file():
+        return ["frontend/src/dock/MANIFEST.json is missing"]
+    manifest = json.loads(listing.read_text(encoding="utf-8"))
+    problems = [] if manifest.get("version") == DOCK_VERSION else [f"frontend/src/dock/MANIFEST.json names module {manifest.get('version')}, expected {DOCK_VERSION}"]
+    wanted = manifest.get("files", {})
+    found = {p.name: p for p in folder.iterdir() if p.is_file() and p.name != "MANIFEST.json"}
+    for name in sorted(set(wanted) | set(found)):
+        if name not in found:
+            problems.append(f"frontend/src/dock/{name} is missing")
+        elif name not in wanted:
+            problems.append(f"frontend/src/dock/{name} is extra")
+        elif hashlib.sha256(found[name].read_bytes()).hexdigest() != wanted[name]:
+            problems.append(f"frontend/src/dock/{name} differs from MANIFEST.json")
+    for name, path in sorted(found.items()):
+        if path.suffix != ".ts":
+            continue
+        for target in re.findall(r"""(?:from|import)\s*\(?\s*['"]([^'"]+)['"]""", path.read_text(encoding="utf-8")):
+            if not (target.startswith("./") and "/" not in target[2:]) and not target.startswith("@xterm/"):
+                problems.append(f"frontend/src/dock/{name} imports {target} from outside the dock folder")
+    return problems
 
 
 def agent_manifest() -> str:
@@ -160,7 +188,7 @@ def sync(check: bool) -> int:
             drift.append(str(stale.relative_to(ROOT)) + " (removed skill)")
             if not check:
                 shutil.rmtree(stale, ignore_errors=True)
-    problems = skill_problems()
+    problems = skill_problems() + ["dock module: " + p for p in dock_problems()]
     if check:
         print("agents: in step" if not drift else "agents: drifted: " + ", ".join(drift) + " (run ./formext agents sync)")
         for line in problems:

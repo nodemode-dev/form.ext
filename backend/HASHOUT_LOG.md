@@ -215,6 +215,14 @@ The routes are local only. Every one checks the Host header is loopback and the 
 
 Dependencies: `ptyprocess` 0.7.0 (ISC) and `pywinpty` 3.0.5 (MIT), rows in NOTICE.md.
 
+## A tab's own MCP entry is named formext_tab {#tab-entry}
+
+- refers-to: app/services/claude_code.py · app/cli.py · ../tests/test_dock_module.py
+- kind: decision
+- logged: v0.6.0 · 2026-11-19
+
+The file `tab_config` writes for a Claude Code tab and for a Chat run (`AgentTokens/mcp-*.json`, mode 0600) named its server `formext`, the same name `./formext agents install` gives the entry an outside agent uses. A Claude Code started in a folder that also has the outside entry then held two servers of one name and it could not be told which one carried the tab's token. The entry is now `formext_tab` (`claude_code.TAB_SERVER`), as in the rest of the Form family (`[app]_tab`). `agents.mcp_servers()` still returns `formext` for everyone else; `tab_config` renames the key before it adds the token. `cli.allowed_tools(server="formext")` takes the server name, so the tab's pre-allowed read tools are `mcp__formext_tab__*` while `./formext mcp --allowed-tools` (the `./formext claude` launcher) still prints `mcp__formext__*`. The tab's system note names the entry. Codex and Cursor tabs get no written entry (the token is in their environment), so nothing changes for them.
+
 ## Host sources, the family map and the registry pull request {#sources}
 
 - refers-to: app/services/sources.py · app/services/family.py · app/services/registry_pr.py · app/routers/sources.py · app/routers/publish.py · app/services/publish.py · app/services/claude_code.py · app/cli.py · app/mcp.py

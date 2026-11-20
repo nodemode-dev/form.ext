@@ -2,8 +2,8 @@
 
 Living log for the interface: the shell, the shared styles and the build files. Source files stay comment-free; what they would have said lives here. Each pane keeps its own `src/panes/<name>/HASHOUT_LOG.md`.
 
-Current build version: v0.5.0
-Last updated: 2026-11-19 · v0.5.0 the window key, the question for outside agents and AMOLED Black (#window-key, #agent-consent, #amoled). Before: v0.4.1 the demo's `engine/kit.ts` refuses an `entry.ui` ending in `/` (`demo/HASHOUT_LOG.md`). Before: v0.4.0 the host source row in the Studio and Open pull request in Publish (`panes/studio/HASHOUT_LOG.md#source`, `panes/publish/HASHOUT_LOG.md#pull-request`). Before: v0.3.1 the version only. Before: v0.3.0 the demo opens in the app (#in-app-demo). Before: v0.2.1 the README's screenshots and the community files
+Current build version: v0.6.0
+Last updated: 2026-11-19 · v0.6.0 the Form family's shared terminal panel and its question for outside agents (#family-panel). Before: v0.5.0 the window key, the question for outside agents and AMOLED Black (#window-key, #agent-consent, #amoled). Before: v0.4.1 the demo's `engine/kit.ts` refuses an `entry.ui` ending in `/` (`demo/HASHOUT_LOG.md`). Before: v0.4.0 the host source row in the Studio and Open pull request in Publish (`panes/studio/HASHOUT_LOG.md#source`, `panes/publish/HASHOUT_LOG.md#pull-request`). Before: v0.3.1 the version only. Before: v0.3.0 the demo opens in the app (#in-app-demo). Before: v0.2.1 the README's screenshots and the community files
 
 ---
 
@@ -173,11 +173,21 @@ Sockets: the terminal stream and the Chat stream send `windowHello()` (`{"type":
 
 Checked in headless Chrome against Vite and a running engine: the page boots (Home), claims the key once, `PUT /api/settings` and a terminal from the page succeed with the header, the terminal socket echoes a command after the hello, a reload writes with the stored key and claims nothing, and after the engine restarts the first write is refused, reclaimed and retried. Not checked: the packaged window (no shell build here).
 
+## The shared terminal panel and its question dialog {#family-panel}
+
+- refers-to: src/dock/ · src/dock-adapter.ts · src/styles/dock-tokens.css · src/panes/studio/zones.ts · ../setup/agents.py · ../tests/test_dock_module.py
+- kind: decision
+- logged: v0.6.0 · 2026-11-19
+
+`src/dock/` is the Form family's shared terminal panel, module 2.1.0, copied whole from FormVis and never edited here: `./formext agents sync` (and `sync --check`, and `tests/test_dock_module.py`) fail, naming the file, when a file there differs from `MANIFEST.json`, is missing or is extra, when the manifest names another module version than `setup/agents.py` `DOCK_VERSION`, or when a file in the folder imports from outside it. When the module does not fit, `src/dock-adapter.ts` absorbs it. The Studio's Terminal tab hosts the panel and the reasons for every choice are in `src/panes/studio/HASHOUT_LOG.md#family-panel`.
+
+The question for outside agents (#agent-consent below) is now the module's dialog: `src/shell/consent.ts`, the `.fx-consent` markup in `index.html` and its rules in `shell.css` are removed. What stays from that entry: `events.ts` still says the window hello on `/api/live`, the engine still counts only such a socket as a window, and Preferences keeps the Outside agents select and the broken-seal note. The dialog's own broken-seal line is the module's `consentChanged`, read through `storedChoice.get()` each time the dialog opens. The Preferences note now also says that Blocked stops the Studio's own tabs.
+
 ## Outside agents ask in the window {#agent-consent}
 
 - refers-to: index.html · src/shell/consent.ts · src/shell/events.ts · src/shell/shell.ts · src/shell/settings.ts · src/styles/shell.css
 - kind: decision
-- logged: unreleased
+- logged: unreleased · the dialog itself is replaced by #family-panel
 
 The engine asks the window before an outside agent or the command line changes anything while Settings, Agents, Outside agents is Ask (backend `HASHOUT_LOG.md#agent-consent`). `events.ts` sends `windowHello()` on the `/api/live` socket once the key has loaded; the engine counts only such a socket as a window. On `window.refused` (a source run whose engine restarted) it reclaims the key once and says hello again. `consent.ts` listens for `window.admitted`, `agents.ask` and `agents.answered`, reads `GET /api/agents/requests` through `api.ts` (with the key) and shows the first request; Deny, Allow once and Always allow post the answer, Escape is Deny, and focus starts on Allow once. The dialog and its scrim are static markup in `index.html`, built once and shown with the `open` class, so nothing behind it is created or moved; it reuses `.fx-dialog` and `.fx-scrim`, so the z-index comes from `--z-dialog` and `--z-dialog-scrim`. The shield is hand-made inline SVG with `currentColor`. form.ext has no i18n table; strings are English in place, as elsewhere in the shell.
 

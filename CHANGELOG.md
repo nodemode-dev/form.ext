@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.6.0 · 2026-11-19
+
+The Studio's Terminal tab is now the terminal panel every Form app shares, and it has Codex and Cursor tabs.
+
+- **The shared terminal panel:** the Terminal tab in the Studio's bottom panel is now the Form family's shared terminal panel. It is where it was, next to Problems, Host calls and Output, with the same key (Mod+J), the same fold arrow and the same height. Shells, Claude Code and Chat work as before, and Chat's first line still names the working folder and says whether formMCP was found. A tab whose program has ended is shown struck through.
+- **Codex and Cursor tabs:** the panel shows a Codex button and a Cursor button when those programs are installed, and each opens its program in a tab of its own in the project's folder. A new More agents menu gives the install command for the one that is missing, opens the Outside agents choice in Preferences, and has Show me around, a short tour of the panel.
+- **The question for outside agents:** the question is now the shared panel's dialog. It names the agent when the engine knows who is asking, says what it asked to run, offers Deny, Allow once and Always allow, counts the requests that are waiting ("Request 1 of 2"), opens above any other dialog of the app, and closes by itself when the request is answered elsewhere or has run out of time. Escape still means Deny. What the three answers do has not changed.
+- **A quieter start:** when the app opens on Home with the Terminal tab remembered, the panel asks the engine for nothing until the Studio is opened. Before, it started a shell behind Home.
+- **Behaves differently:** after a reload the terminals come back with the last one in front, not the first, and a Chat tab is not reopened by itself. The panel's top row and the line you type in look slightly different (a larger send button, its mark in the accent colour), and Chat's first line sits lower in the empty pane. On macOS, Cmd+J is the panel's key and Ctrl+J typed in a shell now reaches the shell; before, it did nothing there.
+- **For agents:** the MCP entry form.ext writes for its own Claude Code and Chat tabs is now named `formext_tab`, so it no longer shares a name with the `formext` entry that `./formext agents install` writes. In those tabs the tools are `mcp__formext_tab__*`; `./formext claude` and installed agents still use `formext`. `agents/manifest.json` lists the panel's five kinds of tab: shell, Claude Code, Codex, Cursor and Chat.
+- **Kept in step:** the shared panel's files are a copy and are not edited here. `./formext agents sync --check` and the tests fail, naming the file, when one of them differs from the list that came with the panel, is missing or is extra.
+- **Docs:** README and the manual name the Codex and Cursor tabs.
+- Checked here: the panel in headless Chrome against the engine run from source, with stand-ins for Claude Code, Codex and Cursor: opening and folding with Mod+J, a command typed in a shell, a second shell, the Claude Code, Codex and Chat tabs, the keys, three themes, a reload, and the question through the MCP endpoint with each of its answers, with two requests waiting and under Blocked; a cold load with the tab remembered open under 4x CPU and network throttling; the tests in `tests/`, the engine self check, the agents and hosts checks and the frontend type check.
+- Known: the panel stays at the bottom of the Studio at its set height; it has no right-hand position and is not resized by dragging. The tour does not start by itself; Show me around in the More agents menu runs it. The browser demo in `demo/` was not rebuilt for this release, so it still shows the 0.4.1 interface and says 0.4.1.
+- Not verified yet: the desktop shell (not compiled on the build machine, so the release build is its first compile), the real Claude Code, Codex and Cursor, a whole Chat turn, the browser demo with the new panel, Windows and macOS.
+
 ## v0.5.0 · 2026-11-19
 
 Changes are made in the form.ext window or asked there first, and there is a true-black theme.

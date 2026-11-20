@@ -1,6 +1,6 @@
-import { icon, esc, setText, storage, setStatus, setNavCount, partRoot, output, commandRun, keyLabel } from '../../shell';
+import { icon, esc, setText, storage, setStatus, setNavCount, partRoot, output, commandRun, keyLabel, activePane } from '../../shell';
 import type { ShellContext } from '../../shell';
-import { TerminalDock } from './terminal';
+import { studioDock } from '../../dock-adapter';
 
 export interface Zones {
   setLeft(id: 'files' | 'library'): void;
@@ -84,7 +84,10 @@ export function mountZones(el: HTMLElement, ctx: ShellContext): Zones {
   }
 
   function syncTerminal(): void {
-    dock.show(bottom.dataset.active === 'terminal' && !bottom.classList.contains('folded'));
+    const on = activePane() === 'studio' && bottom.dataset.active === 'terminal' && !bottom.classList.contains('folded');
+    if (on === dock.isOpen()) return;
+    if (on) dock.shown();
+    else dock.hidden();
   }
 
   function setBottom(id: string, expand = true): void {
@@ -178,21 +181,25 @@ export function mountZones(el: HTMLElement, ctx: ShellContext): Zones {
   });
   outBody.querySelector('.st-out-clear')!.addEventListener('click', () => output.clear());
 
-  const dock = new TerminalDock(ctx);
-  q('[data-bbody="terminal"]').append(dock.root);
-  ctx.commands.register({
-    id: 'terminal.toggle',
-    title: 'Terminal',
-    keys: 'Mod+J',
-    run: () => {
-      const on = bottom.dataset.active === 'terminal' && !bottom.classList.contains('folded');
-      if (on) fold(true);
-      else showTerminal();
+  const { dock, terminals } = studioDock(ctx, {
+    request: (open) => {
+      if (open) showTerminal();
+      else fold(true);
     },
   });
-  ctx.commands.register({ id: 'terminal.new', title: 'New Terminal', run: () => { showTerminal(); void dock.newTerminal(); } });
-  ctx.commands.register({ id: 'terminal.claude', title: 'Claude Code', run: () => { showTerminal(); void dock.openClaude(); } });
-  ctx.commands.register({ id: 'terminal.chat', title: 'Chat with Claude', run: () => { showTerminal(); void dock.openChat(); } });
+  dock.mount(q('[data-bbody="terminal"]'));
+  ctx.commands.register({ id: 'terminal.toggle', title: 'Terminal', keys: 'Mod+J', run: () => dock.toggle() });
+  ctx.commands.register({
+    id: 'terminal.new',
+    title: 'New Terminal',
+    run: () => {
+      const add = dock.isOpen() || terminals() > 0;
+      showTerminal();
+      if (add) void dock.newTerminal();
+    },
+  });
+  ctx.commands.register({ id: 'terminal.claude', title: 'Claude Code', run: () => { showTerminal(); void dock.show('claude'); } });
+  ctx.commands.register({ id: 'terminal.chat', title: 'Chat with Claude', run: () => { showTerminal(); void dock.show('chat'); } });
 
   const sum = q('[data-rbody="check"]');
   sum.innerHTML = `
@@ -335,6 +342,7 @@ export function mountZones(el: HTMLElement, ctx: ShellContext): Zones {
   q('[data-tool="check"]').title = `Check (${keyLabel('F7').join('+')})`;
 
   const offs = [
+    ctx.events.on('pane.open', () => syncTerminal()),
     ctx.events.on('check.result', (r: CheckResult | null) => renderCheck(r)),
     ctx.events.on('library.count', (n: number) => {
       setText(q('.st-lib-count'), String(n));

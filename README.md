@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <img alt="version 0.5.0" src="https://img.shields.io/badge/version-0.5.0-4f6bff?style=flat-square">
+  <img alt="version 0.6.0" src="https://img.shields.io/badge/version-0.6.0-4f6bff?style=flat-square">
   <img alt="Python FastAPI engine" src="https://img.shields.io/badge/Python-FastAPI%20engine-3776ab?style=flat-square&logo=python&logoColor=white">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-interface-3178c6?style=flat-square">
   <img alt="Tauri 2" src="https://img.shields.io/badge/Tauri-2-24C8DB?style=flat-square">
@@ -106,7 +106,7 @@
       <img src="assets/formext-terminal.webp" alt="The Studio's Terminal tab open under the editor: a shell in the Golden Hour project folder listing the package, the Claude Code and Chat buttons, and the Ask Claude Code field" width="100%">
       <br><sub>Mod+J opens the Terminal in the project's folder.</sub>
       <h3>Terminal and Claude Code</h3>
-      A real shell in the open project's folder, a Claude Code tab with formext and formMCP already connected, and a Chat tab on <code>claude -p</code> with tool chips and permission cards. Ask Claude Code to work on this extension from the field below.
+      A real shell in the open project's folder, a Claude Code tab with formext and formMCP already connected, Codex and Cursor tabs when those programs are installed, and a Chat tab on <code>claude -p</code> with tool chips and permission cards. Ask Claude Code to work on this extension from the field below.
     </td>
     <td width="50%" valign="top">
       <img src="assets/formext-preferences.webp" alt="Preferences on the Interface section: the Studio Dark and warm light theme swatches, the code editor's font size, tab size and wrapping, and the simulated app's theme" width="100%">
@@ -184,7 +184,7 @@ Only the form.ext window can change this setting. An agent, the command line or 
 
 ### Terminal
 
-The Studio's bottom panel has a Terminal tab (View, Terminal, or Mod+J) next to Problems, Host calls and Output. The engine owns the sessions: a real shell in the open project's folder, an xterm view, a Claude Code tab that starts `claude` with formext and formMCP connected and the skills available, and a Chat tab that runs `claude -p` with streamed output, tool chips and permission cards. If Claude Code is not installed the tab says so and shows the install command. The routes answer on 127.0.0.1 only and refuse any other Host or Origin, and only the form.ext window can change anything through the engine: open or type into a shell, answer a permission card, save settings or change a project. Agents and the command line go through the MCP server. In the Claude Code tab, tools that only read run without asking; every other formext and formMCP tool asks first.
+The Studio's bottom panel has a Terminal tab (View, Terminal, or Mod+J) next to Problems, Host calls and Output. The engine owns the sessions: a real shell in the open project's folder, an xterm view, a Claude Code tab that starts `claude` with formext and formMCP connected and the skills available, Codex and Cursor tabs when those programs are installed, and a Chat tab that runs `claude -p` with streamed output, tool chips and permission cards. If Claude Code is not installed the tab says so and shows the install command. The routes answer on 127.0.0.1 only and refuse any other Host or Origin, and only the form.ext window can change anything through the engine: open or type into a shell, answer a permission card, save settings or change a project. Agents and the command line go through the MCP server. In the Claude Code tab, tools that only read run without asking; every other formext and formMCP tool asks first.
 
 ## Under the hood
 

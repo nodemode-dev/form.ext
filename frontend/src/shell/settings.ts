@@ -161,7 +161,7 @@ const SECTIONS: Section[] = [
           { kind: 'text', label: 'MCP server', path: '__mcp', ro: true, stack: true },
           { kind: 'select', label: 'Outside agents', path: 'agent_access', options: () => [['', 'Ask'], ['allowed', 'Allowed'], ['blocked', 'Blocked']] },
           { kind: 'note', html: 'The saved agent permission was changed outside form.ext, so it is back to Ask.', when: 'agentAccessReset' },
-          { kind: 'note', html: 'Claude Code, Codex and Cursor use the same engine through the command line and the MCP server, so a change an agent makes appears in the open window at once. With Ask, form.ext asks you in this window before an agent or the command line changes anything; reading always works, and without an open window the change is refused. Allowed lets them change projects without asking; Blocked refuses every change. The Studio\'s own Claude Code and Chat tabs are not outside agents and are not asked.' },
+          { kind: 'note', html: 'Claude Code, Codex and Cursor use the same engine through the command line and the MCP server, so a change an agent makes appears in the open window at once. With Ask, form.ext asks you in this window before an agent or the command line changes anything; reading always works, and without an open window the change is refused. Allowed lets them change projects without asking; Blocked refuses every change. The Studio\'s own Claude Code, Codex, Cursor and Chat tabs are not outside agents and are not asked, but Blocked stops their changes too.' },
         ],
       },
     ],
