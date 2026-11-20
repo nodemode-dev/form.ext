@@ -28,7 +28,7 @@ of these you want to do.
 Clone the repository and run `./formext_oc_install`, then `./formext` (or `formext_oc_install.bat` and `formext.bat`
 on Windows). The first installs the engine's virtual environment and the interface's packages; the second starts the
 engine on 127.0.0.1:8640 and the interface on http://localhost:5640. `./formext help` lists every command and
-`./formext doctor` checks the toolchain. `./formext agents install` sets up Claude Code, Codex and Cursor for working
+`./formext doctor` checks the toolchain. `./formext agents install` sets up Claude Code, Codex, Cursor and Antigravity for working
 on extensions in plain language; for working on form.ext itself, they load the `formext-skillset` skill.
 
 The code lives in:

@@ -11,15 +11,15 @@ import { isPaletteOpen } from './shell/palette';
 import { openSettings, settingsOpen } from './shell/settings';
 import { keyHeaders, windowHello } from './shell/window-key';
 
-type Kind = Exclude<PtyKind, 'agent'>;
+type Kind = Exclude<PtyKind, 'agent'> | 'antigravity';
 interface Row { id: string; title: string; cwd?: string; alive?: boolean; kind?: string }
 interface Program { installed: boolean; version: string | null; install: string; signedIn: boolean | null }
 interface ChatStatus extends Program { running: boolean; state: string; session: string | null; mode?: ChatMode; folder?: string; formmcp?: boolean }
 interface Ask { id: string; agent?: string; what?: string; tool?: string; title?: string; project?: string; answers?: string[]; always?: string; expires?: number }
 interface Access { access: string; requests: Ask[]; sealReset?: boolean }
 
-const KINDS: Kind[] = ['shell', 'claude', 'codex', 'cursor'];
-const NAMES: Record<Kind, string> = { shell: 'shell', claude: 'Claude Code', codex: 'Codex', cursor: 'Cursor' };
+const KINDS: Kind[] = ['shell', 'claude', 'codex', 'cursor', 'antigravity'];
+const NAMES: Record<Kind, string> = { shell: 'shell', claude: 'Claude Code', codex: 'Codex', cursor: 'Cursor', antigravity: 'Antigravity' };
 const CHOICES: ConsentChoice[] = ['deny', 'once', 'always'];
 const WINDOW_KEYS = ['Mod+K', 'Mod+,', 'Mod+Shift+H', 'Mod+Shift+P', 'Mod+Shift+L', 'Mod+Shift+O'];
 const ONCE_NOTE = 'Allow once lets this one call run.';
@@ -30,7 +30,7 @@ export interface DockDeps {
 }
 
 export interface StudioDock {
-  dock: Dock;
+  dock: Dock<'antigravity'>;
   terminals(): number;
 }
 
@@ -56,7 +56,7 @@ export function studioDock(ctx: ShellContext, deps: DockDeps): StudioDock {
   const open = new Map<string, Kind>();
   const project = (): string | undefined => ctx.project.current()?.id;
 
-  const record = (row: Row): DockTerminal => {
+  const record = (row: Row): DockTerminal<'antigravity'> => {
     const kind = kindOf(row.kind);
     open.set(row.id, kind);
     return { id: row.id, title: row.title, alive: row.alive !== false, kind, ...(row.cwd ? { tip: row.cwd } : {}) };
@@ -154,7 +154,7 @@ export function studioDock(ctx: ShellContext, deps: DockDeps): StudioDock {
   const chatLead = (s: ChatStatus): string =>
     `Ask Claude to make, check, preview, package or run an extension in the line below. It works ${s.folder ? `in ${s.folder}, ` : ''}through the formext tools${s.formmcp ? ' and formMCP' : " (formMCP is not installed, so the host apps' own tools are out of reach)"}. Every call shows here and each file change shows in the editor.`;
 
-  const adapter: DockAdapter = {
+  const adapter: DockAdapter<'antigravity'> = {
     words: {
       app: 'form.ext',
       noun: 'extension',
@@ -173,7 +173,7 @@ export function studioDock(ctx: ShellContext, deps: DockDeps): StudioDock {
     passKey: (event) => WINDOW_KEYS.some((keys) => matchKeys(event, keys)),
     isDockChord: (event) => matchKeys(event, 'Mod+J') && !isDialogOpen() && !isPaletteOpen() && !settingsOpen(),
     chordLabel: () => keyLabel('Mod+J').join(isMac ? '' : '+'),
-    tabs: () => ({ builtin: ['chat', 'shell', 'claude', 'codex', 'cursor'] }),
+    tabs: () => ({ builtin: ['chat', 'shell', 'claude', 'codex', 'cursor', 'antigravity'] }),
     classes: { iconButton: 'fx-dock-ibtn', button: 'btn sm', primaryButton: 'primary', input: 'input', select: 'select', note: 'fx-dock-note' },
     t: (_key, english) => english,
     onTheme: (handler) => {
@@ -208,16 +208,18 @@ export function studioDock(ctx: ShellContext, deps: DockDeps): StudioDock {
       channel,
       scrollback: 5000,
     },
-    agentStatus: async (): Promise<DockAgentStatus | null> => {
+    agentStatus: async (): Promise<DockAgentStatus<'antigravity'> | null> => {
       if (demo()) return null;
-      const status = await api.get<{ claude?: Program; codex?: Program; cursor?: Program }>('/api/agents/status');
-      const out: DockAgentStatus = {};
+      const status = await api.get<{ claude?: Program; codex?: Program; cursor?: Program; antigravity?: Program }>('/api/agents/status');
+      const out: DockAgentStatus<'antigravity'> = {};
       const claude = program(status.claude);
       const codex = program(status.codex);
       const cursor = program(status.cursor);
+      const antigravity = program(status.antigravity);
       if (claude) out.claude = claude;
       if (codex) out.codex = codex;
       if (cursor) out.cursor = cursor;
+      if (antigravity) out.antigravity = antigravity;
       return out;
     },
     chat: {

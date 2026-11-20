@@ -5,6 +5,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import stand_ins
+
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = ROOT / "setup" / "hosts.py"
 SPEC = ROOT / "setup" / "family.spec.json"

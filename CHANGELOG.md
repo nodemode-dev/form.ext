@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.7.0 · 2026-11-19
+
+Antigravity joins Claude Code, Codex and Cursor, and form.ext finds these programs however it was started.
+
+- **Antigravity:** Google's Antigravity (the `agy` program) is the fourth agent program form.ext works with. The terminal panel shows an Antigravity button when the program is installed, and it opens in a tab of its own. `./formext agents install` also connects Antigravity, by adding form.ext's MCP server (and formMCP when it is installed) to `~/.gemini/config/mcp_config.json`; everything else in that file is kept, and a server of the same name that form.ext did not write is left alone.
+- **Agent programs are found wherever they are installed:** an app started from the Dock, the Start menu or a desktop launcher does not get the PATH a terminal has, so form.ext could call an installed Claude Code, Codex or Cursor missing. It now also looks in the folders these programs are usually installed to and in the PATH of your own shell. When a program is not found, the message says where form.ext looked; when it is found but does not start, the message says so and gives the program's own error line.
+- **The engine starts without a console:** an engine that is started with no output streams, as a desktop build on Windows starts it, no longer stops at start.
+- **Behaves differently:** an Antigravity tab does not open in the project's folder. It opens in a folder of form.ext's own inside the data folder, because Antigravity reads its connection to form.ext from a file in its working folder and that file should not be written into your project. Chat is now started through your login shell, as the tabs already were. A program that is installed but cannot start is no longer offered as installed.
+- **For agents:** the status answer for the agent programs lists four and says for each whether it runs, is broken or is missing, how it was found and where the search looked. `agents/manifest.json` lists the panel's six kinds of tab. `./formext agents status` has an Antigravity section.
+- **Kept in step:** the terminal panel's files were replaced by the family's next version of them, unchanged, and the part that finds the agent programs is one file shared by the family's apps; `./formext agents sync --check` fails, naming the file, when either differs from its recorded copy.
+- **Docs:** README, the manual, the wiki pages and the help texts name four agent programs.
+- Checked here: with stand-ins for all four programs, on a scratch data folder and home: the status with the programs present, missing and broken; Codex, Claude Code and Antigravity tabs opened through the engine; the Antigravity tab's connection written and removed again with the rest of its file untouched; `agents install` for Antigravity; the engine started with its output streams closed and started normally; the tests in `tests/` (29, none of which can start a real agent program), the agents check and the frontend type check.
+- Not verified yet: the real Antigravity, Claude Code, Codex and Cursor (stand-ins only), the Antigravity button and tab in a window (not looked at in a browser), the desktop shell (not compiled on the build machine), a production build, Windows and macOS.
+
 ## v0.6.0 · 2026-11-19
 
 The Studio's Terminal tab is now the terminal panel every Form app shares, and it has Codex and Cursor tabs.

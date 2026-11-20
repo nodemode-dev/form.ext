@@ -20,7 +20,7 @@ usage: ./formext [command] [options]
   cli ...             the formext command line (new, validate, preview, package, sign, run-in-app, publish); cli --help
   mcp ...             the formext MCP server on stdio, for Claude Code and other MCP clients
   claude [args]       Claude Code in this folder, already connected to the formext tools (and formMCP when it is installed)
-  agents install|status|sync  set up Claude Code, Codex and Cursor for making extensions in plain language (install), say what is set up (status), or refresh the skill references and the .agents mirror (sync [--check])
+  agents install|status|sync  set up Claude Code, Codex, Cursor and Antigravity for making extensions in plain language (install), say what is set up (status), or refresh the skill references and the .agents mirror (sync [--check])
   doctor              check the toolchain, installs and ports
   version             the version (also --version)
   help                this text

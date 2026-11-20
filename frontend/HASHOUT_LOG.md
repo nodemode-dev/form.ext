@@ -2,8 +2,8 @@
 
 Living log for the interface: the shell, the shared styles and the build files. Source files stay comment-free; what they would have said lives here. Each pane keeps its own `src/panes/<name>/HASHOUT_LOG.md`.
 
-Current build version: v0.6.0
-Last updated: 2026-11-19 · v0.6.0 the Form family's shared terminal panel and its question for outside agents (#family-panel). Before: v0.5.0 the window key, the question for outside agents and AMOLED Black (#window-key, #agent-consent, #amoled). Before: v0.4.1 the demo's `engine/kit.ts` refuses an `entry.ui` ending in `/` (`demo/HASHOUT_LOG.md`). Before: v0.4.0 the host source row in the Studio and Open pull request in Publish (`panes/studio/HASHOUT_LOG.md#source`, `panes/publish/HASHOUT_LOG.md#pull-request`). Before: v0.3.1 the version only. Before: v0.3.0 the demo opens in the app (#in-app-demo). Before: v0.2.1 the README's screenshots and the community files
+Current build version: v0.7.0
+Last updated: 2026-11-19 · v0.7.0 the shared panel at module 2.2.0 and Antigravity as the fourth agent tab (#panel-four). Before: v0.6.0 the Form family's shared terminal panel and its question for outside agents (#family-panel). Before: v0.5.0 the window key, the question for outside agents and AMOLED Black (#window-key, #agent-consent, #amoled). Before: v0.4.1 the demo's `engine/kit.ts` refuses an `entry.ui` ending in `/` (`demo/HASHOUT_LOG.md`). Before: v0.4.0 the host source row in the Studio and Open pull request in Publish (`panes/studio/HASHOUT_LOG.md#source`, `panes/publish/HASHOUT_LOG.md#pull-request`). Before: v0.3.1 the version only. Before: v0.3.0 the demo opens in the app (#in-app-demo). Before: v0.2.1 the README's screenshots and the community files
 
 ---
 
@@ -172,6 +172,20 @@ The engine refuses every POST, PUT, PATCH and DELETE without the header `X-Forme
 Sockets: the terminal stream and the Chat stream send `windowHello()` (`{"type": "window", "key"}`) as their first message on open; the engine closes them with 4403 otherwise. `/api/live` carries only events and stays as it was. There are no other raw `fetch`, XHR, `sendBeacon` or `EventSource` calls outside `api.ts` and the demo (whose `demo/inapp.ts` reads its own static files). Nothing is drawn, so nothing moves.
 
 Checked in headless Chrome against Vite and a running engine: the page boots (Home), claims the key once, `PUT /api/settings` and a terminal from the page succeed with the header, the terminal socket echoes a command after the hello, a reload writes with the stored key and claims nothing, and after the engine restarts the first write is refused, reclaimed and retried. Not checked: the packaged window (no shell build here).
+
+## The shared panel at module 2.2.0, and Antigravity as the fourth agent tab {#panel-four}
+
+- refers-to: src/dock/ · src/dock-adapter.ts · ../setup/agents.py · ../agents/manifest.json · ../tests/test_dock_module.py · ../backend/HASHOUT_LOG.md#antigravity-tab
+- kind: decision
+- logged: v0.7.0 · 2026-11-19
+
+`src/dock/` is now module 2.2.0, copied whole from FormVis (commit ddc893ae; 15 files and `MANIFEST.json`, each hash checked against the manifest; `agents.ts` is new) and still never edited here. `setup/agents.py` `DOCK_VERSION` says 2.2.0. This supersedes "module 2.1.0" in #family-panel below; the rest of that entry holds. In 2.2.0 the panel takes its agent kinds from the adapter, so a fourth program is the adapter's to name.
+
+The adapter is `DockAdapter<'antigravity'>`: `tabs().builtin` lists `antigravity` after `cursor`, `agentStatus()` passes the engine's `antigravity` answer on (`signedIn` stays null), the terminal record is `DockTerminal<'antigravity'>`, and `terminal.open('antigravity', ...)` goes to the same `POST /api/terminal/agent` as Codex and Cursor. `StudioDock.dock` is `Dock<'antigravity'>`. `keyHeaders: () => ({})` was left as it is (2.2.0 makes it optional). The optional steps of the module's moving notes (automation ids, `status` on a record, `note`) were not taken.
+
+`agents/manifest.json` lists the tab (`dock.tabs`), written by `./formext agents sync`; `tests/test_dock_module.py` now expects 15 files in the module's manifest and the tab list with `antigravity`, because both are what this change makes true.
+
+Checked: `tsc --noEmit` with the repository's `tsconfig.json` on a copy of `frontend/` outside the tree, 0 errors. Not looked at in a browser, and no build was made: the button, the row in the menu and the tab were not seen in a window. The engine side was run (backend log).
 
 ## The shared terminal panel and its question dialog {#family-panel}
 

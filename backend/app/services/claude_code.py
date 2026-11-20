@@ -8,22 +8,21 @@ import json
 import logging
 import os
 import secrets
-import shlex
-import shutil
 import subprocess
 import sys
 import threading
 import time
-from pathlib import Path
 
 from app.cli import allowed_tools
-from app.services import agents, consent, paths, sources, terminal
+from app.services import agent_lookup, agents, consent, paths, sources, terminal
 from app.services.workspace import WorkspaceError, workspace
 
 log = logging.getLogger("formext.claude_code")
-KEEP_ENV = {"CLAUDE_CODE_OAUTH_TOKEN", "CLAUDE_CODE_USE_BEDROCK", "CLAUDE_CODE_USE_VERTEX", "CLAUDE_CONFIG_DIR"}
-CANDIDATES = (".claude/local/claude", ".local/bin/claude", ".npm-global/bin/claude", ".bun/bin/claude", ".volta/bin/claude")
-SYSTEM_PATHS = ("/opt/homebrew/bin/claude", "/usr/local/bin/claude", "/usr/bin/claude")
+KEEP_ENV = agent_lookup.KEEP_ENV
+OVERRIDES = {"claude": ("FORMEXT_CLAUDE_BIN",), "codex": ("FORMEXT_CODEX_BIN",), "cursor": ("FORMEXT_CURSOR_BIN",), "antigravity": ("FORMEXT_ANTIGRAVITY_BIN",)}
+SHELL_WAIT = 10.0
+CHECK_WAIT = 15.0
+OTHERWISE = ""
 MODES = {"ask": "manual", "auto-edits": "acceptEdits", "plan": "plan"}
 INSTALL = "irm https://claude.ai/install.ps1 | iex" if sys.platform == "win32" else "curl -fsSL https://claude.ai/install.sh | bash"
 MISSING = f"Claude Code is not installed. Install it with: {INSTALL}"
@@ -58,41 +57,46 @@ def project_folder(project: str | None) -> str:
     return str(terminal.workroot())
 
 
-def child_env() -> dict:
-    env = {k: v for k, v in os.environ.items() if not k.startswith("CLAUDE") or k in KEEP_ENV}
-    if terminal.source_checkout():
-        env["CLAUDE_PROJECT_DIR"] = str(paths.repo_root())
-        env["PATH"] = str(paths.repo_root()) + os.pathsep + env.get("PATH", "")
-    return env
+def own_front() -> list:
+    return [paths.repo_root()] if terminal.source_checkout() else []
+
+
+def own_extra() -> dict:
+    return {"CLAUDE_PROJECT_DIR": str(paths.repo_root())} if terminal.source_checkout() else {}
+
+
+def child_env(path: str | None = None) -> dict:
+    return agent_lookup.child_env(path, front=own_front(), extra=own_extra(), shell_timeout=SHELL_WAIT)
+
+
+def setting(kind: str) -> str | None:
+    return None
+
+
+def located(kind: str, fresh: bool = False) -> agent_lookup.Found:
+    """One of the agent programs, found by the family's finder and asked for its version in the child environment."""
+    found = agent_lookup.find(kind, setting=setting(kind), override_vars=OVERRIDES.get(kind, ()), shell_timeout=SHELL_WAIT, fresh=fresh)
+    return agent_lookup.check(found, child_env(found.path), CHECK_WAIT, fresh)
+
+
+def usable(kind: str) -> agent_lookup.Found:
+    found = located(kind)
+    return found if found.state == "runs" else located(kind, fresh=True)
+
+
+def said(found: agent_lookup.Found) -> str:
+    return agent_lookup.sentence(found, agent_lookup.install(found.program), OTHERWISE)
 
 
 def cli() -> str | None:
-    found = os.environ.get("FORMEXT_CLAUDE_BIN") or shutil.which("claude")
-    if found:
-        return found
-    home = Path.home()
-    for p in [home / c for c in CANDIDATES] + [Path(s) for s in SYSTEM_PATHS]:
-        if p.is_file() and os.access(p, os.X_OK):
-            return str(p)
-    return _from_login_shell()
-
-
-def _from_login_shell() -> str | None:
-    if os.name == "nt":
-        return None
-    try:
-        out = subprocess.run(terminal.login_shell() + ["-c", "command -v claude"], capture_output=True, text=True, timeout=10, env=child_env(), stdin=subprocess.DEVNULL)
-    except (OSError, subprocess.SubprocessError):
-        return None
-    found = out.stdout.strip().splitlines()[-1:] if out.returncode == 0 else []
-    return found[0] if found and os.path.isabs(found[0]) else None
+    return located("claude").path
 
 
 def _signed_in(path: str) -> bool | None:
     if os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("CLAUDE_CODE_OAUTH_TOKEN"):
         return True
     try:
-        out = subprocess.run([path, "auth", "status"], capture_output=True, text=True, timeout=15, env=child_env())
+        out = agent_lookup.run([path, "auth", "status"], child_env(path), CHECK_WAIT)
     except (OSError, subprocess.SubprocessError):
         return None
     try:
@@ -105,16 +109,9 @@ def _signed_in(path: str) -> bool | None:
 def info(fresh: bool = False) -> dict:
     if not fresh and _cache["value"] is not None and time.time() - _cache["at"] < 60:
         return _cache["value"]
-    path, version, signed = cli(), None, None
-    if path:
-        try:
-            out = subprocess.run([path, "--version"], capture_output=True, text=True, timeout=15, env=child_env())
-            version = (out.stdout.strip().split() or [None])[0]
-        except (OSError, subprocess.SubprocessError):
-            path = None
-    if path:
-        signed = _signed_in(path)
-    _cache["value"], _cache["at"] = {"installed": bool(path), "path": path, "version": version, "signedIn": signed, "install": INSTALL, "formmcp": agents.formmcp_command() is not None}, time.time()
+    found = located("claude", fresh)
+    signed = _signed_in(found.path) if found.state == "runs" else None
+    _cache["value"], _cache["at"] = agent_lookup.answer(found, INSTALL, OTHERWISE) | {"signedIn": signed, "install": INSTALL, "formmcp": agents.formmcp_command() is not None}, time.time()
     return _cache["value"]
 
 
@@ -351,7 +348,7 @@ def start(mode: str = "ask", fresh: bool = False, port: int | None = None, proje
         raise ValueError("The mode is ask, auto-edits or plan.")
     found = info()
     if not found["installed"]:
-        raise LookupError(MISSING)
+        raise LookupError(found["said"])
     folder = project_folder(project)
     running = AGENT.proc is not None and AGENT.proc.poll() is None
     if running and AGENT.mode == mode and not fresh and AGENT.project == project:
@@ -377,7 +374,7 @@ def start(mode: str = "ask", fresh: bool = False, port: int | None = None, proje
     AGENT.names.clear()
     set_state("starting")
     try:
-        proc = subprocess.Popen(args, cwd=folder, env=child_env(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
+        proc = subprocess.Popen(agent_lookup.start_argv(args), cwd=folder, env=child_env(found["path"]), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
     except OSError as exc:
         consent.close_tab(AGENT.token)
         AGENT.token = None
@@ -427,14 +424,12 @@ _open_lock = threading.Lock()
 
 
 def program() -> str | None:
-    path = cli()
-    return path if path and os.path.isfile(path) and os.access(path, os.X_OK) else None
+    found = located("claude")
+    return found.path if found.state == "runs" else None
 
 
-def terminal_env(port: int) -> dict:
-    return {k: v for k, v in terminal.base_env(port).items() if not k.startswith("CLAUDE") or k in KEEP_ENV} | (
-        {"CLAUDE_PROJECT_DIR": str(paths.repo_root())} if terminal.source_checkout() else {}
-    )
+def terminal_env(port: int, path: str | None = None, extra: dict | None = None) -> dict:
+    return agent_lookup.child_env(path, base=terminal.base_env(port), front=own_front(), extra=own_extra() | (extra or {}), shell_timeout=SHELL_WAIT)
 
 
 def terminal_argv(path: str, mcp_file: str, folder: str, project: str | None, prompt: str | None, resume: str | None) -> list[str]:
@@ -443,9 +438,7 @@ def terminal_argv(path: str, mcp_file: str, folder: str, project: str | None, pr
         cmd += ["--resume", resume]
     if prompt:
         cmd.append(prompt)
-    if os.name == "nt":
-        return cmd
-    return terminal.login_shell() + ["-c", "exec " + shlex.join(cmd)]
+    return agent_lookup.start_argv(cmd)
 
 
 def open_terminal(port: int, prompt: str | None = None, resume: str | None = None, cols: int = 100, rows: int = 30,
@@ -459,13 +452,14 @@ def open_terminal(port: int, prompt: str | None = None, resume: str | None = Non
             if prompt:
                 terminal.write(running.id, prompt.replace("\r\n", "\n").replace("\r", "\n") + "\r")
             return running.describe()
-        path = program()
-        if path is None:
-            raise LookupError(MISSING)
+        found = usable("claude")
+        if found.state != "runs":
+            raise LookupError(said(found))
+        path = found.path
         title = "Claude Code (from Chat)" if resume else "Claude Code"
         token, mcp_file = tab_config(port)
         try:
-            session = terminal.open_session(folder, cols, rows, title, terminal_argv(path, mcp_file, folder, project, prompt, resume), terminal_env(port), "claude")
+            session = terminal.open_session(folder, cols, rows, title, terminal_argv(path, mcp_file, folder, project, prompt, resume), terminal_env(port, path), "claude")
         except BaseException:
             consent.close_tab(token)
             raise

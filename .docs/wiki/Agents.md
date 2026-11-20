@@ -26,7 +26,7 @@ The tools added for the apps' real source and for the registry:
 
 ## Connect
 
-`./formext claude` starts Claude Code in the repository with formext (and formMCP when found) connected. `./formext agents install` registers the MCP servers and copies the skills for your account in Claude Code, Codex and Cursor (`--dry-run` shows the changes; files are backed up first). `./formext agents status` reports what it found. `./formext agents sync` regenerates the tool reference and mirrors `.claude/skills` to `.agents/skills`; `--check` exits 1 on drift.
+`./formext claude` starts Claude Code in the repository with formext (and formMCP when found) connected. `./formext agents install` registers the MCP servers and copies the skills for your account in Claude Code, Codex and Cursor, and the servers alone for Antigravity (`--dry-run` shows the changes; files are backed up first). `./formext agents status` reports what it found. `./formext agents sync` regenerates the tool reference and mirrors `.claude/skills` to `.agents/skills`; `--check` exits 1 on drift.
 
 formMCP (`formmcp mcp`) is the family hub that reaches every installed Form app's tools. It is a separate app; when it is missing its entry shows as unavailable and the formext server still works.
 
@@ -56,7 +56,7 @@ The Studio's bottom panel has Terminal, Claude Code and Chat tabs. They run in t
 
 ## Outside agents
 
-An outside agent is any program that reaches form.ext from outside the app: Claude Code, Codex or Cursor through `./formext mcp`, any other MCP client through the engine, and `./formext cli` itself. Of the 33 MCP tools, the 19 that only read always run. The 14 that change something follow one setting, Settings, Developer, Outside agents:
+An outside agent is any program that reaches form.ext from outside the app: Claude Code, Codex, Cursor or Antigravity through `./formext mcp`, any other MCP client through the engine, and `./formext cli` itself. Of the 33 MCP tools, the 19 that only read always run. The 14 that change something follow one setting, Settings, Developer, Outside agents:
 
 | Setting | What happens when an outside agent changes something |
 | --- | --- |

@@ -13,4 +13,4 @@ echo [formext] interface: frontend\node_modules
 pushd frontend
 call npm ci --no-audit --no-fund
 popd
-echo [formext] done. Start with formext.bat (then open http://localhost:5640); formext.bat agents install connects Claude Code, Codex and Cursor
+echo [formext] done. Start with formext.bat (then open http://localhost:5640); formext.bat agents install connects Claude Code, Codex, Cursor and Antigravity
