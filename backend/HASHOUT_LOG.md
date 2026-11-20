@@ -2,6 +2,13 @@
 
 The living log of the form.ext engine. Read it before editing `backend/`. Core files belong to the engine module; module routers and services (`routers/<module>.py`, `services/<module>.py`) keep their own notes in their own HASHOUT logs.
 
+## Unreleased: the engine starts without output streams {#no-streams}
+
+- refers-to: formext_engine.py
+- Why: an engine built without a console on Windows has `sys.stdout` and `sys.stderr` set to None, and a tester's engine in another Form app stopped at start for that reason. The same start here failed the same way: with the three streams closed the entry exited with code 1 before it answered anything.
+- `formext_engine.py` is the file the packaging freezes as the engine. Right after its standard-library imports and before anything of the app is imported, a stream that is None (`stdin`, `stdout`, `stderr`) is replaced by the null device, the way FormWeb's entry does it. Nothing else changes: with real streams the three lines do nothing.
+- Run on Linux, from source: the entry started with its three streams closed (`<&- >&- 2>&-`), a scratch port, data folder and home, answered `GET /api/health` and stopped on request; before the change the same start exited with code 1 and never answered. Not run: Windows, a frozen build, the desktop shell.
+
 ## Unreleased: an Antigravity tab, and Antigravity as a fourth target of `agents install` {#antigravity-tab}
 
 - refers-to: app/services/agent_programs.py; app/routers/terminal.py; ../setup/agents.py; ../agents/manifest.json; ../tests/test_agent_programs.py; ../frontend/HASHOUT_LOG.md#panel-four
