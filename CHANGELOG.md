@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.10.0 · 2026-11-20
+
+form.ext understands the Form family's shared style names, its browser demo is rebuilt, and the README says it is released.
+
+- **Shared style names:** every style name FormVis uses now works in form.ext too, each one following form.ext's own colours, sizes and three themes, so a panel shared across the family looks right here without changes. Nothing in form.ext looks different: the screens were compared before and after in Studio Dark, light and AMOLED Black.
+- **The browser demo is rebuilt:** the demo you open from `demo/index.html` now shows this version and everything added since 0.4.1, and it opens with no error in the browser's console (it no longer asks for a window key that only the app has).
+- **The README's status** now says released, built and tested on macOS, Windows and Linux (the owner's statement).
+- Checked here: on Linux, the demo built before and after and opened in three themes and three views, the value of every style name compared, the tests in `tests/` (41, none of which can start a real agent program), the agents check, the engine's self check, the hosts check and the frontend build as the repository's own checks run them.
+- Not verified by this release: the desktop shell was not compiled on the build machine. No real agent program was run.
+
 ## v0.9.0 · 2026-11-20
 
 The Windows engine opens no console window, the app waits a shorter time for its engine, and the terminal panel's guide names all four agent programs.
