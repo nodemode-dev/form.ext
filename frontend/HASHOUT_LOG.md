@@ -173,6 +173,16 @@ Sockets: the terminal stream and the Chat stream send `windowHello()` (`{"type":
 
 Checked in headless Chrome against Vite and a running engine: the page boots (Home), claims the key once, `PUT /api/settings` and a terminal from the page succeed with the header, the terminal socket echoes a command after the hello, a reload writes with the stored key and claims nothing, and after the engine restarts the first write is refused, reclaimed and retried. Not checked: the packaged window (no shell build here).
 
+## FormVis token names, names only {#fv-names}
+
+- refers-to: src/styles/tokens.css
+- kind: decision
+- logged: unreleased · 2026-11-20
+
+form.ext keeps its own palette and its three themes, and every token name of FormVis's token file (`frontend/src/styles/tokens.css` at FormVis `origin/main`, 154 names) now resolves here, so a stylesheet or a shared module written in FormVis's names works in form.ext unchanged. 54 of those names were already defined and keep form.ext's values, the z-index values included (`--z-raised` 100, `--z-chrome` 300, `--z-overlay` 600, `--z-toast` 800 and the rest of the site scale). The other 100 are one block after the form.ext block, each defined from a form.ext token where one means the same thing, otherwise with FormVis Studio Dark's value: `--bg-node` and `--surface-2` from `--raise`, `--canvas-bg` from `--main`, `--cta-bg`, `--cta-text` and `--text-on-cta` from the primary button's `--pri-bg` and `--pri-ink`, `--cta-bg-hover` with the primary button's own hover mix, `--transition-fast`, `--transition-normal` and `--ease-glass` from `--dur-fast`, `--dur` and `--ease-out`, `--space-8` from `--sp-6`, `--ok` from `--success`, `--warn` from `--warning`, `--danger` from `--error`, `--z-under` from `--z-behind`, `--z-modal` and `--z-settings` from `--z-dialog`, `--z-context` from `--z-menu`, and `--cv-titlebar-h`, `--cv-status-h`, `--cv-rail-w`, `--cv-row-h` from `--title-h`, `--statusbar-h`, `--sidebar-rail-w`, `--row`. FormVis's derived names (`--surface-*`, `--line-*`, `--accent-soft` and its kin, `--glass-*`) keep FormVis's expressions, which read form.ext's own `--bg-*`, `--border-*`, `--text-*` and accent, so they follow every theme. `--fs-16` and `--fs-18` are pixels, because this root's `rem` is 13px. FormVis's light-theme values of `--group-head`, `--line-0` and `--surface-raised` and its true-black values of `--surface-1` and `--line-0` sit under `[data-theme="light"]` and `[data-oled]`. No existing name was given another value and no rule was changed; nothing in form.ext reads the new names yet (the `--ok`, `--warn` and `--danger` in `src/sim/apps/` are keys of the simulated apps' own token maps, not reads of this root).
+
+Checked: the browser demo built from the tip before and after, opened from `file://` at 1440 by 900 in Studio Dark, light and AMOLED Black on Home, the Studio with Golden Hour and Docs: the resolved value of all 344 names on the root was dumped in each theme; the 244 that resolved before are unchanged and the 100 new ones resolve; the nine screenshots are the same bytes.
+
 ## The shared panel at module 2.2.1 {#panel-221}
 
 - refers-to: src/dock/ · ../setup/agents.py · ../tests/test_dock_module.py · ../docs/MANUAL.md
