@@ -1,6 +1,7 @@
 import importlib
 import inspect
 import json
+import logging
 import os
 import sys
 import threading
@@ -316,19 +317,21 @@ def file_lock_taken(lock_file) -> bool:
         return False
 
 
-def watch_parent() -> None:
-    if os.name != "posix" or os.environ.get("FORMEXT_WATCH_PARENT", "1") == "0":
-        return
-    parent = os.getppid()
-    if parent <= 1:
+def watch_shell(data) -> None:
+    from app.services import runtime, startup
+
+    shell = startup.shell_pid()
+    if not shell and os.name == "posix" and os.environ.get("FORMEXT_WATCH_PARENT", "1") != "0":
+        shell = os.getppid()
+    if shell <= 1:
         return
 
-    def run() -> None:
-        while os.getppid() == parent:
-            time.sleep(2)
+    def leave() -> None:
+        logging.getLogger("formext").info("the app that started this engine is gone (process %s), stopping", shell)
+        runtime.release(data)
         os._exit(0)
 
-    threading.Thread(target=run, name="formext-parent-watch", daemon=True).start()
+    startup.watch(shell, leave)
 
 
 def announce_port(server, data) -> None:
@@ -368,30 +371,60 @@ def passthrough(module_name: str, argv: list[str]) -> int:
 
 
 def serve() -> int:
+    from pathlib import Path
+
+    from app.services import paths, runtime, startup
+
+    try:
+        data = paths.home()
+        logs = runtime.start_logging(data).parent
+    except OSError as err:
+        print(f"formext cannot use its data folder: {err}", file=sys.stderr)
+        return 5
+    startup.keep_errors(logs)
+    log = logging.getLogger("formext")
+    if startup.alone():
+        beside = startup.app_beside(Path(sys.executable))
+        if beside is not None and startup.open_app(beside):
+            log.info("started without its app, so it opened %s and stopped", beside)
+            return 0
+        log.error("started without its app, and no app program was found near %s", sys.executable)
+        print("formext-engine is a part of form.ext and serves nothing on its own. Open form.ext instead.", file=sys.stderr)
+        return 4
+    try:
+        runtime.claim(data)
+    except startup.Busy as err:
+        log.error("%s", err)
+        print(err, file=sys.stderr)
+        return 2
     bundled = os.path.join(resource_dir(), "frontend_dist")
     if os.path.isdir(bundled):
         os.environ.setdefault("FORMEXT_DIST", bundled)
     os.environ.setdefault("FORMEXT_DESKTOP", "1")
-    watch_parent()
+    watch_shell(data)
+    import signal
+
     import uvicorn
 
     from app.main import app as fastapi_app
-    from app.services import paths, window_key
+    from app.services import window_key
+
+    def leave(_signum, _frame) -> None:
+        runtime.release(data)
+        os._exit(0)
+
+    signal.signal(signal.SIGTERM, leave)
 
     host = os.environ.get("FORMEXT_HOST", "127.0.0.1")
     port = int(os.environ.get("FORMEXT_PORT", "8640") or 0)
     server = uvicorn.Server(uvicorn.Config(fastapi_app, host=host, port=port, log_level="info"))
-    data = paths.home()
+    runtime.start_logging(data)
     window_key.announce()
     announce_port(server, data)
     try:
         server.run()
     finally:
-        try:
-            if json.loads((data / PORT_NAME).read_text(encoding="utf-8")).get("pid") == os.getpid():
-                (data / PORT_NAME).unlink()
-        except (OSError, ValueError, AttributeError):
-            pass
+        runtime.release(data)
     return 0 if server.started else 3
 
 
@@ -408,7 +441,11 @@ def main() -> int:
         return passthrough("app.cli", args[1:])
     if args and args[0] == "mcp":
         return passthrough("app.mcp", args[1:])
-    return serve()
+    try:
+        return serve()
+    except Exception:
+        logging.getLogger("formext").exception("the engine stopped on an error")
+        raise
 
 
 if __name__ == "__main__":

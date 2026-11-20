@@ -1,6 +1,6 @@
 [package]
 name = "formext"
-version = "0.7.0"
+version = "0.8.0"
 description = "form.ext desktop shell"
 authors = ["NodeAgentc, Inc."]
 license = "GPL-3.0-only"
@@ -17,6 +17,9 @@ tauri-plugin-dialog = "2"
 tauri-plugin-single-instance = "2"
 regex = "1"
 serde_json = "1"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_Security", "Win32_System_JobObjects", "Win32_System_Threading"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"

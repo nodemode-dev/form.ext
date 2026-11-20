@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.8.0 · 2026-11-19
+
+form.ext starts and stops cleanly beside its engine, on Windows too, and a start that fails says why.
+
+- **Nothing is left running after a quit:** on Windows the engine and everything it started (terminals, agent programs) now end when the app ends, however it ends, a quit and Task Manager alike. On every system the engine watches the app that started it and stops within about two seconds when that app is gone.
+- **A start that fails says why:** when the app cannot start, a dialog now says what happened (the engine program is missing, it could not be started, it stopped and with which code, another copy holds the data folder, or the app waited too long), shows the engine's last lines and gives the path of the engine's log. The app goes only after the dialog is closed. Before, the app could close without a word.
+- **One engine per data folder:** an engine that is started while another one serves the same data folder for a running app stops with one sentence that names the other. An engine that was left behind by an app that is gone is ended and replaced.
+- **A double click on the engine opens the app:** the engine program in the install folder serves nothing on its own. Started by hand, it opens form.ext and stops, or says that it is a part of form.ext when the app is not near it.
+- **The engine keeps a log:** `Logs/formext-engine.log` in the data folder, with the last three files kept. When the engine has no error output of its own, its errors go to `Logs/formext-engine-errors.log` beside it.
+- **Behaves differently:** the app now waits at most 120 seconds for its engine to come up and then shows the dialog; before, it waited without limit. The development engine (`./formext boot`) is not affected by any of this: it has no log file, takes no lock and runs beside the desktop app as before.
+- **Not covered:** an engine left behind by 0.7.0 or older is not found by the first start after the update, because those versions wrote no lock. It does not stop 0.8.0 from opening; end it in Task Manager or restart the computer once.
+- Checked here: on Linux, with stand-ins for the app: a second engine refused while the first kept serving, the engine gone about a second after its app, a stuck engine replaced, damaged lock files replaced, the engine started alone with and without an app near it, the engine with no output streams, and a normal start; the tests in `tests/` (40, none of which can start a real agent program); the Windows-only code checked against the Windows interfaces without being run; the engine's self check, the hosts check and the frontend build as the repository's own checks run them.
+- Not verified yet: anything on Windows or macOS. The desktop shell was not compiled on the build machine, so the release build is its first compile. No real agent program was run.
+
 ## v0.7.0 · 2026-11-19
 
 Antigravity joins Claude Code, Codex and Cursor, and form.ext finds these programs however it was started.
