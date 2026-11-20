@@ -14,13 +14,13 @@
 </p>
 
 <p align="center">
-  <img alt="version 0.9.0" src="https://img.shields.io/badge/version-0.9.0-4f6bff?style=flat-square">
+  <img alt="version 0.10.0" src="https://img.shields.io/badge/version-0.10.0-4f6bff?style=flat-square">
   <img alt="Python FastAPI engine" src="https://img.shields.io/badge/Python-FastAPI%20engine-3776ab?style=flat-square&logo=python&logoColor=white">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-interface-3178c6?style=flat-square">
   <img alt="Tauri 2" src="https://img.shields.io/badge/Tauri-2-24C8DB?style=flat-square">
   <img alt="Extension API 1" src="https://img.shields.io/badge/extension%20API-1-4f6bff?style=flat-square">
   <img alt="License: GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-3a3a3a?style=flat-square">
-  <img alt="Status: in development" src="https://img.shields.io/badge/status-in%20development-d69e2e?style=flat-square">
+  <img alt="Status: released" src="https://img.shields.io/badge/status-released-d69e2e?style=flat-square">
 </p>
 
 <p align="center">
@@ -215,7 +215,7 @@ cd form.ext
 Ports: interface 5640 (Vite, localhost only), engine 8640 (`FORMEXT_PORT`). `./formext serve` serves a production build from the engine alone, `./formext desktop dev` opens the desktop window, and `./formext doctor` checks the toolchain. `FORMEXT_HOME` moves the data folder.
 
 > [!IMPORTANT]
-> **Status:** in development. Run in App and Send to FormPortal need FormPortal and the Form apps installed on the same computer.
+> **Status:** released. form.ext is built and bundled for macOS, Windows and Linux and has been tested on all three. Run in App and Send to FormPortal need FormPortal and the Form apps installed on the same computer.
 
 **Contributing:** changes to the studio, its starters and its SDK come here as pull requests into `main`; extensions you made go to [form.ext-registry](https://github.com/nodemode-dev/form.ext-registry) instead, and changes to the contract go to the Form Extension Contract kit first. See [`CONTRIBUTING.md`](CONTRIBUTING.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) and [`AGENTS.md`](AGENTS.md). Report security issues privately as [`SECURITY.md`](SECURITY.md) describes.
 

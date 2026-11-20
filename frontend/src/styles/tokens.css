@@ -329,3 +329,125 @@
   --warning: #a16207;
   --info: #1d4ed8;
 }
+
+:root {
+  --bg-node: var(--raise);
+  --canvas-bg: var(--main);
+  --grid-color: #5e5e60;
+  --node-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  --grid-size: 24px;
+  --node-opacity: 1;
+  --connection-width: 2.5px;
+  --canvas-bg-image: none;
+
+  --handle-text: #d946ef;
+  --handle-image: #5eead4;
+  --handle-array: #9ca3af;
+  --handle-video: #1120aa;
+  --handle-audio: #ff8b1f;
+  --handle-3d: #eab308;
+  --handle-number: #2eff3f;
+  --handle-list: #f7e81c;
+  --handle-boolean: #22c55e;
+  --handle-mask: #a78bfa;
+  --handle-archive: #427268;
+  --handle-code: #191d1a;
+  --handle-data: #242323;
+
+  --transition-fast: var(--dur-fast) var(--ease-out);
+  --transition-normal: var(--dur) var(--ease-out);
+  --ease-glass: var(--ease-out);
+
+  --space-8: var(--sp-6);
+  --fs-9: 9px;
+  --fs-10: 10px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+
+  --text-on-cta: var(--pri-ink);
+  --accent-tint: color-mix(in srgb, var(--accent-color) 6%, transparent);
+  --accent-tint-strong: color-mix(in srgb, var(--accent-color) 10%, transparent);
+  --accent-intensity: 1;
+  --surface-0: var(--bg-primary);
+  --surface-1: color-mix(in srgb, var(--bg-primary) 55%, var(--bg-tertiary));
+  --surface-2: var(--bg-node);
+  --surface-field: var(--bg-input);
+  --surface-raised: color-mix(in srgb, var(--bg-node) 70%, var(--text-primary) 8%);
+  --group-head: color-mix(in srgb, var(--bg-primary) 30%, #000);
+  --line-0: color-mix(in srgb, var(--bg-primary) 55%, #000);
+  --line-1: var(--border-color);
+  --line-2: var(--border-light);
+  --line-3: color-mix(in srgb, var(--border-light) 75%, var(--text-muted));
+  --cta-bg: var(--pri-bg);
+  --cta-bg-hover: color-mix(in srgb, var(--pri-bg) 88%, var(--main));
+  --cta-text: var(--pri-ink);
+  --accent-soft: color-mix(in srgb, var(--accent-color) calc(20% * var(--accent-intensity)), var(--surface-2));
+  --accent-line: color-mix(in srgb, var(--accent-color) calc(48% * var(--accent-intensity)), var(--line-2));
+  --accent-glow: color-mix(in srgb, var(--accent-color) calc(30% * var(--accent-intensity)), var(--surface-2));
+  --accent-ink: color-mix(in srgb, var(--accent-color) calc(80% * var(--accent-intensity)), var(--text-primary));
+  --accent-wash: color-mix(in srgb, var(--accent-color) calc(10% * var(--accent-intensity)), transparent);
+
+  --ok: var(--success);
+  --ok-soft: #86efac;
+  --warn: var(--warning);
+  --danger: var(--error);
+  --danger-text: #fca5a5;
+  --success-fill: #059669;
+  --success-fill-hover: #047857;
+  --danger-fill-hover: #b91c1c;
+  --brand-orange: #f97316;
+
+  --z-under: var(--z-behind);
+  --z-local-2: 2;
+  --z-local-4: 4;
+  --z-local-5: 5;
+  --z-selected: 9;
+  --z-rail: 10;
+  --z-temp: 500;
+  --z-companion: 800;
+  --z-taskbar: 900;
+  --z-modal: var(--z-dialog);
+  --z-settings: var(--z-dialog);
+  --z-context: var(--z-menu);
+  --z-portal: 4000;
+  --z-home: 10000;
+  --z-home-modal: 10010;
+  --z-home-preview: 10100;
+  --z-account-panel: 10500;
+  --z-overlay-modal: 60000;
+
+  --cv-titlebar-h: var(--title-h);
+  --cv-options-h: 40px;
+  --cv-tabs-h: 34px;
+  --cv-status-h: var(--statusbar-h);
+  --cv-rail-w: var(--sidebar-rail-w);
+  --cv-layers-w: 288px;
+  --cv-row-h: var(--row);
+  --cv-thumb: 30px;
+  --cv-checker-a: #ffffff;
+  --cv-checker-b: #cccccc;
+  --cv-ants-a: #000000;
+  --cv-ants-b: #ffffff;
+  --cv-pixel-grid: rgba(128, 128, 140, 0.35);
+  --cv-handle-fill: #ffffff;
+  --cv-doc-edge: rgba(0, 0, 0, 0.55);
+  --cv-action-blue: #3b82f6;
+  --cv-action-violet: #8b5cf6;
+
+  --glass-bg: color-mix(in srgb, var(--surface-2) 82%, transparent);
+  --glass-border: color-mix(in srgb, var(--text-primary) 16%, transparent);
+  --glass-highlight: color-mix(in srgb, var(--text-primary) 12%, transparent);
+  --glass-filter: blur(40px) saturate(1.8);
+  --glass-shadow: 0 22px 56px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+:root[data-theme="light"] {
+  --group-head: var(--bg-tertiary);
+  --line-0: var(--border-color);
+  --surface-raised: color-mix(in srgb, var(--bg-node) 88%, var(--text-primary) 8%);
+}
+
+:root[data-oled] {
+  --surface-1: var(--bg-primary);
+  --line-0: var(--border-color);
+}

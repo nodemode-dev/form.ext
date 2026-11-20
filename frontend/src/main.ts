@@ -6,7 +6,7 @@ import './styles/shell.css';
 import './styles/settings.css';
 import { boot } from './shell/shell';
 import { loadWindowKey } from './shell/window-key';
-import { demoMode, leaveDemo } from './demo/mode';
+import { demoMode, leaveDemo, pageDemo } from './demo/mode';
 
 if (demoMode()) {
   import('./demo/inapp').then(
@@ -17,6 +17,6 @@ if (demoMode()) {
     () => leaveDemo(),
   );
 } else {
-  void loadWindowKey();
+  if (!pageDemo()) void loadWindowKey();
   boot();
 }

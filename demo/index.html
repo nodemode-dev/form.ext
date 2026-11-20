@@ -7,17 +7,19 @@
   <title>form.ext</title>
   <link rel="icon" href="./favicon.png" type="image/png">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <style>html,body{background:#0a0a0a;height:100%;margin:0;padding:0;overflow:hidden}html[data-theme=light],html[data-theme=light] body{background:#ecebe6}#app{visibility:hidden}body.app-ready.demo-ready #app{visibility:visible}</style>
+  <style>html,body{background:#0a0a0a;height:100%;margin:0;padding:0;overflow:hidden}html[data-theme=light],html[data-theme=light] body{background:#ecebe6}html[data-oled],html[data-oled] body{background:#000}#app{visibility:hidden}body.app-ready.demo-ready #app{visibility:visible}body:not(.app-ready)>.fx-scrim,body:not(.app-ready)>.fx-dialog,body:not(.app-ready)>.fx-palette{visibility:hidden}</style>
   <script>
 (function () {
   var mode = 'dark';
   try {
     var saved = localStorage.getItem('formext.theme');
-    if (saved === 'light' || saved === 'dark') mode = saved;
+    if (saved === 'light' || saved === 'dark' || saved === 'amoled') mode = saved;
   } catch (e) {}
   var root = document.documentElement;
+  var OLED = { 'amoled': 1 };
   root.setAttribute('data-theme', mode);
-  root.style.colorScheme = mode;
+  if (OLED[mode]) root.setAttribute('data-oled', '');
+  root.style.colorScheme = mode === 'light' ? 'light' : 'dark';
   if (window.__TAURI_INTERNALS__ && /Mac/.test(navigator.platform)) {
     root.classList.add('has-native-menus', 'has-overlay-titlebar');
   }
