@@ -173,6 +173,14 @@ Sockets: the terminal stream and the Chat stream send `windowHello()` (`{"type":
 
 Checked in headless Chrome against Vite and a running engine: the page boots (Home), claims the key once, `PUT /api/settings` and a terminal from the page succeed with the header, the terminal socket echoes a command after the hello, a reload writes with the stored key and claims nothing, and after the engine restarts the first write is refused, reclaimed and retried. Not checked: the packaged window (no shell build here).
 
+## The shared panel at module 2.2.1 {#panel-221}
+
+- refers-to: src/dock/ · ../setup/agents.py · ../tests/test_dock_module.py · ../docs/MANUAL.md
+- kind: decision
+- logged: v0.9.0 · 2026-11-20
+
+`src/dock/` is module 2.2.1, every file of the folder copied unchanged from FormVis commit 23b01889 (`git show` per file, `MANIFEST.json` included); three files differ from 2.2.0: `strings.ts` (the guide's `tourInstalledBody` and `tourReadyBody` now end with "Codex, Cursor and Antigravity each get a button of their own here when they are on this computer."), `CONTRACT.md` and `MANIFEST.json`. `setup/agents.py` `DOCK_VERSION` says 2.2.1. The adapter needed no change. form.ext carries no translations of the panel's sentences, so there was nothing to translate. The manual's sentence about the Studio's own tabs under Ask now names all four programs, as the Preferences note already did. There is no Preferences field for where Claude Code is (the four programs are found by the shared finder, with `FORMEXT_CLAUDE_BIN`, `FORMEXT_CODEX_BIN`, `FORMEXT_CURSOR_BIN` and `FORMEXT_ANTIGRAVITY_BIN` already alike), so no program path was added.
+
 ## The shared panel at module 2.2.0, and Antigravity as the fourth agent tab {#panel-four}
 
 - refers-to: src/dock/ · src/dock-adapter.ts · ../setup/agents.py · ../agents/manifest.json · ../tests/test_dock_module.py · ../backend/HASHOUT_LOG.md#antigravity-tab
