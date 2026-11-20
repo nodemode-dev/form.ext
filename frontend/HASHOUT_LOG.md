@@ -2,8 +2,8 @@
 
 Living log for the interface: the shell, the shared styles and the build files. Source files stay comment-free; what they would have said lives here. Each pane keeps its own `src/panes/<name>/HASHOUT_LOG.md`.
 
-Current build version: v0.8.0
-Last updated: 2026-11-19 · v0.8.0 the version only. Before: v0.7.0 the shared panel at module 2.2.0 and Antigravity as the fourth agent tab (#panel-four). Before: v0.6.0 the Form family's shared terminal panel and its question for outside agents (#family-panel). Before: v0.5.0 the window key, the question for outside agents and AMOLED Black (#window-key, #agent-consent, #amoled). Before: v0.4.1 the demo's `engine/kit.ts` refuses an `entry.ui` ending in `/` (`demo/HASHOUT_LOG.md`). Before: v0.4.0 the host source row in the Studio and Open pull request in Publish (`panes/studio/HASHOUT_LOG.md#source`, `panes/publish/HASHOUT_LOG.md#pull-request`). Before: v0.3.1 the version only. Before: v0.3.0 the demo opens in the app (#in-app-demo). Before: v0.2.1 the README's screenshots and the community files
+Current build version: v0.9.0
+Last updated: 2026-11-20 · v0.9.0 the shared panel at module 2.2.1 (#panel-221). Before: v0.8.0 the version only. Before: v0.7.0 the shared panel at module 2.2.0 and Antigravity as the fourth agent tab (#panel-four). Before: v0.6.0 the Form family's shared terminal panel and its question for outside agents (#family-panel). Before: v0.5.0 the window key, the question for outside agents and AMOLED Black (#window-key, #agent-consent, #amoled). Before: v0.4.1 the demo's `engine/kit.ts` refuses an `entry.ui` ending in `/` (`demo/HASHOUT_LOG.md`). Before: v0.4.0 the host source row in the Studio and Open pull request in Publish (`panes/studio/HASHOUT_LOG.md#source`, `panes/publish/HASHOUT_LOG.md#pull-request`). Before: v0.3.1 the version only. Before: v0.3.0 the demo opens in the app (#in-app-demo). Before: v0.2.1 the README's screenshots and the community files
 
 ---
 
@@ -172,6 +172,14 @@ The engine refuses every POST, PUT, PATCH and DELETE without the header `X-Forme
 Sockets: the terminal stream and the Chat stream send `windowHello()` (`{"type": "window", "key"}`) as their first message on open; the engine closes them with 4403 otherwise. `/api/live` carries only events and stays as it was. There are no other raw `fetch`, XHR, `sendBeacon` or `EventSource` calls outside `api.ts` and the demo (whose `demo/inapp.ts` reads its own static files). Nothing is drawn, so nothing moves.
 
 Checked in headless Chrome against Vite and a running engine: the page boots (Home), claims the key once, `PUT /api/settings` and a terminal from the page succeed with the header, the terminal socket echoes a command after the hello, a reload writes with the stored key and claims nothing, and after the engine restarts the first write is refused, reclaimed and retried. Not checked: the packaged window (no shell build here).
+
+## The shared panel at module 2.2.1 {#panel-221}
+
+- refers-to: src/dock/ · ../setup/agents.py · ../tests/test_dock_module.py · ../docs/MANUAL.md
+- kind: decision
+- logged: v0.9.0 · 2026-11-20
+
+`src/dock/` is module 2.2.1, every file of the folder copied unchanged from FormVis commit 23b01889 (`git show` per file, `MANIFEST.json` included); three files differ from 2.2.0: `strings.ts` (the guide's `tourInstalledBody` and `tourReadyBody` now end with "Codex, Cursor and Antigravity each get a button of their own here when they are on this computer."), `CONTRACT.md` and `MANIFEST.json`. `setup/agents.py` `DOCK_VERSION` says 2.2.1. The adapter needed no change. form.ext carries no translations of the panel's sentences, so there was nothing to translate. The manual's sentence about the Studio's own tabs under Ask now names all four programs, as the Preferences note already did. There is no Preferences field for where Claude Code is (the four programs are found by the shared finder, with `FORMEXT_CLAUDE_BIN`, `FORMEXT_CODEX_BIN`, `FORMEXT_CURSOR_BIN` and `FORMEXT_ANTIGRAVITY_BIN` already alike), so no program path was added.
 
 ## The shared panel at module 2.2.0, and Antigravity as the fourth agent tab {#panel-four}
 

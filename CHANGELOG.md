@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.9.0 · 2026-11-20
+
+The Windows engine opens no console window, the app waits a shorter time for its engine, and the terminal panel's guide names all four agent programs.
+
+- **No console window on Windows:** the Windows engine is now built without a console window of its own. A build made with `FORMEXT_ENGINE_WINDOWED=0` keeps the console. macOS and Linux are unchanged.
+- **Behaves differently:** the app now waits at most 90 seconds for its engine to come up, instead of 120, and then shows the dialog that says why.
+- **Fixed on macOS:** an engine that was left behind and had just been ended could still be taken for running, and the next start was refused with "could not stop an engine that was left running". It now counts as gone.
+- **The guide in the terminal panel:** when Claude Code is installed, the guide now also says that Codex, Cursor and Antigravity each get a button of their own when they are on this computer. The manual names all four programs where it says which of the Studio's own tabs are not asked.
+- Checked here: on Linux, the Windows build script with stand-ins (the console switch on by default and off with `0`, never on Linux), the engine's self check with no output streams, the shell's start-up functions with the 90 second wait in a scratch build, the macOS fix with the Linux process folder hidden, the tests in `tests/` (41, none of which can start a real agent program), the agents check, the engine's self check, the hosts check and the frontend build as the repository's own checks run them.
+- Not verified yet: anything on Windows or macOS. The desktop shell was not compiled on the build machine, so the release build is its first compile. No real agent program was run.
+
 ## v0.8.0 · 2026-11-19
 
 form.ext starts and stops cleanly beside its engine, on Windows too, and a start that fails says why.

@@ -2,8 +2,8 @@
 
 Living log for the desktop shell (Tauri 2). Source files stay comment-free; what they would have said lives here.
 
-Current build version: v0.8.0
-Last updated: 2026-11-19 · v0.8.0 a start that fails says why, and the engine ends with the shell on Windows (#windows-start). Before: v0.7.0 the version only. Before: v0.6.0 the version only. Before: v0.5.0 the shell reads the window key from the engine and waits at most 10 seconds for it (#window-key, #key-wait). Before: v0.4.1 the version only. Before: v0.4.0 the version only. Before: v0.3.1 the version only. Before: v0.2.1 the version only. Before: v0.2.0 overlay title bar
+Current build version: v0.9.0
+Last updated: 2026-11-20 · v0.9.0 the wait for the engine's address is 90 seconds (#address-wait). Before: v0.8.0 a start that fails says why, and the engine ends with the shell on Windows (#windows-start). Before: v0.7.0 the version only. Before: v0.6.0 the version only. Before: v0.5.0 the shell reads the window key from the engine and waits at most 10 seconds for it (#window-key, #key-wait). Before: v0.4.1 the version only. Before: v0.4.0 the version only. Before: v0.3.1 the version only. Before: v0.2.1 the version only. Before: v0.2.0 overlay title bar
 
 ---
 
@@ -105,3 +105,11 @@ Not compiled and not run: the shell itself, on any system (no WebKit libraries h
 - logged: unreleased
 
 The engine's start has no time limit, as on `origin/main`: a first launch of the frozen engine can take well over 10 seconds (cold disk, a virus scan, unpacking), and a limit counted from the spawn would show "failed to start" on a healthy app. An earlier version of this change did exactly that and was corrected. The 10 seconds (the family value) start only when the address line has arrived without a key: then a plain `std::thread` sleeps 10 seconds and an `Arc<AtomicBool>` decides which side settles first. If the timer wins it takes the existing `engine_failed` path (dialog, the engine stopped, exit 1) and the loop, if the key turns up later, does nothing. If the loop wins it opens the window with the address and the key. An engine that exits before the address, or after it and before the key, takes `engine_failed` at once. The flag makes the failure path run at most once and never after the window opened. The loop now goes on reading after the address until it has the key, so a key line read out of order still counts; this engine prints the key line first and flushes it (seen by running `formext_engine.py` with `FORMEXT_WINDOW_KEY_STDOUT=1`), so normally the key is in hand before the address. Only `std` is used (tokio is not a direct dependency of this crate). Not compiled here: no WebKit libraries; `rustfmt --check` parses the file. The loop was copied into a scratch crate with tokio 1.53.1 (the version in `Cargo.lock`) and fed fake event streams: key then address opens at once; address then nothing fails at 10 s; nothing for 25 s then key and address opens at 25 s; exit before the address fails at once; key 12 s after the address fails at 10 s and does not open.
+
+## The wait for the address is 90 seconds {#address-wait}
+
+- refers-to: src/engine_start.rs :: ADDRESS_WAIT; ../backend/HASHOUT_LOG.md#windowed
+- kind: decision
+- logged: v0.9.0 · 2026-11-20
+
+The owner's decision for the family: every shell waits 90 seconds for the engine's address. It was 120 here (#windows-start), 60 in FormTools and 300 in FormVis. The test of the sentence now says "waited 90 seconds". Nothing was measured here that asks for longer: the one-file engine was not frozen or started from a cold disk in this round, so a first start on a slow machine that needs more than 90 seconds is still possible and would show the "waited 90 seconds" dialog. Checked in the scratch crate that includes `engine_start.rs` and `win_job.rs` by path: `cargo check --target x86_64-pc-windows-msvc` finished; the 5 unit tests of the module pass, and of the 5 loop tests cut from `main.rs` the silent engine now runs out at 90.01 seconds.

@@ -2,6 +2,22 @@
 
 The living log of the form.ext engine. Read it before editing `backend/`. Core files belong to the engine module; module routers and services (`routers/<module>.py`, `services/<module>.py`) keep their own notes in their own HASHOUT logs.
 
+## v0.9.0: the Windows engine is packaged without a console window {#windowed}
+
+- refers-to: ../setup/freeze_backend; formext_engine.py; ../src-tauri/HASHOUT_LOG.md#address-wait
+- The owner's decision for the family: a Windows engine has no console window of its own, as FormWeb's has today. `setup/freeze_backend` gives PyInstaller `--noconsole` on Windows unless `FORMEXT_ENGINE_WINDOWED=0`; on macOS and Linux nothing changes and the variable is not read. The name follows the script's other variables (`FORMEXT_TARGET`). The shell already starts the engine with `CREATE_NO_WINDOW` and reads its standard output through a pipe.
+- A windowed engine starts with `sys.stdout` and `sys.stderr` as None when no one hands it streams. The entry already puts the null device in their place (wave 4), so `--selfcheck` and the other modes that print still finish; the self check at the end of the freeze is judged by its exit code only.
+- Seen on Linux: the script run with a stand-in Python and a stand-in `uname` that answers `MINGW64_NT-10.0`: Windows unset and `=1` give PyInstaller 43 arguments with one `--noconsole`, `=0` gives 42 and none; Linux gives 42 and none in all three. `bash -n` passes. `formext_engine.py --selfcheck >&- 2>&-` exits 0.
+- Not run: no Windows build has shown it, and that the windowed engine's address line still reaches the shell through the pipe is for a Windows machine to show.
+
+## v0.9.0: an engine that has ended but was not yet collected counts as gone on macOS {#ended-not-collected}
+
+- refers-to: app/services/startup.py; ../tests/test_startup.py
+- What was seen, in FormCut: the macOS job of its pull request failed with "could not stop an engine that was left running". `end` had ended the holder, but `gone_by` kept seeing it. `_alive_posix` asks `kill(pid, 0)`, which still answers for a process that has ended and that its parent has not collected, and it tells such a process apart only by reading `/proc`, which macOS does not have. form.ext carries the same file, so the same start would be refused here when the leftover engine's own parent is alive and slow to collect it.
+- The change, as FormCut made it: `finished(pid)` asks `ps -o stat= -p <pid>` where there is no `/proc` (never on Windows, never on Linux) and answers true for a state that starts with `Z`. `gone_by` stops waiting when the process is not alive or is finished. `alive` is unchanged, so the two second watch on the app starts no program.
+- Seen on Linux with `PROC` pointed at a folder that does not exist: with `finished` answering false, `claim` on a lock whose holder is a child of the caller and whose shell has gone waited ten seconds and raised "formext could not stop an engine that was left running on [folder]"; with the change the same `claim` returns the holder's process id in under five seconds. Test after: `test_a_holder_that_has_ended_and_was_not_collected_counts_as_gone_where_there_is_no_proc` in tests/test_startup.py (12 in the file now).
+- Not run on macOS.
+
 ## v0.8.0: the engine starts and stops cleanly beside its app, on Windows too {#windows-start}
 
 - refers-to: app/services/startup.py; app/services/runtime.py; formext_engine.py; ../tests/test_startup.py; ../src-tauri/HASHOUT_LOG.md#windows-start
