@@ -64,6 +64,7 @@ studio's results equal to the registry's `tools/check.py` for the same folder, o
 here and fail there.
 
 - Keep each pull request to one change.
+- Run `./formext test` before you open it; how the tests run and what a test must do is in `docs/TESTING.md`.
 - Write commit subjects the way the history does, in Conventional Commits: `feat(engine): ...`, `fix(frontend): ...`,
   `docs(...)`. Leave the version and `CHANGELOG.md` alone; a maintainer does both when releasing.
 - Edits are surgical and made by hand: no codemods or scripted rewrites of source.

@@ -42,6 +42,8 @@ Tauri links these crates unedited (no `[patch]`, no vendored copy): cssparser, s
 | Vite 8.3.5 | builds the interface and the demo | MIT |
 | TypeScript 7.0.2 | type checks the interface, builds `sdk/dist` | Apache-2.0 |
 | `@tauri-apps/cli` 2.11.4 | builds the desktop app | Apache-2.0 OR MIT |
+| vitest 5.0.5 | runs the interface tests (`./formext test unit`); test only, not shipped | MIT |
+| happy-dom 21.0.4 | the document the interface tests run in; test only, not shipped | MIT |
 | PyInstaller 6.22.3, pyinstaller-hooks-contrib 2026.9, altgraph 0.17.5, packaging 26.3 | freezes the engine sidecar (`setup/freeze_backend`) | GPL-2.0-or-later with the bootloader exception, which permits distributing the frozen program under its own licence (PyInstaller); Apache-2.0 OR GPL-2.0 (hooks-contrib, used under Apache-2.0); MIT (altgraph); Apache-2.0 OR BSD-2-Clause (packaging) |
 
 ## Agent skills copied from the Form apps (not shipped in the app)
