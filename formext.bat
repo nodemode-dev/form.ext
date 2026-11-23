@@ -20,6 +20,7 @@ if /i "%CMD%"=="mcp" ( set "RUN=backend\formext_engine.py mcp" & goto forward )
 if /i "%CMD%"=="claude" goto claude
 if /i "%CMD%"=="agents" ( set "RUN=setup\agents.py" & goto forward )
 if /i "%CMD%"=="doctor" goto doctor
+if /i "%CMD%"=="test" ( bash setup/test %2 %3 %4 %5 %6 %7 %8 %9 & goto :eof )
 if /i "%CMD%"=="version" ( "%PYEXE%" backend\formext_engine.py --version & goto :eof )
 if /i "%CMD%"=="help" goto usage
 echo [formext] unknown command: %CMD%

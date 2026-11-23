@@ -118,6 +118,7 @@ case "$cmd" in
   cli) passthrough cli "$@" ;;
   mcp) passthrough mcp "$@" ;;
   doctor) doctor ;;
+  test) exec "$root/setup/test" "$@" ;;
   version|--version|-V) printf 'form.ext %s\n' "$(version)" ;;
   help|-h|--help) usage ;;
   *) printf '[formext] unknown command: %s\n\n' "$cmd"; usage; exit 2 ;;
