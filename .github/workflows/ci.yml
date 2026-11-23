@@ -42,3 +42,29 @@ jobs:
         run: python formext_engine.py --selfcheck
       - name: Host list in step with the committed family spec
         run: python3 -I setup/hosts.py --family setup/family.spec.json --check
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install the engine, the interface packages and the test tools
+        run: |
+          python -m venv backend/venv
+          backend/venv/bin/python -m pip install -r backend/requirements.txt pytest httpx
+          cd frontend
+          npm ci --no-audit --no-fund
+      - name: Interface logic
+        run: ./formext test unit
+      - name: Engine
+        run: ./formext test engine
