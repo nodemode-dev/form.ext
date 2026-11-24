@@ -1,4 +1,5 @@
 import json
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -18,10 +19,12 @@ def test_readiness_asks_for_a_sign_in_when_gh_is_not_signed_in(client, make_proj
     assert out["repo"] == "nodemode-dev/form.ext-registry"
 
 
-def test_readiness_asks_for_gh_when_it_is_not_installed(client, make_project, monkeypatch):
+def test_readiness_asks_for_gh_when_it_is_not_installed(client, make_project, monkeypatch, tmp_path):
     monkeypatch.delenv("FORMEXT_GH_BIN")
     monkeypatch.setattr(registry_pr, "GH_SYSTEM", ())
     p = make_project()
+    (tmp_path / "git").symlink_to(shutil.which("git"))
+    monkeypatch.setenv("PATH", str(tmp_path))
     out = client.get(f"/api/publish/{p['id']}/registry/pull-request").json()
     assert out["ready"] is False and out["gh"] is False
     assert [n["what"] for n in out["needs"]] == ["gh"]
