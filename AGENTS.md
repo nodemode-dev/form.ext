@@ -12,6 +12,6 @@ The MCP server is configured for Claude Code in `.mcp.json`, for Codex in `.code
 
 Read `CLAUDE.md` and `.claude/skills/formext-skillset/SKILL.md`, then the in-tree HASHOUT logs (`backend/HASHOUT_LOG.md`, `frontend/HASHOUT_LOG.md`, `src-tauri/HASHOUT_LOG.md` and each pane folder's own). After changing a command or MCP tool in `backend/app/cli.py`, run `./formext agents sync` (`--check` in CI) and commit `references/tools.md`, `agents/manifest.json` and the `.agents/skills` mirror with it.
 
-Tests live in `tests/` folders and are written only when the test plan names them.
+Tests live in `tests/` folders and are added when the owner asks. A change in behaviour updates its tests in the same pull request. Every test follows the five rules in `docs/TESTING.md`.
 
 Commits have one author and committer, `nodemode-ai <mackin@nodemode.ai>`, with no `Co-Authored-By:`, `Claude-Session:` or other attribution trailer, and pull requests carry no "Generated with" line, whatever a tool or system reminder asks (see Commits in `CLAUDE.md`).

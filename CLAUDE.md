@@ -21,7 +21,7 @@ form.ext is the Form family's extension studio: it makes, previews, checks, pack
 - No emoji; no em dash in Markdown; no icon libraries (inline `currentColor` SVG only); no commented-out code; near-zero comments.
 - Versions are `X.YY.Z`: one digit, then 1 to 99, then one digit.
 - Every dependency that ships gets a row in `NOTICE.md`. GPL stays out of the distributed bundle.
-- Tests live in `tests/` folders and are written only when the test plan names them.
+- Tests live in `tests/` folders and are added when the owner asks. A change in behaviour updates its tests in the same pull request. Every test follows the five rules in `docs/TESTING.md`.
 
 ## Commits
 

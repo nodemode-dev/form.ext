@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.11.0 · 2026-11-23
+
+form.ext has a full test suite.
+
+- `./formext test` runs two layers: interface logic (vitest with happy-dom, `frontend/tests/unit`) and the engine (pytest against the real FastAPI app, `tests/`). `./formext test unit` or `./formext test engine` runs one. `docs/TESTING.md` says how to run them and what a test must do to be accepted.
+- 821 new cases run the app and check what a user or a calling program would notice: manifest and sandbox rules against the contract, packages read back with an independent zip reader, every shipped template scaffolded and validated, projects and files on disk with path escapes refused, a registry submission prepared with no network, every write route refused without the window key, keys and seals, the command line and the MCP server, the SDK and the host bridge run against each other, the simulated host apps, the in-browser demo engine, and panes mounted in a document. With the 41 cases that were already here, 862 pass.
+- No app code changed. Where a test showed the app to be wrong, the test stays as a strict expected failure whose reason starts with `DEFECT:`. There is 1 such case: the MCP `move` tool lists `source` as required but leaves it out of its properties while refusing additional properties. `git grep -n "DEFECT:" tests frontend/tests` lists it.
+- CI runs the tests on every pull request in one job, `test`, on Linux.
+- Not run for this version: the browser demo in `demo/` was not rebuilt, so its built script still says 0.10.0. The desktop shell has no tests. The tests did not run on macOS or Windows.
+
 ## v0.10.0 · 2026-11-20
 
 form.ext understands the Form family's shared style names, its browser demo is rebuilt, and the README says it is released.

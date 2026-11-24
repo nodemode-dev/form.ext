@@ -2,6 +2,15 @@
 
 The living log of the form.ext engine. Read it before editing `backend/`. Core files belong to the engine module; module routers and services (`routers/<module>.py`, `services/<module>.py`) keep their own notes in their own HASHOUT logs.
 
+## v0.11.0: one runner for the tests, by layer {#test-runner}
+
+- refers-to: ../setup/test; ../formext; ../formext.bat; ../tests/stand_ins.py; ../docs/TESTING.md; ../.github/workflows/ci.yml
+- The owner asked for a real test suite. `./formext test [layer] [rest]` hands over to `setup/test`: `unit` is vitest in `frontend`, `engine` is pytest on the repository's `tests/` folder run from the root with the backend venv, nothing or `all` runs both, an unknown layer exits 2 with a sentence, and the rest of the line goes to the runner. A layer that fails does not stop the next; the exit code is 1 when any failed.
+- The script installs nothing. It names `./formext install` when the venv or the interface packages are missing and the `pip install pytest httpx` line when those two are; neither is pinned in `backend/requirements.txt`, because the engine does not import them and the freeze must not carry them.
+- `setup/` has no `.bat` twins, so there is none for this script: `formext.bat test` runs it through `bash`, as `formext.bat freeze` runs `setup/freeze_backend`, and passes at most eight words on.
+- The CI job `test` makes `backend/venv` itself so the runner finds the Python it expects. The usage text of the two launchers does not list `test`; `docs/TESTING.md` is where it is described.
+- Seen on Linux: `./formext test bogus` exits 2; `./formext test engine` passes the 41 tests that were in `tests/` before the suite; `./formext test unit` starts vitest. Not run: `formext.bat test` on Windows, and the CI job on GitHub.
+
 ## v0.9.0: the Windows engine is packaged without a console window {#windowed}
 
 - refers-to: ../setup/freeze_backend; formext_engine.py; ../src-tauri/HASHOUT_LOG.md#address-wait
