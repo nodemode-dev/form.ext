@@ -11,7 +11,7 @@
       "licence": "Apache-2.0",
       "mcp": true,
       "host_api": "1",
-      "host_api_from": "side",
+      "host_api_from": "spec",
       "role": null,
       "note": null,
       "skills": [
@@ -30,7 +30,7 @@
       "licence": "Apache-2.0",
       "mcp": true,
       "host_api": "1",
-      "host_api_from": "side",
+      "host_api_from": "spec",
       "role": null,
       "note": null,
       "skills": [
@@ -49,7 +49,7 @@
       "licence": "Apache-2.0",
       "mcp": true,
       "host_api": "1",
-      "host_api_from": "side",
+      "host_api_from": "spec",
       "role": null,
       "note": null,
       "skills": [
@@ -87,7 +87,7 @@
       "licence": "Apache-2.0",
       "mcp": true,
       "host_api": "1",
-      "host_api_from": "side",
+      "host_api_from": "spec",
       "role": null,
       "note": "its only skill, contextual-compression, is about compression policy, not driving the app",
       "skills": []
@@ -101,7 +101,7 @@
       "licence": "Apache-2.0",
       "mcp": true,
       "host_api": "1",
-      "host_api_from": "side",
+      "host_api_from": "spec",
       "role": null,
       "note": null,
       "skills": [
@@ -134,7 +134,7 @@
       "licence": "Apache-2.0",
       "mcp": true,
       "host_api": "1",
-      "host_api_from": "side",
+      "host_api_from": "spec",
       "role": null,
       "note": null,
       "skills": [
@@ -167,7 +167,7 @@
       "licence": "Apache-2.0",
       "mcp": true,
       "host_api": "1",
-      "host_api_from": "side",
+      "host_api_from": "spec",
       "role": null,
       "note": null,
       "skills": [
@@ -205,7 +205,7 @@
       "licence": "Apache-2.0",
       "mcp": true,
       "host_api": "1",
-      "host_api_from": "side",
+      "host_api_from": "spec",
       "role": null,
       "note": null,
       "skills": [
@@ -226,7 +226,7 @@
       "licence": "GPL-3.0-only",
       "mcp": true,
       "host_api": null,
-      "host_api_from": "side",
+      "host_api_from": "spec",
       "role": "installs and updates the apps",
       "note": null,
       "skills": [

@@ -8,18 +8,18 @@ The Form apps that load form.ext extensions, public apps only.
 
 | Host app | Spec id | Repository | Host API | MCP server | Host API from |
 | --- | --- | --- | --- | --- | --- |
-| FormCut | formcut | nodemode-dev/formcut | 1 | yes | side file |
-| FormEncoder | formencoder | nodemode-dev/formencoder | 1 | yes | side file |
-| FormLit | formlit | nodemode-dev/formlit | 1 | yes | side file |
+| FormCut | formcut | nodemode-dev/formcut | 1 | yes | the spec |
+| FormEncoder | formencoder | nodemode-dev/formencoder | 1 | yes | the spec |
+| FormLit | formlit | nodemode-dev/formlit | 1 | yes | the spec |
 | formMCP | formmcp | nodemode-dev/formMCP | 1 | yes | side file |
-| Form.md | formmd | nodemode-dev/form.md | 1 | yes | side file |
-| FormPDF | formpdf | nodemode-dev/formpdf | 1 | yes | side file |
+| Form.md | formmd | nodemode-dev/form.md | 1 | yes | the spec |
+| FormPDF | formpdf | nodemode-dev/formpdf | 1 | yes | the spec |
 | formskills | formskills | nodemode-dev/formskills | 1 | no | side file |
-| FormDeck | formslide | nodemode-dev/formdeck | 1 | yes | side file |
+| FormDeck | formslide | nodemode-dev/formdeck | 1 | yes | the spec |
 | FormTray | formtray | nodemode-dev/formtray | 1 | no | side file |
-| FormVFX | formvfx | nodemode-dev/formvfx | 1 | yes | side file |
+| FormVFX | formvfx | nodemode-dev/formvfx | 1 | yes | the spec |
 | FormVis | formvis | nodemode-dev/formvis | 1 | yes | the spec |
-| FormWav | formwav | nodemode-dev/formwav | 1 | yes | side file |
+| FormWav | formwav | nodemode-dev/formwav | 1 | yes | the spec |
 
 ## Copied skills
 
