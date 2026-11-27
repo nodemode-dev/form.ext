@@ -46,7 +46,10 @@
         "formmcp",
         "formtray",
         "formskills",
-        "formportal"
+        "formportal",
+        "formtxt",
+        "formcel",
+        "formcite"
       ]
     },
     "kind": {
@@ -76,6 +79,16 @@
       "uniqueItems": true,
       "items": {
         "$ref": "#/$defs/permission"
+      }
+    },
+    "services": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 8,
+      "items": {
+        "enum": [
+          "formcite"
+        ]
       }
     },
     "payload": {
@@ -189,7 +202,8 @@
         "files-write",
         "network",
         "models",
-        "native-code"
+        "native-code",
+        "fcite.addon"
       ]
     },
     "local": {
