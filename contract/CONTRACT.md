@@ -23,8 +23,11 @@ The product ids are the ids in formai.studio's `catalog/products.json`:
 | `formtray` | FormTray | formtray |
 | `formskills` | FormSkills | formskills |
 | `formportal` | FormPortal | formportal |
+| `formtxt` | FormTxt | formtxt |
+| `formcel` | FormCel | formcel |
+| `formcite` | FormCite | formcite |
 
-The `product` enum in both schemas lists these thirteen.
+The `product` enum in both schemas lists these sixteen.
 
 ## 2. The package (`.formpkg`)
 
@@ -136,6 +139,7 @@ JSON-RPC 2.0 over `postMessage`, each message an object with `"formext": 1` besi
 | `files.open` | `{ accept: [".wav"], multiple?: false }` | `[{ name, type, size, data }]` with `data` base64, at most 200 MB in total; the person picks through the host's own dialog | `files-read` |
 | `files.save` | `{ name, type, data }` with `data` base64 | `{ saved: true, name }`; the person picks the place through the host's own dialog. A host with no save dialog asks the person to confirm the name in its own dialog and saves into the downloads folder (`name (2).ext` when taken) | `files-write` |
 | `net.fetch` | `{ url, method?, headers?, body? }` with an `https://` url | `{ status, headers, body }` with `body` base64, at most 50 MB | `network` |
+| `fcite.call` | `{ service, method, params? }` | the service's answer, as JSON (section 6a). Optional: a host without it answers -32601 | `fcite.addon`, per service |
 | `ext.done` | `{ result? }` | `null`, ends a headless command | none |
 
 `document.apply` ops use the app's own command surface, the same one its palette, command line or MCP tools use, so an extension can never do what the app itself cannot.
@@ -162,15 +166,39 @@ JSON-RPC 2.0 over `postMessage`, each message an object with `"formext": 1` besi
 | -32003 | not available in this app (for example `net.fetch` in an app that has no network) |
 | -32004 | the app refused the operation (the message says why, in the app's words) |
 
+### 6a. Family services (`fcite.call`)
+
+An extension may ask a sibling Form app on the same computer for work through one optional method, `fcite.call { service, method, params }`. The services are those of the signed family catalog, and API 1's catalog has one:
+
+| Service | App | Method | Params | The host asks |
+|---|---|---|---|---|
+| `formcite` | FormCite | `search` | `{ q, limit?, offset? }` | `GET /api/cite/v1/search` |
+| | | `get` | `{ id, as? }` | `GET /api/cite/v1/items/{id}` |
+| | | `cite` | `{ ids, style, locale?, locators? }` | `POST /api/cite/v1/cite` |
+| | | `bibliography` | `{ ids, style, locale? }` | `POST /api/cite/v1/bibliography` |
+| | | `add` | `{ text, on_duplicate? }` (a DOI, ISBN, arXiv or PubMed id) | `POST /api/cite/v1/items/from-identifier` |
+| | | `import` | `{ text, format, on_duplicate? }` | `POST /api/cite/v1/import` |
+
+Rules:
+
+- The host makes the request, never the frame. The frame's `connect-src 'none'` stays as it is.
+- Only services in the signed family catalog, and only the methods each one declares above. Any other service or method is -32602.
+- Loopback only. The host reaches the service on `127.0.0.1` at the port the service's app writes in its data folder (FormCite: `engine.json`, 8330 by default), and nowhere else: never another host name or address, never through a proxy. This is the only loopback request API 1 lets a host make for an extension; `net.fetch` stays `https://` only.
+- The extension never sees a url or a token. The host pairs with the service as an app would (FormCite: `POST /api/cite/v1/pair` with the host's own product id and name, approved by the person in FormCite's Connections view) and keeps the token itself.
+- The package names the services it wants in `services` (for example `["formcite"]`) beside the `fcite.addon` permission. A call to a service the package did not name, or that the person did not allow, is -32001.
+- When the service's app is not running or not yet paired, the call is -32003 with a plain sentence ("FormCite is not running on this computer", "FormCite has not approved this app yet"). An answer from the service that is not a success is -32004 with the service's own `detail`.
+- An older host does not know the method and answers -32601; an extension shows its own words for that and keeps working.
+
 ## 7. Permissions and consent
 
-Permissions are those of `package.schema.json`: `document`, `files-read`, `files-write`, `network`, `models`, `native-code`. The first time an extension version is activated, the host shows its own consent dialog listing what the extension asks for, in plain words:
+Permissions are those of `package.schema.json`: `document`, `files-read`, `files-write`, `network`, `models`, `native-code`, `fcite.addon`. The first time an extension version is activated, the host shows its own consent dialog listing what the extension asks for, in plain words:
 
 - `document`: read and change the open document
 - `files-read`: open files you choose
 - `files-write`: save files where you choose
 - `network`: reach the internet
 - `models`: use local models
+- `fcite.addon`: one line per service the package names, in the host's dialog with the same Allow and Not Now: "Let {Name} search, cite and add to your FormCite library?" for `formcite`. Allow is stored per service with the rest of the permission set; a service the person did not allow answers -32001.
 
 The host asks before it creates the extension's frame (panel or headless), so the extension's first `host.hello` already carries the granted permissions; while the dialog is open no frame exists. The person chooses Allow or Not Now. Allow is stored per id, version and permission set, and a new version or a larger permission set asks again. Not Now is not stored: the next activation asks again. Every call needing a permission that is not granted fails with -32001, and the host never prompts mid-call.
 
@@ -205,4 +233,4 @@ A Rust or Go host ports `formext_host.py` line for line and keeps its messages.
 
 ## 10. Versions
 
-API 1 is this document. A host reports `api: "1"` in `host.hello`. Anything new is added to API 1 only when it is optional and an older host can answer -32601.
+API 1 is this document. A host reports `api: "1"` in `host.hello`. Anything new is added to API 1 only when it is optional and an older host can answer -32601. `fcite.call`, the `fcite.addon` permission and the `services` field are such an addition (form.ext 0.12.0): a package that does not ask for `fcite.addon` is unaffected.
