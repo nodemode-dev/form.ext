@@ -9,9 +9,10 @@
   "author": "nodemode",
   "licence": "Apache-2.0",
   "native": false,
-  "permissions": ["document"],
+  "permissions": ["document", "fcite.addon"],
+  "services": ["formcite"],
   "api": "1",
-  "description": "The smallest working extension: a panel that shows what the host says about itself and the open document.",
+  "description": "The smallest working extension: a panel that shows what the host says about itself and the open document, and asks FormCite for a search.",
   "entry": { "ui": "ui/index.html" },
   "contributes": {
     "panels": [{ "id": "main", "title": "Hello", "location": "dock" }],
