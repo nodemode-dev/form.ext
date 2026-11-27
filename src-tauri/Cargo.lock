@@ -1077,7 +1077,7 @@ dependencies = [
 
 [[package]]
 name = "formext"
-version = "0.11.0"
+version = "0.12.0"
 dependencies = [
  "objc2",
  "objc2-app-kit",
