@@ -1,4 +1,8 @@
-export type Permission = 'document' | 'files-read' | 'files-write' | 'network' | 'models' | 'native-code';
+export type Permission = 'document' | 'files-read' | 'files-write' | 'network' | 'models' | 'native-code' | 'fcite.addon';
+
+export const SERVICES: Record<string, { app: string; consent: string; methods: string[] }> = {
+  formcite: { app: 'FormCite', consent: 'Let {name} search, cite and add to your FormCite library?', methods: ['search', 'get', 'cite', 'bibliography', 'add', 'import'] },
+};
 export type Source = 'catalogue' | 'sideload' | 'development';
 
 export interface PanelDef {
@@ -19,6 +23,7 @@ export interface ExtensionRecord {
   version: string;
   source: Source;
   permissions: Permission[];
+  services?: string[];
   base: string;
   entryUi: string;
   panels: PanelDef[];
@@ -49,6 +54,7 @@ export interface HostHandlers {
   openFiles?: (ext: ExtensionRecord, accept: string[], multiple: boolean) => Promise<{ name: string; type: string; size: number; data: string }[]>;
   saveFile?: (ext: ExtensionRecord, name: string, type: string, data: string) => Promise<{ saved: boolean; name: string }>;
   fetch?: (ext: ExtensionRecord, req: { url: string; method?: string; headers?: Record<string, string>; body?: string }) => Promise<{ status: number; headers: Record<string, string>; body: string }>;
+  service?: (ext: ExtensionRecord, service: string, method: string, params: Record<string, unknown>) => Promise<unknown>;
   consent: (ext: ExtensionRecord) => Promise<boolean>;
   storage?: { get: (ext: ExtensionRecord, key: string) => unknown; set: (ext: ExtensionRecord, key: string, value: unknown) => void };
 }
@@ -76,13 +82,15 @@ const NEEDS: Record<string, Permission | null> = {
   'files.open': 'files-read',
   'files.save': 'files-write',
   'net.fetch': 'network',
+  'fcite.call': 'fcite.addon',
 };
 
 const STORAGE_CAP = 256 * 1024;
 const GRANTS_KEY = 'formext.grants';
 
 function grantKey(ext: ExtensionRecord) {
-  return `${ext.id}@${ext.version}#${[...ext.permissions].sort().join(',')}`;
+  const services = ext.permissions.includes('fcite.addon') ? `+${[...(ext.services ?? [])].sort().join(',')}` : '';
+  return `${ext.id}@${ext.version}#${[...ext.permissions].sort().join(',')}${services}`;
 }
 
 function readGrants(): Record<string, boolean> {
@@ -144,7 +152,7 @@ export interface MountOptions {
   onRequest?: (method: string, phase: 'start' | 'end') => void;
 }
 
-const PAUSING = new Set(['files.open', 'files.save', 'app.run', 'document.apply', 'net.fetch']);
+const PAUSING = new Set(['files.open', 'files.save', 'app.run', 'document.apply', 'net.fetch', 'fcite.call']);
 const HEADLESS_IDLE_MS = 120_000;
 
 export class ExtensionHost {
@@ -358,6 +366,15 @@ export class ExtensionHost {
         if (!h.fetch) throw missing();
         if (typeof params.url !== 'string' || !params.url.startsWith('https://')) throw new HostError(ERR.INVALID, 'only https:// addresses');
         return h.fetch(ext, params);
+      case 'fcite.call': {
+        if (!h.service) throw new HostError(ERR.NOT_FOUND, 'fcite.call is not offered by this host');
+        const svc = SERVICES[String(params.service)];
+        if (!svc) throw new HostError(ERR.INVALID, `${String(params.service)} is not a family service`);
+        if (!svc.methods.includes(String(params.method))) throw new HostError(ERR.INVALID, `${svc.app} does not accept ${String(params.method)}`);
+        if (!(ext.services ?? []).includes(params.service)) throw new HostError(ERR.PERMISSION, `${ext.name} was not allowed to use ${svc.app}`);
+        const args = params.params && typeof params.params === 'object' && !Array.isArray(params.params) ? params.params : {};
+        return h.service(ext, params.service, params.method, args);
+      }
     }
     throw new HostError(ERR.NOT_FOUND, method);
   }
@@ -370,7 +387,13 @@ export const PERMISSION_WORDS: Record<Permission, string> = {
   network: 'Reach the internet',
   models: 'Use local models',
   'native-code': 'Run native code',
+  'fcite.addon': 'Use the Form apps it names on this computer',
 };
+
+export function serviceConsent(ext: ExtensionRecord): string[] {
+  if (!ext.permissions.includes('fcite.addon')) return [];
+  return (ext.services ?? []).filter((s) => SERVICES[s]).map((s) => SERVICES[s].consent.replace('{name}', ext.name));
+}
 
 export function themeTokens(names: string[] = ['--bg', '--panel', '--text', '--muted', '--accent', '--border', '--radius']): Record<string, string> {
   const style = getComputedStyle(document.documentElement);
