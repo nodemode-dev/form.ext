@@ -8,9 +8,10 @@ import sys
 import zipfile
 from pathlib import Path
 
-PRODUCTS = ["formvis", "formcut", "formwav", "formpdf", "formdeck", "formlit", "formmd", "formencoder", "formvfx", "formmcp", "formtray", "formskills", "formportal"]
+PRODUCTS = ["formvis", "formcut", "formwav", "formpdf", "formdeck", "formlit", "formmd", "formencoder", "formvfx", "formmcp", "formtray", "formskills", "formportal", "formtxt", "formcel", "formcite"]
 KINDS = ["effect-stack", "wgsl-kernel", "audio-chain", "caption-look", "lut", "timeline-template", "script-plugin", "action-set", "preset", "theme", "native-plugin"]
-PERMISSIONS = ["document", "files-read", "files-write", "network", "models", "native-code"]
+PERMISSIONS = ["document", "files-read", "files-write", "network", "models", "native-code", "fcite.addon"]
+SERVICES = ["formcite"]
 TYPES = {".html", ".js", ".mjs", ".css", ".json", ".svg", ".png", ".webp", ".jpg", ".jpeg", ".gif", ".wasm", ".txt", ".md", ".wav", ".ogg", ".mp3", ".webm", ".mp4", ".cube", ".woff2"}
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,63}\Z")
 LOCAL_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}\Z")
@@ -65,6 +66,14 @@ def problems(folder: Path) -> tuple[list[str], dict]:
     perms = m.get("permissions")
     if not isinstance(perms, list) or any(p not in PERMISSIONS for p in perms) or len(set(perms or [])) != len(perms or []):
         out.append(f"manifest.json: permissions must be unique values from {', '.join(PERMISSIONS)}")
+    services = m.get("services")
+    if services is not None:
+        if not isinstance(services, list) or any(s not in SERVICES for s in services) or len(set(services)) != len(services):
+            out.append(f"manifest.json: services must be unique values from {', '.join(SERVICES)}")
+        elif services and "fcite.addon" not in (perms if isinstance(perms, list) else []):
+            out.append("manifest.json: services needs the fcite.addon permission")
+    if isinstance(perms, list) and "fcite.addon" in perms and not services:
+        out.append("manifest.json: fcite.addon needs services, the family services the extension calls")
     if m.get("api") != "1":
         out.append('manifest.json: api must be "1" (every API 1 host refuses a package without it)')
     contributes = m.get("contributes") or {}
