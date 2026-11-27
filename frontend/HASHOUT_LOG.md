@@ -226,3 +226,11 @@ The engine asks the window before an outside agent or the command line changes a
 A broken seal (the stored choice was edited outside form.ext) shows "The saved agent permission was changed outside form.ext, so it is back to Ask." in two places: a `hidden` paragraph inside the consent dialog, set before the dialog opens, and a settings note row with `when: 'agentAccessReset'`, set in `sync()` before the settings sheet is shown. Settings gains the Outside agents select (`agent_access`: Ask, Allowed, Blocked).
 
 Checked in headless Chrome (1440 by 900, 4x CPU throttle, cache off) against Vite and a running engine: three loads, one bootstrap request in all, a write from the page succeeds after each; `/mcp` `new` answered with Allow once (ran), Deny (refused) and Always allow (ran; the choice became `allowed`); the dialog element was the same node every time and the box of `.fx-main` was the same before, during and after; no console errors. After a hand edit of `settings.json`, the sentence shows in the dialog and in Settings, and the select reads Ask.
+
+## Family services in Preview {#fcite-call}
+
+- refers-to: src/sim/services.ts · src/sim/host.ts · src/panes/preview/index.ts · ../contract/host/host-bridge.ts
+- kind: decision
+- logged: unreleased
+
+`fcite.call` reaches the simulated host through the bridge's optional `service` handler. `sim/services.ts` answers `formcite` methods from five canned items and never changes them; `add` and `import` answer an empty result marked `simulated`. The older host is the same SimHost built without a `service` handler, chosen by the `formext.sim.olderHost` local storage key read once when the host is made, so the bridge answers -32601 exactly as an API 1 host without the method. The denied path needs nothing new: turning `fcite.addon` off under Declared permissions drops it from the record and the bridge answers -32001. The consent dialog lists each named service with its own sentence from `serviceConsent` in place of the generic `fcite.addon` words. Checked in headless Chrome at 1400 by 900 with the hello example: search answered "1 found: Deep Residual Learning for Image Recognition", the denied run -32001, the older host -32601.
