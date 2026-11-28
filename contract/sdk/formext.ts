@@ -1,4 +1,4 @@
-export type Permission = 'document' | 'files-read' | 'files-write' | 'network' | 'models' | 'native-code';
+export type Permission = 'document' | 'files-read' | 'files-write' | 'network' | 'models' | 'native-code' | 'fcite.addon';
 
 export interface Hello {
   product: string;
@@ -36,7 +36,20 @@ export const ERR = { NOT_FOUND: -32601, INVALID: -32602, PERMISSION: -32001, CAN
 type Pending = { resolve: (v: unknown) => void; reject: (e: unknown) => void; timer: number };
 type Handler = (params: any) => unknown;
 
-const LONG = new Set(['files.open', 'files.save', 'app.run', 'document.apply', 'net.fetch']);
+const LONG = new Set(['files.open', 'files.save', 'app.run', 'document.apply', 'net.fetch', 'fcite.call']);
+
+export interface FormCiteMethods {
+  search: { params: { q: string; limit?: number; offset?: number }; result: { total?: number; items: { id: string; title?: string; [k: string]: unknown }[]; [k: string]: unknown } };
+  get: { params: { id: string; as?: string }; result: Record<string, unknown> };
+  cite: { params: { ids: string[]; style: string; locale?: string; locators?: Record<string, unknown> }; result: Record<string, unknown> };
+  bibliography: { params: { ids: string[]; style: string; locale?: string }; result: Record<string, unknown> };
+  add: { params: { text: string; on_duplicate?: string }; result: Record<string, unknown> };
+  import: { params: { text: string; format: string; on_duplicate?: string }; result: Record<string, unknown> };
+}
+
+export interface FamilyServices {
+  formcite: FormCiteMethods;
+}
 
 export class FormExt {
   private seq = 0;
@@ -148,6 +161,10 @@ export class FormExt {
   fetch(url: string, init: { method?: string; headers?: Record<string, string>; body?: string } = {}) {
     return this.call<{ status: number; headers: Record<string, string>; body: string }>('net.fetch', { url, ...init });
   }
+  readonly fcite = {
+    call: <S extends keyof FamilyServices, M extends keyof FamilyServices[S] & string>(service: S, method: M, params: FamilyServices[S][M] extends { params: infer P } ? P : never) =>
+      this.call<FamilyServices[S][M] extends { result: infer R } ? R : unknown>('fcite.call', { service, method, params }),
+  };
   done(result?: unknown) {
     return this.call<null>('ext.done', result === undefined ? {} : { result });
   }

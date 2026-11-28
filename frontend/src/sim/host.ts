@@ -4,6 +4,7 @@ import type { AppSim, Json, SimEmit } from './types';
 import type { SimFile } from './samples';
 import { tokensFor } from './tokens';
 import { clone } from './util';
+import { olderHost, simService } from './services';
 
 export interface LogEntry {
   id: number;
@@ -66,6 +67,7 @@ export class SimHost {
       openFiles: offers.filesOpen ? (ext, accept, multiple) => ui.openFiles(ext, accept, multiple) : undefined,
       saveFile: offers.filesSave ? (ext, name, type, data) => ui.saveFile(ext, name, type, data) : undefined,
       fetch: offers.fetch ? (_ext, req) => ui.fetch(req) : undefined,
+      service: olderHost() ? undefined : (_ext, service, method, params) => simService(service, method, params),
     });
     this.wrapDispatch();
   }

@@ -41,4 +41,8 @@ call('document.read', {}).then(
   (doc) => (document.getElementById('doc').textContent = JSON.stringify(doc).slice(0, 160)),
   (err) => (document.getElementById('doc').textContent = err.message),
 );
+call('fcite.call', { service: 'formcite', method: 'search', params: { q: 'learning', limit: 3 } }).then(
+  (res) => (document.getElementById('cite').textContent = `${res.total ?? res.items.length} found: ${res.items.map((i) => i.title).join('; ') || 'nothing yet'}`),
+  (err) => (document.getElementById('cite').textContent = err.code === -32601 ? `-32601: this app cannot reach FormCite yet` : `${err.code}: ${err.message}`),
+);
 document.getElementById('ping').addEventListener('click', () => call('ui.notify', { message: 'Hello from an extension', level: 'info' }));

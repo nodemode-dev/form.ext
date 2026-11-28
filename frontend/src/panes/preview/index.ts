@@ -3,7 +3,7 @@ import { icon, esc, appIcon, HOSTS, productName, storage, theme, chooseProject, 
 import type { PaneDef, ShellContext, ProjectRef } from '../../shell';
 import { SimHost, simFor, sampleFile, accepts } from '../../sim';
 import type { AppSim, SimFile } from '../../sim';
-import { HostError, ERR, PERMISSION_WORDS } from '../../../../contract/host/host-bridge';
+import { HostError, ERR, PERMISSION_WORDS, serviceConsent } from '../../../../contract/host/host-bridge';
 import type { ExtensionRecord, Permission } from '../../../../contract/host/host-bridge';
 import { sizeText, b64ToBytes } from '../../sim/util';
 import { MessageLog, pretty, short } from './log';
@@ -27,7 +27,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'document', label: 'Document', icon: 'file' },
   { id: 'permissions', label: 'Permissions', icon: 'shield' },
 ];
-const METHODS: Record<string, string> = { document: 'document.read, document.apply, app.commands, app.run', 'files-read': 'files.open', 'files-write': 'files.save', network: 'net.fetch', models: 'nothing extra in API 1', 'native-code': 'refused by API 1 hosts' };
+const METHODS: Record<string, string> = { document: 'document.read, document.apply, app.commands, app.run', 'files-read': 'files.open', 'files-write': 'files.save', network: 'net.fetch', models: 'nothing extra in API 1', 'native-code': 'refused by API 1 hosts', 'fcite.addon': 'fcite.call, for the services it names' };
 
 function mount(el: HTMLElement, ctx: ShellContext): () => void {
   el.innerHTML = `
@@ -243,7 +243,7 @@ function mount(el: HTMLElement, ctx: ShellContext): () => void {
 
   function consent(rec: ExtensionRecord): Promise<boolean> {
     return dialog<boolean>((box, done) => {
-      box.innerHTML = `<h3>${esc(rec.name)} would like to</h3><ul class="pv-consent-list">${rec.permissions.map((p) => `<li>${icon('check', 14)}<span>${esc(PERMISSION_WORDS[p as Permission] ?? p)}</span></li>`).join('')}</ul><p class="pv-note">${esc(sim?.app ?? '')} asks once for version ${esc(rec.version)}. This is the simulated host's consent dialog; the extension's frame is not created until you choose.</p><div class="pv-row pv-end"><button class="btn" type="button" data-v="no">Not Now</button><button class="btn primary" type="button" data-v="yes">Allow</button></div>`;
+      box.innerHTML = `<h3>${esc(rec.name)} would like to</h3><ul class="pv-consent-list">${rec.permissions.filter((p) => p !== 'fcite.addon').map((p) => `<li>${icon('check', 14)}<span>${esc(PERMISSION_WORDS[p as Permission] ?? p)}</span></li>`).join('')}${serviceConsent(rec).map((line) => `<li>${icon('check', 14)}<span>${esc(line)}</span></li>`).join('')}</ul><p class="pv-note">${esc(sim?.app ?? '')} asks once for version ${esc(rec.version)}. This is the simulated host's consent dialog; the extension's frame is not created until you choose.</p><div class="pv-row pv-end"><button class="btn" type="button" data-v="no">Not Now</button><button class="btn primary" type="button" data-v="yes">Allow</button></div>`;
       box.querySelector<HTMLButtonElement>('[data-v="yes"]')?.focus();
       box.addEventListener('click', (ev) => {
         const v = (ev.target as HTMLElement).closest<HTMLElement>('[data-v]')?.dataset.v;

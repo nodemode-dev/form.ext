@@ -34,7 +34,107 @@ TYPES = {
     ".cube": "text/plain; charset=utf-8",
     ".woff2": "font/woff2",
 }
-PERMISSIONS = {"document", "files-read", "files-write", "network", "models", "native-code"}
+PERMISSIONS = {"document", "files-read", "files-write", "network", "models", "native-code", "fcite.addon"}
+SERVICES = {
+    "formcite": {
+        "app": "FormCite",
+        "port_file": "engine.json",
+        "data_env": "FORMCITE_DATA_DIR",
+        "data_dir": "~/FormCite",
+        "port": 8330,
+        "prefix": "/api/cite/v1",
+        "methods": {
+            "search": ("GET", "/search", ("q", "limit", "offset")),
+            "get": ("GET", "/items/{id}", ("as",)),
+            "cite": ("POST", "/cite", None),
+            "bibliography": ("POST", "/bibliography", None),
+            "add": ("POST", "/items/from-identifier", None),
+            "import": ("POST", "/import", None),
+        },
+    },
+}
+
+
+class ServiceError(Exception):
+    def __init__(self, code: int, message: str):
+        super().__init__(message)
+        self.code = code
+
+
+class FamilyService:
+    def __init__(self, service: str, host: str, name: str, port: int | None = None, token: str = ""):
+        if service not in SERVICES:
+            raise ServiceError(-32602, f"{service} is not a family service")
+        self.spec = SERVICES[service]
+        self.host, self.name, self.token = host, name, token
+        self.port = int(port or self.discover() or self.spec["port"])
+
+    def discover(self) -> int | None:
+        raw = os.environ.get(self.spec["data_env"], "").strip()
+        for folder in [Path(raw).expanduser()] * bool(raw) + [Path(self.spec["data_dir"]).expanduser()]:
+            try:
+                found = json.loads((folder / self.spec["port_file"]).read_text("utf-8")).get("port")
+            except (OSError, ValueError, AttributeError):
+                continue
+            if type(found) is int and 0 < found < 65536:
+                return found
+        return None
+
+    def _http(self, method: str, path: str, body: dict | None = None, headers: dict | None = None) -> tuple[int, dict]:
+        import http.client
+        conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=30)
+        data = json.dumps(body).encode() if body is not None else None
+        h = {"content-type": "application/json", **(headers or {})}
+        try:
+            conn.request(method, self.spec["prefix"] + path, body=data, headers=h)
+            res = conn.getresponse()
+            raw = res.read()
+        except OSError:
+            raise ServiceError(-32003, f"{self.spec['app']} is not running on this computer")
+        finally:
+            conn.close()
+        try:
+            return res.status, json.loads(raw or b"null")
+        except ValueError:
+            return res.status, {"detail": raw.decode("utf-8", "replace")[:200]}
+
+    def pair(self, scope: str = "read") -> dict:
+        status, out = self._http("POST", "/pair", {"host": self.host, "name": self.name, "scope": scope})
+        if status >= 400:
+            raise ServiceError(-32004, str(out.get("detail", status)))
+        return out
+
+    def collect(self, request_id: str, secret: str) -> str:
+        status, out = self._http("GET", f"/pair/{request_id}", headers={"X-FormCite-Pair-Secret": secret})
+        if status >= 400:
+            raise ServiceError(-32004, str(out.get("detail", status)))
+        if out.get("token"):
+            self.token = out["token"]
+        return str(out.get("status", ""))
+
+    def call(self, method: str, params: dict | None = None):
+        spec = self.spec["methods"].get(method)
+        if not spec:
+            raise ServiceError(-32602, f"{self.spec['app']} does not accept {method}")
+        if not self.token:
+            raise ServiceError(-32003, f"{self.spec['app']} has not approved this app yet")
+        verb, path, query = spec
+        params = dict(params or {})
+        if "{id}" in path:
+            from urllib.parse import quote
+            path = path.replace("{id}", quote(str(params.pop("id", "")), safe=""))
+        body = None
+        if verb == "GET":
+            from urllib.parse import urlencode
+            q = {k: params[k] for k in (query or ()) if params.get(k) is not None}
+            path += ("?" + urlencode(q)) if q else ""
+        else:
+            body = params
+        status, out = self._http(verb, path, body, {"authorization": f"Bearer {self.token}"})
+        if status >= 400:
+            detail = out.get("detail") if isinstance(out, dict) else None
+            raise ServiceError(-32004, str(detail or f"{self.spec['app']} answered {status}"))
+        return out
 
 
 def portal_root() -> Path:
@@ -70,6 +170,7 @@ class Extension:
     kind: str = ""
     description: str = ""
     permissions: list[str] = field(default_factory=list)
+    services: list[str] = field(default_factory=list)
     entry_ui: str = ""
     panels: list[dict] = field(default_factory=list)
     commands: list[dict] = field(default_factory=list)
@@ -85,6 +186,7 @@ class Extension:
             "source": self.source,
             "description": self.description,
             "permissions": self.permissions,
+            "services": self.services,
             "base": f"{base}/{self.id}/{self.version}/",
             "entryUi": self.entry_ui,
             "panels": self.panels,
@@ -138,6 +240,12 @@ def check(ext: Extension, product: str, app_version: str, app_name: str) -> Exte
     if not isinstance(perms, list) or any(p not in PERMISSIONS for p in perms):
         return refuse("it asks for a permission that does not exist")
     ext.permissions = list(dict.fromkeys(perms))
+    services = manifest.get("services") or []
+    if not isinstance(services, list) or any(s not in SERVICES for s in services):
+        return refuse("it asks for a family service that is not in the catalog")
+    if services and "fcite.addon" not in ext.permissions:
+        return refuse("it names family services without the fcite.addon permission")
+    ext.services = list(dict.fromkeys(services))
     minimum = manifest.get("minimum_app")
     if minimum and version_tuple(str(minimum)) > version_tuple(app_version):
         return refuse(f"it needs {app_name} {minimum} or newer")

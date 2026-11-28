@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.12.1 · 2026-11-27
+
+A host now finds a running FormCite by itself, and the contract says plainly what an older host does.
+
+- **Fixed:** the Python host looked for FormCite only on port 8330. FormCite's desktop app takes a new port each time it opens and writes it to `engine.json` in its data folder. `FamilyService` now uses, in order, the port it is given, the port in that file (`FORMCITE_DATA_DIR`, else `~/FormCite`), then 8330. A missing or unreadable file is skipped.
+- **Changed, contract section 6a:** a 0.11.0 host refuses a package that asks for `fcite.addon`, so that package never reaches the bridge and never sees `-32601`. Only a package that does not ask for it sees `-32601` from an older bridge. API 1 cannot mark a permission optional, so an author who needs both hosts ships two builds.
+- **Manual:** Preview always answers `fcite.call` from a simulated library. The manual now says how a real host reaches a real FormCite: the consent sentence, `pair()`, the approval in FormCite's Connections view, `collect()`, then `call()`.
+- Checked here, on Linux: joined to a real FormCite 0.13.9 engine through the host bridge and `FamilyService`, the `hello` example showed one found title after the host's consent and the approval in FormCite; `-32001` with the permission off; `-32601` from the 0.11.0 bridge; `-32004` after access was removed in FormCite and `-32003` after a pairing was denied. `FamilyService` found an engine on port 8963 from `engine.json` with no port given, and fell back to 8330 when the file was missing, broken or held a port that was not a whole number.
+- Not run for this version: `./formext test`; form.ext's own window; anything on macOS or Windows.
+
+## v0.12.0 · 2026-11-27
+
+An extension can ask FormCite for sources through the host app.
+
+- **New optional contract call:** `fcite.call { service, method, params? }`, under the new permission `fcite.addon`. A package names the services it wants in a new `services` field, and the person is asked once per service: "Let {Name} search, cite and add to your FormCite library?". The one service in the catalog is `formcite`, with `search`, `get`, `cite`, `bibliography`, `add` and `import`.
+- **Who makes the request:** the host app, never the extension's frame. The host may reach `127.0.0.1` for a cataloged service only; the extension never sees an address or a token, and `net.fetch` stays https only.
+- **Answers a caller can rely on:** `-32001` when the permission or the service was not granted, `-32601` from a host that predates the call, `-32602` for an unknown service or method, `-32003` when FormCite is not running or has not approved the app, `-32004` with FormCite's own reason when it refuses.
+- **Product ids:** `formtxt`, `formcel` and `formcite` are accepted in a manifest.
+- **Preview:** carries a simulated FormCite, and the `hello` example searches it. Setting the local storage key `formext.sim.olderHost` to `1` makes Preview behave as an older host.
+- Checked here, on Linux, in a built copy: `hello` showed one found title when allowed, `-32001` with the permission turned off, and `-32601` as an older host. `formpkg.py validate` accepted `hello` and refused an unknown service id.
+- Not run for this version: `./formext test`, so it is not known whether an existing case needs the new schema values. A real, approved FormCite search through the Python host stopped at the pairing step, which needs a person to approve it in FormCite. The browser demo in `demo/` was not rebuilt. The desktop shell was not compiled. The kit in `contract/` has not been copied to the other Form apps or the registry.
+
 ## v0.11.0 · 2026-11-23
 
 form.ext has a full test suite.
