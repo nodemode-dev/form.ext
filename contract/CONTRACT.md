@@ -187,7 +187,8 @@ Rules:
 - The extension never sees a url or a token. The host pairs with the service as an app would (FormCite: `POST /api/cite/v1/pair` with the host's own product id and name, approved by the person in FormCite's Connections view) and keeps the token itself.
 - The package names the services it wants in `services` (for example `["formcite"]`) beside the `fcite.addon` permission. A call to a service the package did not name, or that the person did not allow, is -32001.
 - When the service's app is not running or not yet paired, the call is -32003 with a plain sentence ("FormCite is not running on this computer", "FormCite has not approved this app yet"). An answer from the service that is not a success is -32004 with the service's own `detail`.
-- An older host does not know the method and answers -32601; an extension shows its own words for that and keeps working.
+- An older host (form.ext 0.11.0 and before) does two things, and they come in this order. Its package check (`check` in `formext_host.py`, and every port of it) refuses any package whose `permissions` names `fcite.addon`, with the reason "it asks for a permission that does not exist": such a package is never loaded there, so it never reaches the bridge. Its bridge does not know `fcite.call` and answers -32601; only a package that does not ask for `fcite.addon` can see that answer.
+- API 1 has no way to mark a permission optional: `permissions` is one list, and 0.11.0 refuses any name it does not know, while it ignores fields it does not know (such as `services`). An extension that must load on both ships two builds of the package: one that asks for `fcite.addon` and names `services`, for hosts from 0.12.0, and one without either, for older hosts. The code can be the same in both: it calls `fcite.call` and, on -32601 (older host) or -32001 (not allowed), shows its own words and keeps working.
 
 ## 7. Permissions and consent
 
@@ -233,4 +234,4 @@ A Rust or Go host ports `formext_host.py` line for line and keeps its messages.
 
 ## 10. Versions
 
-API 1 is this document. A host reports `api: "1"` in `host.hello`. Anything new is added to API 1 only when it is optional and an older host can answer -32601. `fcite.call`, the `fcite.addon` permission and the `services` field are such an addition (form.ext 0.12.0): a package that does not ask for `fcite.addon` is unaffected.
+API 1 is this document. A host reports `api: "1"` in `host.hello`. Anything new is added to API 1 only when it is optional and an older host can answer -32601. `fcite.call`, the `fcite.addon` permission and the `services` field are such an addition (form.ext 0.12.0): a package that does not ask for `fcite.addon` is unaffected, and one that does is refused by an older host's package check (section 6a), so it loads only on hosts from 0.12.0.
