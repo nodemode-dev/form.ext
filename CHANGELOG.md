@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.12.1 · 2026-11-27
+
+A host now finds a running FormCite by itself, and the contract says plainly what an older host does.
+
+- **Fixed:** the Python host looked for FormCite only on port 8330. FormCite's desktop app takes a new port each time it opens and writes it to `engine.json` in its data folder. `FamilyService` now uses, in order, the port it is given, the port in that file (`FORMCITE_DATA_DIR`, else `~/FormCite`), then 8330. A missing or unreadable file is skipped.
+- **Changed, contract section 6a:** a 0.11.0 host refuses a package that asks for `fcite.addon`, so that package never reaches the bridge and never sees `-32601`. Only a package that does not ask for it sees `-32601` from an older bridge. API 1 cannot mark a permission optional, so an author who needs both hosts ships two builds.
+- **Manual:** Preview always answers `fcite.call` from a simulated library. The manual now says how a real host reaches a real FormCite: the consent sentence, `pair()`, the approval in FormCite's Connections view, `collect()`, then `call()`.
+- Checked here, on Linux: joined to a real FormCite 0.13.9 engine through the host bridge and `FamilyService`, the `hello` example showed one found title after the host's consent and the approval in FormCite; `-32001` with the permission off; `-32601` from the 0.11.0 bridge; `-32004` after access was removed in FormCite and `-32003` after a pairing was denied. `FamilyService` found an engine on port 8963 from `engine.json` with no port given, and fell back to 8330 when the file was missing, broken or held a port that was not a whole number.
+- Not run for this version: `./formext test`; form.ext's own window; anything on macOS or Windows.
+
 ## v0.12.0 · 2026-11-27
 
 An extension can ask FormCite for sources through the host app.
