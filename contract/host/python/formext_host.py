@@ -39,6 +39,8 @@ SERVICES = {
     "formcite": {
         "app": "FormCite",
         "port_file": "engine.json",
+        "data_env": "FORMCITE_DATA_DIR",
+        "data_dir": "~/FormCite",
         "port": 8330,
         "prefix": "/api/cite/v1",
         "methods": {
@@ -65,7 +67,18 @@ class FamilyService:
             raise ServiceError(-32602, f"{service} is not a family service")
         self.spec = SERVICES[service]
         self.host, self.name, self.token = host, name, token
-        self.port = int(port or self.spec["port"])
+        self.port = int(port or self.discover() or self.spec["port"])
+
+    def discover(self) -> int | None:
+        raw = os.environ.get(self.spec["data_env"], "").strip()
+        for folder in [Path(raw).expanduser()] * bool(raw) + [Path(self.spec["data_dir"]).expanduser()]:
+            try:
+                found = json.loads((folder / self.spec["port_file"]).read_text("utf-8")).get("port")
+            except (OSError, ValueError, AttributeError):
+                continue
+            if type(found) is int and 0 < found < 65536:
+                return found
+        return None
 
     def _http(self, method: str, path: str, body: dict | None = None, headers: dict | None = None) -> tuple[int, dict]:
         import http.client
